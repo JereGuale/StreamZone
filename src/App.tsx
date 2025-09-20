@@ -87,14 +87,20 @@ function Badge({ children, isDark }: { children: React.ReactNode; isDark: boolea
 
 function ServiceCard({ s, onReserve, isDark }:{ s:any; onReserve:(s:any)=>void; isDark:boolean; }){
   return (
-    <div className={`group rounded-2xl border p-4 shadow-sm transition hover:shadow-md ${tv(isDark,'border-zinc-200 bg-white/70','border-zinc-800 bg-zinc-900/70')}`}> 
-      <div className="flex items-center gap-3">
-        <div className={`h-12 w-12 ${s.color} rounded-xl text-white grid place-content-center text-lg font-bold`}>{s.logo}</div>
-        <div className="flex-1">
-          <div className={tv(isDark,'text-zinc-900 font-semibold','text-white font-semibold')}>{s.name}</div>
-          <div className={tv(isDark,'text-sm text-zinc-600','text-sm text-zinc-300')}>{fmt(s.price)} / {s.billing==='annual'? 'año':'mes'}</div>
+    <div className={`group rounded-2xl border p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 ${tv(isDark,'border-zinc-200 bg-white','border-zinc-700 bg-zinc-800')}`}> 
+      <div className="text-center">
+        <div className={`h-16 w-16 ${s.color} rounded-2xl text-white grid place-content-center text-2xl font-bold mx-auto mb-4 shadow-lg`}>{s.logo}</div>
+        <div className="mb-4">
+          <div className={tv(isDark,'text-zinc-900 font-bold text-lg mb-2','text-white font-bold text-lg mb-2')}>{s.name}</div>
+          <div className={tv(isDark,'text-2xl font-bold text-zinc-700','text-2xl font-bold text-zinc-200')}>{fmt(s.price)}</div>
+          <div className={tv(isDark,'text-sm text-zinc-500','text-sm text-zinc-400')}>por {s.billing==='annual'? 'año':'mes'}</div>
         </div>
-        <button onClick={()=>onReserve(s)} className={tv(isDark,'rounded-xl bg-zinc-900 text-white px-3 py-2 text-sm hover:bg-zinc-800','rounded-xl bg-white text-zinc-900 px-3 py-2 text-sm hover:bg-zinc-200')}>Reservar</button>
+        <button 
+          onClick={()=>onReserve(s)} 
+          className={`w-full rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${tv(isDark,'bg-zinc-900 text-white hover:bg-zinc-800 hover:shadow-lg','bg-white text-zinc-900 hover:bg-zinc-100 hover:shadow-lg')}`}
+        >
+          Reservar Ahora
+        </button>
       </div>
     </div>
   );
@@ -103,11 +109,16 @@ function ServiceCard({ s, onReserve, isDark }:{ s:any; onReserve:(s:any)=>void; 
 function Modal({ open, onClose, children, title, isDark }:{ open:boolean; onClose:()=>void; children:React.ReactNode; title:string; isDark:boolean; }){
   if(!open) return null;
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={onClose}>
-      <div className={`w-full max-w-lg rounded-2xl p-6 shadow-xl ${tv(isDark,'bg-white','bg-zinc-900')}`} onClick={e=>e.stopPropagation()}>
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">{title}</h3>
-          <button onClick={onClose} className={tv(isDark,'text-zinc-500 hover:text-zinc-700','text-zinc-300 hover:text-zinc-200')}>x</button>
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={onClose}>
+      <div className={`w-full max-w-lg rounded-2xl p-6 shadow-2xl ${tv(isDark,'bg-white','bg-zinc-900')}`} onClick={e=>e.stopPropagation()}>
+        <div className="mb-6 flex items-center justify-between">
+          <h3 className="text-xl font-bold">{title}</h3>
+          <button 
+            onClick={onClose} 
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold transition-colors ${tv(isDark,'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100','text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800')}`}
+          >
+            ×
+          </button>
         </div>
         {children}
       </div>
@@ -215,64 +226,89 @@ export default function App(){
   return (
     <div className={`min-h-screen ${tv(isDark,'bg-zinc-50 text-zinc-900','bg-zinc-950 text-zinc-100')}`}>
       {/* Navbar */}
-      {/* Navbar */}
-          <header className={`sticky top-0 z-30 border-b backdrop-blur ${tv(isDark,'bg-white/80 border-zinc-200','bg-zinc-950/70 border-zinc-800')}`}>
-            <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Logo className="h-9 w-9" />
-                <div className="font-semibold">StreamZone</div>
-                <Badge isDark={isDark}>Seguridad y confianza</Badge>
-              </div>
-              <nav className="flex items-center gap-2">
-                {/* tus botones */}
-              </nav>
-            </div>
-            </header>
+      <header className={`sticky top-0 z-30 border-b backdrop-blur ${tv(isDark,'bg-white/80 border-zinc-200','bg-zinc-950/70 border-zinc-800')}`}>
+        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Logo className="h-9 w-9" />
+            <div className="font-semibold">StreamZone</div>
+            <Badge isDark={isDark}>Seguridad y confianza</Badge>
+          </div>
+          <nav className="flex items-center gap-2">
+            {/* Botón de inicio */}
+            <button
+              onClick={() => setView('home')}
+              className={tv(
+                isDark,
+                'rounded-xl bg-zinc-100 px-3 py-1.5 text-sm hover:bg-zinc-200',
+                'rounded-xl bg-zinc-800 px-3 py-1.5 text-sm hover:bg-zinc-700'
+              )}
+            >
+              Inicio
+            </button>
 
-  <header>
-  <div>
-    <nav>
-      {user ? (
-        <button
-          onClick={logoutUser}
-          className={tv(
-            isDark,
-            'rounded-xl bg-zinc-100 px-3 py-1.5 text-sm',
-            'rounded-xl bg-zinc-800 px-3 py-1.5 text-sm'
-          )}
-        >
-          Cerrar sesión
-        </button>
-      ) : (
-        <button
-          onClick={() => setView('register')}
-          className={tv(
-            isDark,
-            'rounded-xl bg-zinc-100 px-3 py-1.5 text-sm',
-            'rounded-xl bg-zinc-800 px-3 py-1.5 text-sm'
-          )}
-        >
-          Registrarme
-        </button>
-        
-      )}
+            {/* Botón de catálogo */}
+            <button
+              onClick={() => setView('home')}
+              className={tv(
+                isDark,
+                'rounded-xl bg-zinc-100 px-3 py-1.5 text-sm hover:bg-zinc-200',
+                'rounded-xl bg-zinc-800 px-3 py-1.5 text-sm hover:bg-zinc-700'
+              )}
+            >
+              Catálogo
+            </button>
 
-      {adminLogged && view !== 'admin' && (
-        <button
-          onClick={() => setMenuOpen(true)}
-          className={tv(
-            isDark,
-            'rounded-xl bg-zinc-900 text-white px-3 py-1.5 text-sm',
-            'rounded-xl bg-white text-zinc-900 px-3 py-1.5 text-sm'
-          )}
+            {/* Botón de mis compras */}
+            <button
+              onClick={goPurchases}
+              className={tv(
+                isDark,
+                'rounded-xl bg-zinc-100 px-3 py-1.5 text-sm hover:bg-zinc-200',
+                'rounded-xl bg-zinc-800 px-3 py-1.5 text-sm hover:bg-zinc-700'
+              )}
+            >
+              Mis Compras
+            </button>
 
-        >
-          Menú
-        </button>
-      )}
-    </nav>
-  </div>
-</header>
+            {/* Botón de registro/login */}
+            {user ? (
+              <button
+                onClick={logoutUser}
+                className={tv(
+                  isDark,
+                  'rounded-xl bg-red-100 text-red-700 px-3 py-1.5 text-sm hover:bg-red-200',
+                  'rounded-xl bg-red-800 text-red-100 px-3 py-1.5 text-sm hover:bg-red-700'
+                )}
+              >
+                Cerrar sesión
+              </button>
+            ) : (
+              <button
+                onClick={() => setView('register')}
+                className={tv(
+                  isDark,
+                  'rounded-xl bg-blue-100 text-blue-700 px-3 py-1.5 text-sm hover:bg-blue-200',
+                  'rounded-xl bg-blue-800 text-blue-100 px-3 py-1.5 text-sm hover:bg-blue-700'
+                )}
+              >
+                Registrarme
+              </button>
+            )}
+
+            {/* Botón de admin */}
+            <button
+              onClick={goAdmin}
+              className={tv(
+                isDark,
+                'rounded-xl bg-zinc-900 text-white px-3 py-1.5 text-sm hover:bg-zinc-800',
+                'rounded-xl bg-white text-zinc-900 px-3 py-1.5 text-sm hover:bg-zinc-200'
+              )}
+            >
+              {adminLogged ? 'Admin' : 'Login Admin'}
+            </button>
+          </nav>
+        </div>
+      </header>
 
 
       {/* HOME */}
@@ -300,9 +336,14 @@ export default function App(){
             <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700" />
           </section>
 
-          <section id="catalogo" className="mx-auto max-w-6xl px-4 pb-10">
-            <h2 className="text-xl font-semibold mb-4">Catálogo</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <section id="catalogo" className="mx-auto max-w-6xl px-4 pb-16">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-4">Nuestro Catálogo</h2>
+              <p className={tv(isDark,'text-zinc-600 text-lg','text-zinc-300 text-lg')}>
+                Descubre todas las plataformas de streaming disponibles
+              </p>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {SERVICES.map(s=> <ServiceCard key={s.id} s={s} onReserve={onReserve} isDark={isDark}/>) }
             </div>
           </section>
@@ -313,12 +354,22 @@ export default function App(){
       {view==='register' && (
         <section className="min-h-[80vh] relative">
           <div className="absolute inset-0 -z-10" style={{backgroundImage:"url(/img/bg-cinema.jpg)", backgroundSize:'cover', backgroundPosition:'center'}} />
-          <div className="absolute inset-0 -z-0 bg-black/50" />
-          <div className="mx-auto max-w-md px-4 py-16">
-            <div className={tv(isDark,'rounded-2xl bg-white/90 p-6 shadow-xl','rounded-2xl bg-zinc-900/90 p-6 shadow-xl text-zinc-100')}>
-              <h3 className="text-xl font-semibold mb-2">Crear cuenta</h3>
-              <p className="text-sm opacity-80 mb-4">Regístrate para guardar tus compras y ver el estado.</p>
+          <div className="absolute inset-0 -z-0 bg-black/60" />
+          <div className="relative z-10 mx-auto max-w-md px-4 py-16">
+            <div className={tv(isDark,'rounded-3xl bg-white/95 p-8 shadow-2xl','rounded-3xl bg-zinc-900/95 p-8 shadow-2xl text-zinc-100')}>
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold mb-2">Crear cuenta</h3>
+                <p className="text-sm opacity-80">Regístrate para guardar tus compras y ver el estado</p>
+              </div>
               <UserRegisterForm isDark={isDark} onSubmit={(profile)=>{ setUser(profile); setView('home'); }} />
+              <div className="mt-6 text-center">
+                <button 
+                  onClick={() => setView('home')}
+                  className={tv(isDark,'text-zinc-500 hover:text-zinc-700 text-sm','text-zinc-400 hover:text-zinc-200 text-sm')}
+                >
+                  ← Volver al inicio
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -327,30 +378,83 @@ export default function App(){
       {/* MIS COMPRAS */}
       {view==='purchases' && (
         <section className="mx-auto max-w-6xl px-4 pb-16">
-          <h3 className="text-lg font-semibold mb-3">Mis compras</h3>
-          <div className={`overflow-x-auto rounded-2xl border ${tv(isDark,'border-zinc-200','border-zinc-800')}`}> 
-            <table className="w-full text-sm">
-              <thead className={tv(isDark,'bg-zinc-50 text-zinc-700','bg-zinc-900 text-zinc-300')}>
-                <tr><th className="p-3 text-left">Servicio</th><th className="p-3 text-left">Inicio</th><th className="p-3 text-left">Fin</th><th className="p-3 text-left">Estado</th></tr>
-              </thead>
-              <tbody>
-                {ownPurchases(purchases,user).length===0 && (<tr><td className="p-4" colSpan={4}>Aún no tienes compras validadas asociadas a tu cuenta.</td></tr>)}
-                {ownPurchases(purchases,user).map(p=>{ const days=daysBetween(new Date().toISOString().slice(0,10),p.end); const status=days<0?'Vencido':days===0?'Vence hoy':`${days} dias`; return (
-                  <tr key={p.id} className={tv(isDark,'border-t','border-t border-zinc-800')}>
-                    <td className="p-3">{p.service}</td><td className="p-3">{p.start}</td><td className="p-3">{p.end}</td><td className="p-3">{status}</td>
-                  </tr> ); })}
-              </tbody>
-            </table>
+          <div className="mb-8">
+            <h3 className="text-3xl font-bold mb-2">Mis Compras</h3>
+            <p className={tv(isDark,'text-zinc-600','text-zinc-300')}>Gestiona y revisa el estado de tus servicios</p>
           </div>
+          
+          {ownPurchases(purchases,user).length===0 ? (
+            <div className={`text-center py-16 rounded-2xl border-2 border-dashed ${tv(isDark,'border-zinc-200 bg-zinc-50','border-zinc-700 bg-zinc-800')}`}>
+              <div className="text-6xl mb-4">📦</div>
+              <h4 className="text-xl font-semibold mb-2">No tienes compras aún</h4>
+              <p className={tv(isDark,'text-zinc-600','text-zinc-400')}>Explora nuestro catálogo y reserva tu primer servicio</p>
+              <button 
+                onClick={() => setView('home')}
+                className={tv(isDark,'mt-4 rounded-xl bg-zinc-900 text-white px-6 py-3','mt-4 rounded-xl bg-white text-zinc-900 px-6 py-3')}
+              >
+                Ver Catálogo
+              </button>
+            </div>
+          ) : (
+            <div className={`overflow-x-auto rounded-2xl border ${tv(isDark,'border-zinc-200 bg-white','border-zinc-700 bg-zinc-800')}`}> 
+              <table className="w-full text-sm">
+                <thead className={tv(isDark,'bg-zinc-50 text-zinc-700','bg-zinc-900 text-zinc-300')}>
+                  <tr>
+                    <th className="p-4 text-left font-semibold">Servicio</th>
+                    <th className="p-4 text-left font-semibold">Inicio</th>
+                    <th className="p-4 text-left font-semibold">Fin</th>
+                    <th className="p-4 text-left font-semibold">Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ownPurchases(purchases,user).map(p=>{ 
+                    const days=daysBetween(new Date().toISOString().slice(0,10),p.end); 
+                    const status=days<0?'Vencido':days===0?'Vence hoy':`${days} días restantes`; 
+                    return (
+                      <tr key={p.id} className={tv(isDark,'border-t border-zinc-200','border-t border-zinc-700')}>
+                        <td className="p-4 font-medium">{p.service}</td>
+                        <td className="p-4">{p.start}</td>
+                        <td className="p-4">{p.end}</td>
+                        <td className="p-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            days < 0 ? 'bg-red-100 text-red-800' : 
+                            days === 0 ? 'bg-yellow-100 text-yellow-800' : 
+                            'bg-green-100 text-green-800'
+                          }`}>
+                            {status}
+                          </span>
+                        </td>
+                      </tr> 
+                    ); 
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
       )}
 
       {/* LOGIN ADMIN */}
       {view==='adminLogin' && (
-        <section className="min-h-[70vh] grid place-items-center">
-          <div className={tv(isDark,'w-full max-w-md rounded-2xl bg-white p-6 shadow-xl','w-full max-w-md rounded-2xl bg-zinc-900 p-6 shadow-xl')}>
-            <h3 className="text-xl font-semibold mb-2">Acceso administrador</h3>
-            <AdminLoginForm isDark={isDark} adminEmails={adminEmails} onLogin={(ok)=>{ if(ok){ setAdminLogged(true); setView('admin'); setAdminSub('dashboard'); } }} />
+        <section className="min-h-[80vh] relative">
+          <div className="absolute inset-0 -z-10" style={{backgroundImage:"url(/img/bg-cinema.jpg)", backgroundSize:'cover', backgroundPosition:'center'}} />
+          <div className="absolute inset-0 -z-0 bg-black/60" />
+          <div className="relative z-10 min-h-[80vh] grid place-items-center">
+            <div className={tv(isDark,'w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl','w-full max-w-md rounded-3xl bg-zinc-900/95 p-8 shadow-2xl')}>
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold mb-2">Acceso Administrador</h3>
+                <p className="text-sm opacity-80">Ingresa tus credenciales para acceder al panel</p>
+              </div>
+              <AdminLoginForm isDark={isDark} adminEmails={adminEmails} onLogin={(ok)=>{ if(ok){ setAdminLogged(true); setView('admin'); setAdminSub('dashboard'); } }} />
+              <div className="mt-6 text-center">
+                <button 
+                  onClick={() => setView('home')}
+                  className={tv(isDark,'text-zinc-500 hover:text-zinc-700 text-sm','text-zinc-400 hover:text-zinc-200 text-sm')}
+                >
+                  ← Volver al inicio
+                </button>
+              </div>
+            </div>
           </div>
         </section>
       )}
@@ -358,30 +462,100 @@ export default function App(){
       {/* ADMIN */}
       {view==='admin' && (
         <section className="mx-auto max-w-6xl px-4 pb-16">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Panel del administrador</h3>
-            <div className="flex items-center gap-2">
-              <Badge isDark={isDark}>{dueToday.length} vencen hoy</Badge>
-              <button onClick={()=>setMenuOpen(true)} className={tv(isDark,'rounded-xl bg-zinc-900 text-white px-3 py-1.5 text-sm','rounded-xl bg-white text-zinc-900 px-3 py-1.5 text-sm')}>Menú</button>
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-3xl font-bold">Panel Administrador</h3>
+                <p className={tv(isDark,'text-zinc-600','text-zinc-300')}>Gestiona compras, administradores y configuración</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge isDark={isDark}>
+                  {dueToday.length} vencen hoy
+                </Badge>
+                <button 
+                  onClick={()=>setMenuOpen(true)} 
+                  className={tv(isDark,'rounded-xl bg-zinc-900 text-white px-4 py-2 text-sm hover:bg-zinc-800','rounded-xl bg-white text-zinc-900 px-4 py-2 text-sm hover:bg-zinc-100')}
+                >
+                  ☰ Menú
+                </button>
+                <button 
+                  onClick={() => setView('home')}
+                  className={tv(isDark,'rounded-xl bg-zinc-100 text-zinc-700 px-4 py-2 text-sm hover:bg-zinc-200','rounded-xl bg-zinc-800 text-zinc-200 px-4 py-2 text-sm hover:bg-zinc-700')}
+                >
+                  ← Inicio
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* DASHBOARD minimalista */}
+          {/* DASHBOARD mejorado */}
           {adminSub==='dashboard' && (
             <>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className={`rounded-2xl p-4 ${tv(isDark,'bg-white','bg-zinc-900')}`}><div className="text-xs opacity-60">Compras totales</div><div className="text-2xl font-bold">{purchases.length}</div></div>
-                <div className={`rounded-2xl p-4 ${tv(isDark,'bg-white','bg-zinc-900')}`}><div className="text-xs opacity-60">Pendientes</div><div className="text-2xl font-bold">{purchases.filter(p=>!p.validated).length}</div></div>
-                <div className={`rounded-2xl p-4 ${tv(isDark,'bg-white','bg-zinc-900')}`}><div className="text-xs opacity-60">Validadas</div><div className="text-2xl font-bold">{purchases.filter(p=>p.validated).length}</div></div>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+                <div className={`rounded-2xl p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium text-zinc-500 mb-1">Total Compras</div>
+                      <div className="text-3xl font-bold">{purchases.length}</div>
+                    </div>
+                    <div className="text-3xl">📊</div>
+                  </div>
+                </div>
+                <div className={`rounded-2xl p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium text-zinc-500 mb-1">Pendientes</div>
+                      <div className="text-3xl font-bold text-amber-600">{purchases.filter(p=>!p.validated).length}</div>
+                    </div>
+                    <div className="text-3xl">⏳</div>
+                  </div>
+                </div>
+                <div className={`rounded-2xl p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium text-zinc-500 mb-1">Validadas</div>
+                      <div className="text-3xl font-bold text-green-600">{purchases.filter(p=>p.validated).length}</div>
+                    </div>
+                    <div className="text-3xl">✅</div>
+                  </div>
+                </div>
+                <div className={`rounded-2xl p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium text-zinc-500 mb-1">Vencen Hoy</div>
+                      <div className="text-3xl font-bold text-red-600">{dueToday.length}</div>
+                    </div>
+                    <div className="text-3xl">⚠️</div>
+                  </div>
+                </div>
               </div>
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                <button onClick={()=>setAdminSub('purchases')} className={tv(isDark,'rounded-2xl bg-zinc-900 text-white p-5 text-left','rounded-2xl bg-white text-zinc-900 p-5 text-left')}>
-                  <div className="text-lg font-semibold">Ver compras</div>
-                  <div className="text-sm opacity-70">Revisa, valida y notifica por WhatsApp.</div>
+              
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <button 
+                  onClick={()=>setAdminSub('purchases')} 
+                  className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
+                >
+                  <div className="text-2xl mb-2">🛒</div>
+                  <div className="text-xl font-bold mb-2">Gestionar Compras</div>
+                  <div className="text-sm opacity-70">Revisa, valida y notifica por WhatsApp</div>
                 </button>
-                <button onClick={()=>setDrawerOpen(true)} className={tv(isDark,'rounded-2xl bg-zinc-900 text-white p-5 text-left','rounded-2xl bg-white text-zinc-900 p-5 text-left')}>
-                  <div className="text-lg font-semibold">Administradores</div>
-                  <div className="text-sm opacity-70">Agregar o quitar correos con acceso.</div>
+                
+                <button 
+                  onClick={()=>setDrawerOpen(true)} 
+                  className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
+                >
+                  <div className="text-2xl mb-2">👥</div>
+                  <div className="text-xl font-bold mb-2">Administradores</div>
+                  <div className="text-sm opacity-70">Agregar o quitar correos con acceso</div>
+                </button>
+                
+                <button 
+                  onClick={exportCSV} 
+                  className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
+                >
+                  <div className="text-2xl mb-2">📊</div>
+                  <div className="text-xl font-bold mb-2">Exportar Datos</div>
+                  <div className="text-sm opacity-70">Descargar reporte en formato CSV</div>
                 </button>
               </div>
             </>
@@ -499,26 +673,55 @@ function AdminDrawer({ open, onClose, isDark, adminEmails, setAdminEmails }:{ op
   if(!open) return null;
   return (
     <div className="fixed inset-0 z-50" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/40"/>
-      <aside className={`absolute right-0 top-0 h-full w-[320px] p-5 shadow-xl ${tv(isDark,'bg-white','bg-zinc-900 text-zinc-100')}`} onClick={e=>e.stopPropagation()}>
-        <div className="mb-4 flex items-center justify-between">
-          <h4 className="text-lg font-semibold">Administradores</h4>
-          <button onClick={onClose} className={tv(isDark,'text-zinc-600 hover:text-zinc-800','text-zinc-300 hover:text-zinc-100')}>✕</button>
+      <div className="absolute inset-0 bg-black/50"/>
+      <aside className={`absolute right-0 top-0 h-full w-[380px] p-6 shadow-2xl ${tv(isDark,'bg-white','bg-zinc-900 text-zinc-100')}`} onClick={e=>e.stopPropagation()}>
+        <div className="mb-6 flex items-center justify-between">
+          <h4 className="text-xl font-bold">👥 Administradores</h4>
+          <button 
+            onClick={onClose} 
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold transition-colors ${tv(isDark,'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100','text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800')}`}
+          >
+            ×
+          </button>
         </div>
-        <p className={tv(isDark,'text-sm text-zinc-600','text-sm text-zinc-300')}>Los correos aquí listados podrán iniciar sesión como admin.</p>
-        <div className="mt-4 flex gap-2">
-          <input value={newEmail} onChange={e=>setNewEmail(e.target.value)} placeholder="nuevo@correo.com" className={`flex-1 rounded-xl border px-3 py-2 text-sm ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}/>
-          <button onClick={add} className={`rounded-xl px-3 py-2 text-sm ${tv(isDark,'bg-zinc-900 text-white','bg-white text-zinc-900')}`}>Agregar</button>
+        <p className={tv(isDark,'text-sm text-zinc-600 mb-6','text-sm text-zinc-300 mb-6')}>
+          Los correos aquí listados podrán iniciar sesión como administrador
+        </p>
+        <div className="mb-6 flex gap-2">
+          <input 
+            value={newEmail} 
+            onChange={e=>setNewEmail(e.target.value)} 
+            placeholder="nuevo@correo.com" 
+            className={`flex-1 rounded-xl border px-4 py-3 text-sm ${tv(isDark,'border-zinc-300 focus:border-zinc-500','border-zinc-700 bg-zinc-800 text-zinc-100 focus:border-zinc-500')}`}
+            onKeyDown={e => e.key === 'Enter' && add()}
+          />
+          <button 
+            onClick={add} 
+            className={`rounded-xl px-4 py-3 text-sm font-semibold ${tv(isDark,'bg-zinc-900 text-white hover:bg-zinc-800','bg-white text-zinc-900 hover:bg-zinc-100')}`}
+          >
+            Agregar
+          </button>
         </div>
-        <ul className="mt-4 space-y-2">
-          {adminEmails.map(e=> (
-            <li key={e} className={`flex items-center justify-between rounded-xl border px-3 py-2 text-sm ${tv(isDark,'border-zinc-200','border-zinc-800')}`}>
-              <span>{e}</span>
-              <button onClick={()=>remove(e)} className={tv(isDark,'rounded-md bg-zinc-200 px-2','rounded-md bg-zinc-700 px-2 text-white')}>Quitar</button>
-            </li>
-          ))}
-          {adminEmails.length===0 && <li className={tv(isDark,'text-sm text-zinc-600','text-sm text-zinc-300')}>Sin administradores.</li>}
-        </ul>
+        <div className="max-h-96 overflow-y-auto">
+          <ul className="space-y-3">
+            {adminEmails.map(e=> (
+              <li key={e} className={`flex items-center justify-between rounded-xl border p-4 ${tv(isDark,'border-zinc-200 bg-zinc-50','border-zinc-700 bg-zinc-800')}`}>
+                <span className="font-medium">{e}</span>
+                <button 
+                  onClick={()=>remove(e)} 
+                  className={`rounded-lg px-3 py-1 text-xs font-semibold ${tv(isDark,'bg-red-100 text-red-700 hover:bg-red-200','bg-red-800 text-red-100 hover:bg-red-700')}`}
+                >
+                  Quitar
+                </button>
+              </li>
+            ))}
+            {adminEmails.length===0 && (
+              <li className={`text-center py-8 text-sm ${tv(isDark,'text-zinc-500','text-zinc-400')}`}>
+                No hay administradores registrados
+              </li>
+            )}
+          </ul>
+        </div>
       </aside>
     </div>
   );
@@ -531,18 +734,65 @@ function AdminMenuDrawer({ open, onClose, isDark, setSubView, openAdmins, onExpo
   if(!open) return null;
   return (
     <div className="fixed inset-0 z-50" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/40"/>
-      <aside className={`absolute left-0 top-0 h-full w-[280px] p-5 shadow-xl ${tv(isDark,'bg-white','bg-zinc-900 text-zinc-100')}`} onClick={e=>e.stopPropagation()}>
-        <div className="mb-4 flex items-center justify-between">
-          <h4 className="text-lg font-semibold">Menú</h4>
-          <button onClick={onClose} className={tv(isDark,'text-zinc-600 hover:text-zinc-800','text-zinc-300 hover:text-zinc-100')}>✕</button>
+      <div className="absolute inset-0 bg-black/50"/>
+      <aside className={`absolute left-0 top-0 h-full w-[320px] p-6 shadow-2xl ${tv(isDark,'bg-white','bg-zinc-900 text-zinc-100')}`} onClick={e=>e.stopPropagation()}>
+        <div className="mb-6 flex items-center justify-between">
+          <h4 className="text-xl font-bold">☰ Menú Admin</h4>
+          <button 
+            onClick={onClose} 
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold transition-colors ${tv(isDark,'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100','text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800')}`}
+          >
+            ×
+          </button>
         </div>
-        <nav className="space-y-2">
-          <button onClick={()=>{setSubView('dashboard'); onClose();}} className={`w-full rounded-xl px-3 py-2 text-left ${tv(isDark,'bg-zinc-100','bg-zinc-800')}`}>Dashboard</button>
-          <button onClick={()=>{setSubView('purchases'); onClose();}} className={`w-full rounded-xl px-3 py-2 text-left ${tv(isDark,'bg-zinc-100','bg-zinc-800')}`}>Compras</button>
-          <button onClick={()=>{openAdmins(); onClose();}} className={`w-full rounded-xl px-3 py-2 text-left ${tv(isDark,'bg-zinc-100','bg-zinc-800')}`}>Administradores</button>
-          <button onClick={()=>{onExportCSV(); onClose();}} className={`w-full rounded-xl px-3 py-2 text-left ${tv(isDark,'bg-zinc-100','bg-zinc-800')}`}>Exportar CSV</button>
-          <button onClick={()=>{onLogout(); onClose();}} className={`w-full rounded-xl px-3 py-2 text-left ${tv(isDark,'bg-red-100 text-red-700','bg-red-800 text-white')}`}>Salir Admin</button>
+        <nav className="space-y-3">
+          <button 
+            onClick={()=>{setSubView('dashboard'); onClose();}} 
+            className={`w-full rounded-xl p-4 text-left transition-all hover:scale-105 ${tv(isDark,'hover:bg-zinc-100','hover:bg-zinc-800')}`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl">📊</span>
+              <span className="font-semibold">Dashboard</span>
+            </div>
+          </button>
+          <button 
+            onClick={()=>{setSubView('purchases'); onClose();}} 
+            className={`w-full rounded-xl p-4 text-left transition-all hover:scale-105 ${tv(isDark,'hover:bg-zinc-100','hover:bg-zinc-800')}`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl">🛒</span>
+              <span className="font-semibold">Gestionar Compras</span>
+            </div>
+          </button>
+          <button 
+            onClick={()=>{openAdmins(); onClose();}} 
+            className={`w-full rounded-xl p-4 text-left transition-all hover:scale-105 ${tv(isDark,'hover:bg-zinc-100','hover:bg-zinc-800')}`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl">👥</span>
+              <span className="font-semibold">Administradores</span>
+            </div>
+          </button>
+          <button 
+            onClick={()=>{onExportCSV(); onClose();}} 
+            className={`w-full rounded-xl p-4 text-left transition-all hover:scale-105 ${tv(isDark,'hover:bg-zinc-100','hover:bg-zinc-800')}`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl">📊</span>
+              <span className="font-semibold">Exportar CSV</span>
+            </div>
+          </button>
+          <div className="border-t pt-3 mt-6">
+            <button 
+              onClick={()=>{onLogout(); onClose();}} 
+              className={`w-full rounded-xl p-4 text-left transition-all hover:scale-105 ${tv(isDark,'text-red-600 hover:bg-red-50','text-red-400 hover:bg-red-900/20')}`}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🚪</span>
+                <span className="font-semibold">Cerrar Sesión</span>
+              </div>
+            </button>
+          </div>
         </nav>
       </aside>
     </div>
