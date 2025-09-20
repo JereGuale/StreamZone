@@ -169,7 +169,7 @@ function useChatbot(services: readonly any[]){
     }
     
     // Proceso de compra
-    if(/como (compro|comprar|pago|pagar|reservar|adquirir)/.test(text)) return "Para comprar: 1) Selecciona una plataforma, 2) Haz clic en 'Reservar', 3) Completa tus datos, 4) Elige método de pago, 5) Recibe acceso inmediato. ¡Es súper fácil! ¿Quieres que te guíe paso a paso?";
+    if(/como (compro|comprar|pago|pagar|reservar|adquirir)/.test(text)) return "Para comprar: 1) Selecciona una plataforma, 2) Haz clic en 'Comprar Ahora', 3) Completa tus datos, 4) Elige método de pago, 5) Recibe acceso inmediato. ¡Es súper fácil! ¿Quieres que te guíe paso a paso?";
     
     // Métodos de pago
     if(/metodo|metodos|pago|transferencia|deposito|efectivo|forma de pago|banco|paypal/.test(text)) return "Aceptamos: 🏦 Banco Pichincha (2209034638), 🏛️ Banco Guayaquil (0122407273), 🌊 Banco Pacífico (1061220256), 💳 PayPal (guale2023@outlook.com), y 📱 Pago móvil. Todos los pagos son 100% seguros. Recuerda enviar el comprobante por WhatsApp para activar tu servicio.";
@@ -214,7 +214,7 @@ function ServiceCard({ s, onReserve, isDark }:{ s:any; onReserve:(s:any)=>void; 
           onClick={()=>onReserve(s)} 
           className={`w-full rounded-xl px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-semibold transition-all duration-200 ${tv(isDark,'bg-zinc-900 text-white hover:bg-zinc-800 hover:shadow-lg','bg-white text-zinc-900 hover:bg-zinc-100 hover:shadow-lg')}`}
         >
-          Reservar Ahora
+          Comprar Ahora
         </button>
       </div>
     </div>
@@ -324,22 +324,54 @@ export default function App(){
     setPurchases(p=>[newPurchase,...p]);
     
     // Enviar notificación de WhatsApp
-    if (userProfile) {
-      const purchase: UserPurchase = {
-        id: newPurchase.id,
-        serviceId: SERVICES.find(s => s.name === rec.service)?.id || '',
-        serviceName: rec.service,
-        price: rec.total,
-        duration: rec.duration,
-        isAnnual: rec.duration > 6, // Asumir anual si es más de 6 meses
-        paymentMethod: 'pichincha',
-        notes: rec.notes,
-        status: 'pending',
-        purchaseDate: new Date().toISOString(),
-        whatsappSent: false
-      };
+    const whatsappMessage = `🎬 *CONFIRMACIÓN DE COMPRA - STREAMZONE*
+
+👤 *Cliente:* ${rec.customer}
+📱 *WhatsApp:* ${rec.phone}
+${rec.email ? `📧 *Email:* ${rec.email}` : ''}
+
+🛍️ *Servicio:* ${rec.service}
+💰 *Precio:* ${fmt(rec.total)}
+⏱️ *Duración:* ${rec.duration} ${rec.duration > 6 ? 'años' : 'meses'}
+💳 *Método:* Banco Pichincha
+${rec.notes ? `📝 *Notas:* ${rec.notes}` : ''}
+
+📅 *Fecha de compra:* ${new Date().toLocaleDateString('es-ES')}
+🆔 *ID de compra:* ${newPurchase.id}
+
+⚠️ *IMPORTANTE: Envía el comprobante de pago para activar tu servicio*
+
+📋 *Cuentas disponibles:*
+🏦 Pichincha: 2209034638 (Jeremias Guale)
+🏛️ Guayaquil: 0122407273 (Jeremias Joel Guale)
+🌊 Pacífico: 1061220256 (Byron Guale)
+💳 PayPal: guale2023@outlook.com`;
+
+    // Crear enlaces para ambos agentes
+    const agent1Link = `https://wa.me/${AGENTE_1_WHATSAPP.replace('+', '')}?text=${encodeURIComponent(whatsappMessage)}`;
+    const agent2Link = `https://wa.me/${AGENTE_2_WHATSAPP.replace('+', '')}?text=${encodeURIComponent(whatsappMessage)}`;
+    
+    // Mostrar modal con opciones de agentes
+    const confirmMessage = `¡Compra registrada exitosamente! 🎉
+
+Ahora debes enviar el comprobante de pago por WhatsApp a uno de nuestros agentes para activar tu servicio:
+
+👨‍💼 Agente 1: +593 98 428 0334
+👨‍💼 Agente 2: +593 99 879 9579
+
+¿A cuál agente quieres contactar?`;
+
+    if (confirm(confirmMessage)) {
+      // Mostrar opciones de agentes
+      const agentChoice = confirm(`Selecciona el agente:
+OK = Agente 1 (+593 98 428 0334)
+Cancelar = Agente 2 (+593 99 879 9579)`);
       
-      sendPurchaseNotification(purchase, userProfile);
+      if (agentChoice) {
+        window.open(agent1Link, '_blank');
+      } else {
+        window.open(agent2Link, '_blank');
+      }
     }
   };
 
@@ -1179,7 +1211,7 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
       <footer className={`border-t py-8 text-center text-sm ${tv(isDark,'text-zinc-500 border-zinc-200','text-zinc-400 border-zinc-800')}`}>© {new Date().getFullYear()} StreamZone</footer>
 
       {/* Reserva */}
-      <Modal open={reserveOpen} onClose={()=>setReserveOpen(false)} title={`Reservar ${selected?.name||''}`} isDark={isDark}>
+      <Modal open={reserveOpen} onClose={()=>setReserveOpen(false)} title={`Comprar ${selected?.name||''}`} isDark={isDark}>
         {selected && (
           <ReserveForm service={selected} onClose={()=>setReserveOpen(false)} onAddPurchase={addPurchase} isDark={isDark} user={user} />
         )}
