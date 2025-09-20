@@ -68,13 +68,14 @@ function Logo({ className = "h-9 w-9" }: { className?: string }){
 // ===================== Chatbot =====================
 function useChatbot(services: readonly any[]){
   const answer = (q: string) => { const text=q.toLowerCase();
-    if(/hola|buenas|hey/.test(text)) return "Hola! Soy tu asistente. Puedo darte precios, resolver dudas y ayudarte a reservar.";
-    if(/precio|cuanto|cuánto/.test(text)){ for(const s of services){ if(text.includes(s.id)||text.includes(s.name.toLowerCase())) return `El precio de ${s.name} es ${fmt(s.price)} ${s.billing==='annual'?'al año':'al mes'}. ¿Deseas reservar?`; }
-      return `Ejemplos de precios: ${services.slice(0,4).map((s:any)=>`${s.name} ${fmt(s.price)}`).join(", ")}. Dime una plataforma específica y te digo el precio exacto.`; }
-    if(/como (compro|comprar|pago|pagar|reservar)/.test(text)) return "Elige una plataforma, pulsa Reservar, completa tus datos y se abrirá WhatsApp con el pedido listo.";
-    if(/metodo|metodos|pago/.test(text)) return "Aceptamos transferencia/deposito/efectivo (personalizable).";
-    if(/garantia|soporte/.test(text)) return "Brindamos soporte durante tu periodo activo. Escríbenos por WhatsApp si tienes inconvenientes.";
-    return "Puedo conectarte con soporte por WhatsApp. Pregúntame por precios o cómo reservar.";
+    if(/hola|buenas|hey|buenos|buenas tardes|buenas noches/.test(text)) return "¡Hola! Bienvenido a StreamZone. Soy su asistente virtual y estoy aquí para brindarle información sobre nuestros servicios de streaming, precios y ayudarle con sus reservas.";
+    if(/precio|cuanto|cuánto|costo|valor/.test(text)){ for(const s of services){ if(text.includes(s.id)||text.includes(s.name.toLowerCase())) return `El precio de ${s.name} es ${fmt(s.price)} ${s.billing==='annual'?'anual':'mensual'}. ¿Le gustaría proceder con la reserva?`; }
+      return `A continuación le muestro algunos ejemplos de precios: ${services.slice(0,4).map((s:any)=>`${s.name} ${fmt(s.price)}`).join(", ")}. Por favor, especifique la plataforma de su interés para obtener el precio exacto.`; }
+    if(/como (compro|comprar|pago|pagar|reservar|adquirir)/.test(text)) return "Para realizar una reserva, seleccione la plataforma deseada, haga clic en 'Reservar', complete sus datos personales y se abrirá WhatsApp con su solicitud formal lista para enviar.";
+    if(/metodo|metodos|pago|forma de pago/.test(text)) return "Aceptamos transferencias bancarias, depósitos y pagos en efectivo. Los métodos de pago pueden personalizarse según sus necesidades.";
+    if(/garantia|soporte|ayuda|problema/.test(text)) return "Ofrecemos soporte técnico completo durante todo su período de suscripción activa. No dude en contactarnos por WhatsApp si experimenta cualquier inconveniente.";
+    if(/contacto|telefono|whatsapp/.test(text)) return "Puede contactarnos directamente por WhatsApp al +593984280334. Estamos disponibles para atenderle y resolver sus consultas.";
+    return "Estoy aquí para asistirle. Puede preguntarme sobre precios, procesos de reserva o cualquier consulta relacionada con nuestros servicios de streaming.";
   };
   return {answer};
 }
@@ -117,7 +118,7 @@ function Modal({ open, onClose, children, title, isDark }:{ open:boolean; onClos
 // === FloatingChatbot ===
 function FloatingChatbot({ answerFn, isDark }:{ answerFn:(q:string)=>string; isDark:boolean; }){
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([{ role: "bot", text: "Hola! ¿En qué te ayudo hoy?" }]);
+  const [messages, setMessages] = useState([{ role: "bot", text: "¡Hola! Bienvenido a StreamZone. ¿En qué puedo asistirle hoy?" }]);
   const [input, setInput] = useState("");
   const send = () => { const q=input.trim(); if(!q) return; const a=answerFn(q); setMessages(m=>[...m,{role:'user',text:q},{role:'bot',text:a}]); setInput(""); };
   return (<>
@@ -206,7 +207,7 @@ export default function App(){
     const rows = [['Cliente','Telefono','Servicio','Inicio','Fin','Validada']].concat(
       purchases.map(p=>[p.customer,p.phone,p.service,p.start,p.end,p.validated?'si':'no'])
     );
-    const csv = rows.map(r=>r.map(x=>`"${String(x).replaceAll('"','""')}"`).join(',')).join('\n');
+    const csv = rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
     const blob = new Blob([csv], {type:'text/csv'}); const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href=url; a.download='compras.csv'; a.click(); URL.revokeObjectURL(url);
   };
@@ -286,7 +287,7 @@ export default function App(){
                   <p className={tv(isDark,'mt-3 text-zinc-600','mt-3 text-zinc-300')}>Reserva por WhatsApp, recibe acceso con soporte inmediato y renueva sin complicaciones. Administra tus servicios desde tu cuenta.</p>
                   <div className="mt-6 flex gap-3">
                     <a href="#catalogo" className={tv(isDark,'rounded-xl bg-zinc-900 text-white px-5 py-3 text-sm','rounded-xl bg-white text-zinc-900 px-5 py-3 text-sm')}>Ver catálogo</a>
-                    <a href={whatsappLink(ADMIN_WHATSAPP,'Hola! Quiero informacion sobre las plataformas disponibles en StreamZone.')} className={tv(isDark,'rounded-xl bg-zinc-200 px-5 py-3 text-sm','rounded-xl bg-zinc-800 text-zinc-100 px-5 py-3 text-sm')} target="_blank" rel="noreferrer">WhatsApp</a>
+                    <a href={whatsappLink(ADMIN_WHATSAPP,'¡Hola! Me interesa conocer más información sobre los servicios de streaming disponibles en StreamZone. ¿Podrían brindarme detalles sobre precios y disponibilidad?')} className={tv(isDark,'rounded-xl bg-zinc-200 px-5 py-3 text-sm','rounded-xl bg-zinc-800 text-zinc-100 px-5 py-3 text-sm')} target="_blank" rel="noreferrer">WhatsApp</a>
                   </div>
                 </div>
                 <div className={`relative z-10 rounded-3xl p-6 shadow-sm backdrop-blur-md border ${tv(isDark,'bg-white/60 border-white/10','bg-zinc-900/50 border-zinc-800')}`}>
@@ -483,7 +484,7 @@ function PurchaseCard({ item, isDark, onToggleValidate, onDelete }:{ item:any; i
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <span className={`rounded-full px-2 py-0.5 text-xs ${days<=0? 'bg-rose-600 text-white':'bg-zinc-200 text-zinc-800'}`}>{status}</span>
         <button className={`${item.validated? 'bg-blue-600':'bg-emerald-600'} text-white rounded-md px-2 py-1 text-sm`} onClick={onToggleValidate}>{item.validated? 'Quitar validación':'Validar'}</button>
-        <a className="rounded-md bg-green-600 text-white px-2 py-1 text-sm" target="_blank" rel="noreferrer" href={`https://wa.me/${cleanPhone(item.phone)}?text=${encodeURIComponent('Hola '+item.customer+', tu servicio de '+item.service+' vence hoy. ¿Deseas renovarlo?')}`}>Recordatorio</a>
+        <a className="rounded-md bg-green-600 text-white px-2 py-1 text-sm" target="_blank" rel="noreferrer" href={`https://wa.me/${cleanPhone(item.phone)}?text=${encodeURIComponent('Estimado/a '+item.customer+', le informamos que su servicio de '+item.service+' vence hoy. ¿Le gustaría proceder con la renovación? Contamos con excelentes precios y soporte técnico.')}`}>Recordatorio</a>
         <button className={tv(isDark,'rounded-md bg-zinc-200 px-2 py-1 text-sm','rounded-md bg-zinc-700 px-2 py-1 text-sm text-white')} onClick={onDelete}>Eliminar</button>
       </div>
     </details>
@@ -618,14 +619,24 @@ function ReserveForm({ service, onClose, onAddPurchase, isDark, user }:{
 
   // 📌 Mensaje de WhatsApp con formato formal
   const payload = [
-    `*Reserva de ${service.name}*`,
-    `*Cliente:* ${name}`,
-    `*WhatsApp:* ${phone}`,
-    `*Inicio:* ${start}`,
-    `*Fin:* ${end}`,
-    isAnnual ? `*Años:* ${years}` : `*Meses:* ${months}`,
-    `*Total:* ${fmt(total)}`,
-    notes ? `*Notas:* ${notes}` : ''
+    `🎬 *SOLICITUD DE RESERVA - STREAMZONE*`,
+    ``,
+    `Estimado/a, le informo que deseo realizar una reserva de servicio de streaming con los siguientes datos:`,
+    ``,
+    `📺 *Servicio solicitado:* ${service.name}`,
+    `👤 *Nombre del cliente:* ${name}`,
+    `📱 *Número de WhatsApp:* ${phone}`,
+    `📅 *Fecha de inicio:* ${start}`,
+    `📅 *Fecha de finalización:* ${end}`,
+    `⏱️ *Duración:* ${isAnnual ? `${years} año(s)` : `${months} mes(es)`}`,
+    `💰 *Total a pagar:* ${fmt(total)}`,
+    ``,
+    notes ? `📝 *Notas adicionales:* ${notes}` : '',
+    ``,
+    `Agradezco su atención y quedo atento/a a su confirmación.`,
+    ``,
+    `Saludos cordiales,`,
+    `${name}`
   ].filter(Boolean).join('\n');
 
   const confirm = ()=>{
@@ -703,26 +714,6 @@ function ReserveForm({ service, onClose, onAddPurchase, isDark, user }:{
   );
 }
 
-  return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-3">
-        <div><label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>Nombre</label><input className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} value={name} onChange={e=>setName(e.target.value)} placeholder="Tu nombre"/></div>
-        <div><label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>WhatsApp</label><input className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+593..."/></div>
-      </div>
-      <div className="grid grid-cols-3 gap-3">
-        <div><label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>Inicio</label><input type="date" className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} value={start} onChange={e=>setStart(e.target.value)}/></div>
-        <div><label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>{isAnnual?'Años':'Meses'}</label>{isAnnual?(<select className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} value={years} onChange={e=>setYears(Number(e.target.value))}>{[1,2,3].map(y=> <option key={y} value={y}>{y}</option>)}</select>):(<select className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} value={months} onChange={e=>setMonths(Number(e.target.value))}>{[1,2,3,6,12].map(m=> <option key={m} value={m}>{m}</option>)}</select>)}</div>
-        <div><label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>Fin</label><input disabled className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'bg-zinc-50 border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} value={end}/></div>
-      </div>
-      <div><label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>Notas</label><textarea className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} rows={3} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Preferencias, usuario, correo, etc."/></div>
-      <div className="flex items-center justify-between pt-2">
-        <div className={tv(isDark,'text-sm text-zinc-700','text-sm text-zinc-300')}>Total: <strong>{fmt(total)}</strong></div>
-        <div className="flex gap-2"><button onClick={onClose} className={tv(isDark,'rounded-xl bg-zinc-100 px-4 py-2','rounded-xl bg-zinc-800 px-4 py-2 text-white')}>Cancelar</button><button onClick={confirm} className={tv(isDark,'rounded-xl bg-zinc-900 px-4 py-2 text-white','rounded-xl bg-white px-4 py-2 text-zinc-900')}>Confirmar por WhatsApp</button></div>
-      </div>
-    </div>
-  );
-}
-
 // ===================== Pruebas rápidas (no rompas) =====================
 (function runDevTests(){ try{
   console.assert(fmt(3.5) && typeof fmt(3.5)==='string','fmt string');
@@ -732,6 +723,3 @@ function ReserveForm({ service, onClose, onAddPurchase, isDark, user }:{
   console.assert(daysBetween(d3,dneg)===-4,'daysBetween negativo');
   console.assert(whatsappLink('123','hola')==='https://wa.me/123?text=hola','wa link');
 }catch(e){ console.warn('Self-tests failed:',e); }})();
-
-import React, { useEffect, useMemo, useState } from "react";
-
