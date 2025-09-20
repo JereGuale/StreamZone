@@ -214,14 +214,20 @@ export default function App(){
   return (
     <div className={`min-h-screen ${tv(isDark,'bg-zinc-50 text-zinc-900','bg-zinc-950 text-zinc-100')}`}>
       {/* Navbar */}
-      <header className={`sticky top-0 z-30 border-b backdrop-blur ${tv(isDark,'bg-white/80 border-zinc-200','bg-zinc-950/70 border-zinc-800')}`}>
-        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Logo className="h-9 w-9" />
-            <div className="font-semibold">StreamZone</div>
-            <Badge isDark={isDark}>Seguridad y confianza</Badge>
-          </div>
-          <nav className="flex items-center gap-2">
+      {/* Navbar */}
+          <header className={`sticky top-0 z-30 border-b backdrop-blur ${tv(isDark,'bg-white/80 border-zinc-200','bg-zinc-950/70 border-zinc-800')}`}>
+            <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Logo className="h-9 w-9" />
+                <div className="font-semibold">StreamZone</div>
+                <Badge isDark={isDark}>Seguridad y confianza</Badge>
+              </div>
+              <nav className="flex items-center gap-2">
+                {/* tus botones */}
+              </nav>
+            </div>
+            </header>
+
             <button onClick={()=>setView('home')} className={`${view==='home'? tv(isDark,'bg-zinc-900 text-white','bg-white text-zinc-900') : tv(isDark,'bg-zinc-100','bg-zinc-800')} rounded-xl px-3 py-1.5 text-sm`}>Inicio</button>
             <button onClick={goPurchases} className={`${view==='purchases'? tv(isDark,'bg-zinc-900 text-white','bg-white text-zinc-900') : tv(isDark,'bg-zinc-100','bg-zinc-800')} rounded-xl px-3 py-1.5 text-sm`}>Mis compras</button>
             <button onClick={goAdmin} className={`${view==='admin'||view==='adminLogin'? tv(isDark,'bg-zinc-900 text-white','bg-white text-zinc-900') : tv(isDark,'bg-zinc-100','bg-zinc-800')} rounded-xl px-3 py-1.5 text-sm`}>Admin</button>
@@ -549,13 +555,117 @@ function AdminLoginForm({ isDark, onLogin, adminEmails }:{ isDark:boolean; onLog
   );
 }
 
-function ReserveForm({ service, onClose, onAddPurchase, isDark, user }:{ service:any; onClose:()=>void; onAddPurchase:(p:any)=>void; isDark:boolean; user:any; }){
-  const isAnnual=service.billing==='annual';
-  const[name,setName]=useState(user?.name||''); const[phone,setPhone]=useState(user?.phone||''); const[start,setStart]=useState(new Date().toISOString().slice(0,10)); const[years,setYears]=useState(1); const[months,setMonths]=useState(1); const[notes,setNotes]=useState('');
-  const end=useMemo(()=>{ const d=new Date(start); const add=isAnnual? 12*Number(years): Number(months); d.setMonth(d.getMonth()+add); return d.toISOString().slice(0,10);},[start,months,years,isAnnual]);
-  const total=isAnnual? service.price*Number(years): service.price*Number(months);
-  const payload=`Reserva de ${service.name}%0ACliente: ${name}%0AWhatsApp: ${phone}%0AInicio: ${start}%0AFin: ${end}%0A${isAnnual?`Años: ${years}`:`Meses: ${months}`}%0ATotal: ${fmt(total)}%0ANotas: ${encodeURIComponent(notes)}`;
-  const confirm=()=>{ onAddPurchase({customer:name,phone: cleanPhone(phone),service:service.name,start,end,months:isAnnual?12*Number(years):Number(months)}); window.open(whatsappLink(ADMIN_WHATSAPP,payload),'_blank'); onClose(); };
+function ReserveForm({ service, onClose, onAddPurchase, isDark, user }:{
+  service:any;
+  onClose:()=>void;
+  onAddPurchase:(p:any)=>void;
+  isDark:boolean;
+  user:any;
+}){
+  const isAnnual = service.billing === 'annual';
+  const [name, setName] = useState(user?.name || '');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [start, setStart] = useState(new Date().toISOString().slice(0,10));
+  const [years, setYears] = useState(1);
+  const [months, setMonths] = useState(1);
+  const [notes, setNotes] = useState('');
+
+  const end = useMemo(()=>{
+    const d = new Date(start);
+    const add = isAnnual ? 12*Number(years) : Number(months);
+    d.setMonth(d.getMonth() + add);
+    return d.toISOString().slice(0,10);
+  },[start,months,years,isAnnual]);
+
+  const total = isAnnual ? service.price*Number(years) : service.price*Number(months);
+
+  // 📌 Mensaje de WhatsApp con formato formal
+  const payload = [
+    `*Reserva de ${service.name}*`,
+    `*Cliente:* ${name}`,
+    `*WhatsApp:* ${phone}`,
+    `*Inicio:* ${start}`,
+    `*Fin:* ${end}`,
+    isAnnual ? `*Años:* ${years}` : `*Meses:* ${months}`,
+    `*Total:* ${fmt(total)}`,
+    notes ? `*Notas:* ${notes}` : ''
+  ].filter(Boolean).join('\n');
+
+  const confirm = ()=>{
+    onAddPurchase({
+      customer: name,
+      phone: cleanPhone(phone),
+      service: service.name,
+      start,
+      end,
+      months: isAnnual ? 12*Number(years) : Number(months)
+    });
+    window.open(whatsappLink(ADMIN_WHATSAPP, payload), '_blank');
+    onClose();
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>Nombre</label>
+          <input className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+                 value={name} onChange={e=>setName(e.target.value)} placeholder="Tu nombre"/>
+        </div>
+        <div>
+          <label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>WhatsApp</label>
+          <input className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+                 value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+593..."/>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>Inicio</label>
+          <input type="date" className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+                 value={start} onChange={e=>setStart(e.target.value)}/>
+        </div>
+        <div>
+          <label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>{isAnnual?'Años':'Meses'}</label>
+          {isAnnual ? (
+            <select className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+                    value={years} onChange={e=>setYears(Number(e.target.value))}>
+              {[1,2,3].map(y=> <option key={y} value={y}>{y}</option>)}
+            </select>
+          ):(
+            <select className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+                    value={months} onChange={e=>setMonths(Number(e.target.value))}>
+              {[1,2,3,6,12].map(m=> <option key={m} value={m}>{m}</option>)}
+            </select>
+          )}
+        </div>
+        <div>
+          <label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>Fin</label>
+          <input disabled className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'bg-zinc-50 border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} value={end}/>
+        </div>
+      </div>
+
+      <div>
+        <label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>Notas</label>
+        <textarea className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+                  rows={3} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Preferencias, usuario, correo, etc."/>
+      </div>
+
+      <div className="flex items-center justify-between pt-2">
+        <div className={tv(isDark,'text-sm text-zinc-700','text-sm text-zinc-300')}>
+          Total: <strong>{fmt(total)}</strong>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={onClose} className={tv(isDark,'rounded-xl bg-zinc-100 px-4 py-2','rounded-xl bg-zinc-800 px-4 py-2 text-white')}>Cancelar</button>
+          <button onClick={confirm} className={tv(isDark,'rounded-xl bg-zinc-900 px-4 py-2 text-white','rounded-xl bg-white px-4 py-2 text-zinc-900')}>
+            Confirmar por WhatsApp
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
