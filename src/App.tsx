@@ -323,7 +323,7 @@ export default function App(){
     const newPurchase = {...rec,id:uid(),validated:false};
     setPurchases(p=>[newPurchase,...p]);
     
-    // Enviar notificación de WhatsApp
+    // Crear mensaje de WhatsApp
     const whatsappMessage = `🎬 *CONFIRMACIÓN DE COMPRA - STREAMZONE*
 
 👤 *Cliente:* ${rec.customer}
@@ -351,28 +351,61 @@ ${rec.notes ? `📝 *Notas:* ${rec.notes}` : ''}
     const agent1Link = `https://wa.me/${AGENTE_1_WHATSAPP.replace('+', '')}?text=${encodeURIComponent(whatsappMessage)}`;
     const agent2Link = `https://wa.me/${AGENTE_2_WHATSAPP.replace('+', '')}?text=${encodeURIComponent(whatsappMessage)}`;
     
-    // Mostrar modal con opciones de agentes
-    const confirmMessage = `¡Compra registrada exitosamente! 🎉
-
-Ahora debes enviar el comprobante de pago por WhatsApp a uno de nuestros agentes para activar tu servicio:
-
-👨‍💼 Agente 1: +593 98 428 0334
-👨‍💼 Agente 2: +593 99 879 9579
-
-¿A cuál agente quieres contactar?`;
-
-    if (confirm(confirmMessage)) {
-      // Mostrar opciones de agentes
-      const agentChoice = confirm(`Selecciona el agente:
-OK = Agente 1 (+593 98 428 0334)
-Cancelar = Agente 2 (+593 99 879 9579)`);
+    // Mostrar modal personalizado de selección de agente
+    const showAgentSelection = () => {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+      modal.innerHTML = `
+        <div class="bg-white rounded-xl p-6 max-w-md mx-4 shadow-2xl">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800">¡Compra Exitosa! 🎉</h3>
+            <button id="closeModal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+          </div>
+          <p class="text-gray-600 mb-6">Selecciona un agente para enviar tu comprobante de pago:</p>
+          <div class="space-y-3">
+            <button id="agent1" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-semibold transition-colors">
+              👨‍💼 Agente 1 (+593 98 428 0334)
+            </button>
+            <button id="agent2" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold transition-colors">
+              👨‍💼 Agente 2 (+593 99 879 9579)
+            </button>
+            <button id="cancel" class="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg font-semibold transition-colors">
+              ❌ Cancelar
+            </button>
+          </div>
+        </div>
+      `;
       
-      if (agentChoice) {
+      document.body.appendChild(modal);
+      
+      // Event listeners
+      document.getElementById('agent1')?.addEventListener('click', () => {
+        document.body.removeChild(modal);
         window.open(agent1Link, '_blank');
-      } else {
+      });
+      
+      document.getElementById('agent2')?.addEventListener('click', () => {
+        document.body.removeChild(modal);
         window.open(agent2Link, '_blank');
-      }
-    }
+      });
+      
+      document.getElementById('closeModal')?.addEventListener('click', () => {
+        document.body.removeChild(modal);
+      });
+      
+      document.getElementById('cancel')?.addEventListener('click', () => {
+        document.body.removeChild(modal);
+      });
+      
+      // Cerrar al hacer clic fuera del modal
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          document.body.removeChild(modal);
+        }
+      });
+    };
+    
+    showAgentSelection();
   };
 
   // ===================== Funciones de Compra =====================
