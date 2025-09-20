@@ -375,7 +375,7 @@ export default function App(){
   // Función para enviar notificación de compra por WhatsApp
   const sendPurchaseNotification = (purchase: UserPurchase, profile: UserProfile) => {
     const paymentMethod = PAYMENT_METHODS.find(m => m.id === purchase.paymentMethod);
-    const whatsappMessage = `🎬 *NUEVA COMPRA - STREAMZONE*
+    const whatsappMessage = `🎬 *CONFIRMACIÓN DE COMPRA - STREAMZONE*
 
 👤 *Cliente:* ${profile.name}
 📱 *WhatsApp:* ${profile.whatsapp}
@@ -390,8 +390,7 @@ ${purchase.notes ? `📝 *Notas:* ${purchase.notes}` : ''}
 📅 *Fecha de compra:* ${new Date(purchase.purchaseDate).toLocaleDateString('es-ES')}
 🆔 *ID de compra:* ${purchase.id}
 
-⚠️ *PENDIENTE DE VALIDACIÓN*
-El cliente debe enviar el comprobante de pago por WhatsApp para activar el servicio.
+⚠️ *IMPORTANTE: Envía el comprobante de pago para activar tu servicio*
 
 📋 *Cuentas disponibles:*
 🏦 Pichincha: 2209034638 (Jeremias Guale)
@@ -399,12 +398,32 @@ El cliente debe enviar el comprobante de pago por WhatsApp para activar el servi
 🌊 Pacífico: 1061220256 (Byron Guale)
 💳 PayPal: guale2023@outlook.com`;
 
-    // Enviar a ambos agentes
+    // Crear enlaces para ambos agentes
     const agent1Link = `https://wa.me/${AGENTE_1_WHATSAPP.replace('+', '')}?text=${encodeURIComponent(whatsappMessage)}`;
     const agent2Link = `https://wa.me/${AGENTE_2_WHATSAPP.replace('+', '')}?text=${encodeURIComponent(whatsappMessage)}`;
     
-    // Abrir WhatsApp del Agente 1 por defecto
-    window.open(agent1Link, '_blank');
+    // Mostrar modal con opciones de agentes
+    const confirmMessage = `¡Compra registrada exitosamente! 🎉
+
+Ahora debes enviar el comprobante de pago por WhatsApp a uno de nuestros agentes para activar tu servicio:
+
+👨‍💼 Agente 1: +593 98 428 0334
+👨‍💼 Agente 2: +593 99 879 9579
+
+¿A cuál agente quieres contactar?`;
+
+    if (confirm(confirmMessage)) {
+      // Mostrar opciones de agentes
+      const agentChoice = confirm(`Selecciona el agente:
+OK = Agente 1 (+593 98 428 0334)
+Cancelar = Agente 2 (+593 99 879 9579)`);
+      
+      if (agentChoice) {
+        window.open(agent1Link, '_blank');
+      } else {
+        window.open(agent2Link, '_blank');
+      }
+    }
     
     // Marcar como enviado
     const updatedPurchase = { ...purchase, whatsappSent: true };
