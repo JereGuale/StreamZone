@@ -38,10 +38,34 @@ const DEFAULT_ADMIN_EMAILS = ["gualejeremi@gmaill.com", "gualejeremi@gmail.com"]
 
 // Métodos de pago
 const PAYMENT_METHODS = [
-  { id: 'transfer', name: 'Transferencia Bancaria', icon: '🏦', description: 'Pago directo a cuenta bancaria' },
-  { id: 'deposit', name: 'Depósito en Efectivo', icon: '💰', description: 'Depósito en tienda o agencia' },
-  { id: 'mobile', name: 'Pago Móvil', icon: '📱', description: 'Pago desde tu teléfono móvil' },
-  { id: 'store', name: 'Pago en Tienda', icon: '🏪', description: 'Pago presencial en tienda' }
+  { 
+    id: 'pichincha', 
+    name: 'Banco Pichincha', 
+    icon: '🏦', 
+    description: 'Transferencia a cuenta de ahorro',
+    details: 'Jeremias Guale Santana\nCuenta: 2209034638\nTipo: Ahorro Transaccional'
+  },
+  { 
+    id: 'guayaquil', 
+    name: 'Banco Guayaquil', 
+    icon: '🏛️', 
+    description: 'Transferencia a cuenta de ahorros',
+    details: 'Jeremias Joel Guale Santana\nCuenta: 0122407273\nTipo: Ahorros'
+  },
+  { 
+    id: 'pacifico', 
+    name: 'Banco Pacífico', 
+    icon: '🌊', 
+    description: 'Transferencia a cuenta de ahorros',
+    details: 'Byron Guale Santana\nCuenta: 1061220256\nTipo: Ahorros'
+  },
+  { 
+    id: 'mobile', 
+    name: 'Pago Móvil', 
+    icon: '📱', 
+    description: 'Pago desde tu teléfono móvil',
+    details: 'Contacta a nuestros agentes para coordinar el pago móvil'
+  }
 ] as const;
 
 // ===================== Utilidades =====================
@@ -110,7 +134,7 @@ function useChatbot(services: readonly any[]){
     if(/como (compro|comprar|pago|pagar|reservar|adquirir)/.test(text)) return "Para comprar: 1) Selecciona una plataforma, 2) Haz clic en 'Reservar', 3) Completa tus datos, 4) Elige método de pago, 5) Recibe acceso inmediato. ¡Es súper fácil! ¿Quieres que te guíe paso a paso?";
     
     // Métodos de pago
-    if(/metodo|metodos|pago|transferencia|deposito|efectivo|forma de pago/.test(text)) return "Aceptamos: 💳 Transferencia bancaria, 💰 Depósito en efectivo, 📱 Pago móvil, 🏪 Pago en tienda. Todos los pagos son 100% seguros. ¿Cuál prefieres? Te explico cómo funciona cada uno.";
+    if(/metodo|metodos|pago|transferencia|deposito|efectivo|forma de pago|banco/.test(text)) return "Aceptamos transferencias a: 🏦 Banco Pichincha (2209034638), 🏛️ Banco Guayaquil (0122407273), 🌊 Banco Pacífico (1061220256), y 📱 Pago móvil. Todos los pagos son 100% seguros. ¿Cuál prefieres? Te doy los detalles completos.";
     
     // Contacto y agentes
     if(/contacto|whatsapp|hablar|agente|soporte|ayuda|telefono/.test(text)) return "Puedes contactar a nuestros agentes especializados: 👨‍💼 Agente 1: +593 98 428 0334 (Jeremi) 👨‍💼 Agente 2: +593 99 879 9579 (Soporte). Están disponibles para ayudarte con cualquier consulta.";
@@ -456,8 +480,15 @@ export default function App(){
                   </div>
                 </div>
                 <div className={`relative z-10 rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm backdrop-blur-md border ${tv(isDark,'bg-white/60 border-white/10','bg-zinc-900/50 border-zinc-800')}`}>
-                  <div className={tv(isDark,'text-sm md:text-base font-semibold text-zinc-700','text-sm md:text-base font-semibold text-zinc-300')}>Mi perfil</div>
-                  <p className={tv(isDark,'text-xs md:text-sm text-zinc-500 mt-1','text-xs md:text-sm text-zinc-400 mt-1')}>Completa tus datos al reservar: nombre y WhatsApp.</p>
+                  <div className={tv(isDark,'text-sm md:text-base font-semibold text-zinc-700','text-sm md:text-base font-semibold text-zinc-300')}>💳 Métodos de Pago</div>
+                  <p className={tv(isDark,'text-xs md:text-sm text-zinc-500 mt-1','text-xs md:text-sm text-zinc-400 mt-1')}>
+                    Transferencias a: Pichincha, Guayaquil, Pacífico y Pago Móvil
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <span className={tv(isDark,'text-xs bg-green-100 text-green-700 px-2 py-1 rounded','text-xs bg-green-800 text-green-200 px-2 py-1 rounded')}>🏦 Pichincha</span>
+                    <span className={tv(isDark,'text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded','text-xs bg-blue-800 text-blue-200 px-2 py-1 rounded')}>🏛️ Guayaquil</span>
+                    <span className={tv(isDark,'text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded','text-xs bg-purple-800 text-purple-200 px-2 py-1 rounded')}>🌊 Pacífico</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1283,6 +1314,23 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
                 </button>
               ))}
             </div>
+            
+            {/* Detalles del método seleccionado */}
+            {selectedMethod && (
+              <div className={`mt-4 p-4 rounded-xl ${tv(isDark,'bg-blue-50 border border-blue-200','bg-blue-900/20 border border-blue-500')}`}>
+                <h4 className="font-semibold mb-2 text-blue-700 dark:text-blue-300">Detalles de Pago:</h4>
+                <div className="text-sm space-y-1">
+                  {PAYMENT_METHODS.find(m => m.id === selectedMethod)?.details.split('\n').map((line, index) => (
+                    <div key={index} className={tv(isDark,'text-blue-800','text-blue-200')}>
+                      {line}
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 text-xs opacity-70">
+                  💡 Envía el comprobante de pago por WhatsApp a nuestros agentes para activar tu servicio
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Notas */}
