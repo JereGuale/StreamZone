@@ -545,6 +545,30 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
               >
                 Mi Perfil
               </button>
+              <a
+                href={whatsappLink(AGENTE_1_WHATSAPP,'¡Hola! Me interesa conocer más información sobre los servicios de streaming disponibles en StreamZone. ¿Podrían brindarme detalles sobre precios y disponibilidad?')}
+                target="_blank"
+                rel="noreferrer"
+                className={tv(
+                  isDark,
+                  'rounded-xl bg-orange-100 text-orange-700 px-3 py-1.5 text-sm hover:bg-orange-200',
+                  'rounded-xl bg-orange-800 text-orange-100 px-3 py-1.5 text-sm hover:bg-orange-700'
+                )}
+              >
+                Agente 1
+              </a>
+              <a
+                href={whatsappLink(AGENTE_2_WHATSAPP,'¡Hola! Me interesa conocer más información sobre los servicios de streaming disponibles en StreamZone. ¿Podrían brindarme detalles sobre precios y disponibilidad?')}
+                target="_blank"
+                rel="noreferrer"
+                className={tv(
+                  isDark,
+                  'rounded-xl bg-purple-100 text-purple-700 px-3 py-1.5 text-sm hover:bg-purple-200',
+                  'rounded-xl bg-purple-800 text-purple-100 px-3 py-1.5 text-sm hover:bg-purple-700'
+                )}
+              >
+                Agente 2
+              </a>
               {user ? (
                 <button
                   onClick={logoutUser}
@@ -681,6 +705,9 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                     <span className={tv(isDark,'text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded','text-xs bg-purple-800 text-purple-200 px-2 py-1 rounded')}>🌊 Pacífico</span>
                     <span className={tv(isDark,'text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded','text-xs bg-orange-800 text-orange-200 px-2 py-1 rounded')}>💳 PayPal</span>
                   </div>
+                  <p className={tv(isDark,'text-xs text-zinc-500 mt-2','text-xs text-zinc-400 mt-2')}>
+                    Ver detalles completos al reservar
+                  </p>
                 </div>
               </div>
             </div>
@@ -688,37 +715,6 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
             <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700" />
           </section>
 
-          {/* Sección de Agentes */}
-          <section className="mx-auto max-w-6xl px-4 py-8">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl md:text-3xl font-bold mb-2">¿Necesitas Ayuda?</h2>
-              <p className={tv(isDark,'text-zinc-600','text-zinc-300')}>Contacta a nuestros agentes especializados</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
-              <a 
-                href={whatsappLink(AGENTE_1_WHATSAPP,'¡Hola! Me interesa conocer más información sobre los servicios de streaming disponibles en StreamZone. ¿Podrían brindarme detalles sobre precios y disponibilidad?')} 
-                className={`p-4 rounded-2xl text-center transition-all hover:scale-105 ${tv(isDark,'bg-green-50 border-2 border-green-200 hover:border-green-300','bg-green-900/20 border-2 border-green-500 hover:border-green-400')}`}
-                target="_blank" 
-                rel="noreferrer"
-              >
-                <div className="text-3xl mb-2">👨‍💼</div>
-                <h3 className="font-semibold text-green-700 dark:text-green-300">Agente 1</h3>
-                <p className="text-sm text-green-600 dark:text-green-400 mt-1">+593 98 428 0334</p>
-                <p className="text-xs text-green-500 dark:text-green-500 mt-2">Jeremi - Soporte Principal</p>
-              </a>
-              <a 
-                href={whatsappLink(AGENTE_2_WHATSAPP,'¡Hola! Me interesa conocer más información sobre los servicios de streaming disponibles en StreamZone. ¿Podrían brindarme detalles sobre precios y disponibilidad?')} 
-                className={`p-4 rounded-2xl text-center transition-all hover:scale-105 ${tv(isDark,'bg-blue-50 border-2 border-blue-200 hover:border-blue-300','bg-blue-900/20 border-2 border-blue-500 hover:border-blue-400')}`}
-                target="_blank" 
-                rel="noreferrer"
-              >
-                <div className="text-3xl mb-2">👨‍💼</div>
-                <h3 className="font-semibold text-blue-700 dark:text-blue-300">Agente 2</h3>
-                <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">+593 99 879 9579</p>
-                <p className="text-xs text-blue-500 dark:text-blue-500 mt-2">Soporte Adicional</p>
-              </a>
-            </div>
-          </section>
 
           <section id="catalogo" className="mx-auto max-w-6xl px-4 pb-16">
             <div className="text-center mb-8 md:mb-12">
