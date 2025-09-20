@@ -226,16 +226,51 @@ export default function App(){
                 {/* tus botones */}
               </nav>
             </div>
-            </header>
+            
 
-            <button onClick={()=>setView('home')} className={`${view==='home'? tv(isDark,'bg-zinc-900 text-white','bg-white text-zinc-900') : tv(isDark,'bg-zinc-100','bg-zinc-800')} rounded-xl px-3 py-1.5 text-sm`}>Inicio</button>
-            <button onClick={goPurchases} className={`${view==='purchases'? tv(isDark,'bg-zinc-900 text-white','bg-white text-zinc-900') : tv(isDark,'bg-zinc-100','bg-zinc-800')} rounded-xl px-3 py-1.5 text-sm`}>Mis compras</button>
-            <button onClick={goAdmin} className={`${view==='admin'||view==='adminLogin'? tv(isDark,'bg-zinc-900 text-white','bg-white text-zinc-900') : tv(isDark,'bg-zinc-100','bg-zinc-800')} rounded-xl px-3 py-1.5 text-sm`}>Admin</button>
-            {user? <button onClick={logoutUser} className={tv(isDark,'rounded-xl bg-zinc-100 px-3 py-1.5 text-sm','rounded-xl bg-zinc-800 px-3 py-1.5 text-sm')}>Cerrar sesión</button> : <button onClick={()=>setView('register')} className={tv(isDark,'rounded-xl bg-zinc-100 px-3 py-1.5 text-sm','rounded-xl bg-zinc-800 px-3 py-1.5 text-sm')}>Registrarme</button>}
-            {adminLogged && view!=='admin' && <button onClick={()=>setMenuOpen(true)} className={tv(isDark,'rounded-xl bg-zinc-900 text-white px-3 py-1.5 text-sm','rounded-xl bg-white text-zinc-900 px-3 py-1.5 text-sm')}>Menú</button>}
-          </nav>
-        </div>
-      </header>
+  <header>
+  <div>
+    <nav>
+      {user ? (
+        <button
+          onClick={logoutUser}
+          className={tv(
+            isDark,
+            'rounded-xl bg-zinc-100 px-3 py-1.5 text-sm',
+            'rounded-xl bg-zinc-800 px-3 py-1.5 text-sm'
+          )}
+        >
+          Cerrar sesión
+        </button>
+      ) : (
+        <button
+          onClick={() => setView('register')}
+          className={tv(
+            isDark,
+            'rounded-xl bg-zinc-100 px-3 py-1.5 text-sm',
+            'rounded-xl bg-zinc-800 px-3 py-1.5 text-sm'
+          )}
+        >
+          Registrarme
+        </button>
+      )}
+
+      {adminLogged && view !== 'admin' && (
+        <button
+          onClick={() => setMenuOpen(true)}
+          className={tv(
+            isDark,
+            'rounded-xl bg-zinc-900 text-white px-3 py-1.5 text-sm',
+            'rounded-xl bg-white text-zinc-900 px-3 py-1.5 text-sm'
+          )}
+        >
+          Menú
+        </button>
+      )}
+    </nav>
+  </div>
+</header>
+
 
       {/* HOME */}
       {view==='home' && (
