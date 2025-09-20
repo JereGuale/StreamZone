@@ -319,7 +319,29 @@ export default function App(){
       setReserveOpen(true); 
     }
   };
-  const addPurchase=(rec:any)=> setPurchases(p=>[{...rec,id:uid(),validated:false},...p]);
+  const addPurchase=(rec:any)=> {
+    const newPurchase = {...rec,id:uid(),validated:false};
+    setPurchases(p=>[newPurchase,...p]);
+    
+    // Enviar notificación de WhatsApp
+    if (userProfile) {
+      const purchase: UserPurchase = {
+        id: newPurchase.id,
+        serviceId: SERVICES.find(s => s.name === rec.service)?.id || '',
+        serviceName: rec.service,
+        price: rec.total,
+        duration: rec.duration,
+        isAnnual: rec.duration > 6, // Asumir anual si es más de 6 meses
+        paymentMethod: 'pichincha',
+        notes: rec.notes,
+        status: 'pending',
+        purchaseDate: new Date().toISOString(),
+        whatsappSent: false
+      };
+      
+      sendPurchaseNotification(purchase, userProfile);
+    }
+  };
 
   // ===================== Funciones de Compra =====================
   
@@ -1565,16 +1587,21 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
   const total = service.price * duration;
 
   const handlePurchase = () => {
-    // Usar el primer método de pago por defecto (Pichincha)
-    const defaultPaymentMethod = 'pichincha' as PaymentMethod;
+    const purchaseData = {
+      service: service.name,
+      price: service.price,
+      duration: duration,
+      total: service.price * duration,
+      paymentMethod: 'pichincha',
+      notes: notes,
+      customer: user.name,
+      phone: user.phone,
+      email: user.email,
+      start: new Date().toISOString().slice(0, 10),
+      end: new Date(Date.now() + (isAnnual ? duration * 365 : duration * 30) * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+    };
     
-    processPurchase(
-      service,
-      duration,
-      isAnnual,
-      defaultPaymentMethod,
-      notes
-    );
+    onPurchase(purchaseData);
     onClose();
   };
 
