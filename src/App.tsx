@@ -1565,15 +1565,16 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
   const total = service.price * duration;
 
   const handlePurchase = () => {
-    if (selectedMethod) {
-      processPurchase(
-        service,
-        duration,
-        isAnnual,
-        selectedMethod as PaymentMethod,
-        notes
-      );
-    }
+    // Usar el primer método de pago por defecto (Pichincha)
+    const defaultPaymentMethod = 'pichincha' as PaymentMethod;
+    
+    processPurchase(
+      service,
+      duration,
+      isAnnual,
+      defaultPaymentMethod,
+      notes
+    );
     onClose();
   };
 
@@ -1688,20 +1689,32 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
             </div>
 
             {/* Instrucciones de confirmación */}
-            <div className={`mt-4 p-4 rounded-lg ${tv(isDark,'bg-yellow-50 border border-yellow-200','bg-yellow-900/20 border border-yellow-500')}`}>
-              <div className="flex items-start gap-2">
-                <span className="text-lg">⚠️</span>
-                <div>
-                  <h5 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-1">Instrucciones Importantes:</h5>
-                  <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                    Una vez que hayas realizado el pago, <strong>debes confirmar tu compra</strong> enviando una captura del comprobante por WhatsApp a nuestros agentes:
-                  </p>
-                  <div className="mt-2 text-sm">
-                    <div>📱 <strong>Agente 1:</strong> +593 98 428 0334</div>
-                    <div>📱 <strong>Agente 2:</strong> +593 99 879 9579</div>
+            <div className={`mt-4 p-6 rounded-2xl ${tv(isDark,'bg-gradient-to-br from-orange-50 to-yellow-50 border-2 border-orange-200','bg-gradient-to-br from-orange-900/30 to-yellow-900/30 border-2 border-orange-500')}`}>
+              <div className="text-center">
+                <div className="flex justify-center mb-4">
+                  <div className={`p-4 rounded-full ${tv(isDark,'bg-orange-100','bg-orange-800/50')}`}>
+                    <span className="text-4xl">🚨</span>
                   </div>
-                  <p className="text-xs mt-2 text-yellow-600 dark:text-yellow-400">
-                    Sin el comprobante, tu servicio no será activado.
+                </div>
+                <h5 className="text-xl font-bold text-orange-800 dark:text-orange-200 mb-3">
+                  ⚠️ Instrucciones Importantes
+                </h5>
+                <div className={`p-4 rounded-xl ${tv(isDark,'bg-white/80','bg-black/20')}`}>
+                  <p className="text-sm text-orange-700 dark:text-orange-300 mb-4">
+                    Una vez que hayas realizado el pago, <strong className="text-orange-800 dark:text-orange-200">debes confirmar tu compra</strong> enviando una captura del comprobante por WhatsApp a nuestros agentes.
+                  </p>
+                  <div className="flex justify-center gap-4 mb-4">
+                    <div className={`px-4 py-2 rounded-lg ${tv(isDark,'bg-green-100 text-green-800','bg-green-800/50 text-green-200')}`}>
+                      <span className="text-lg">📱</span>
+                      <span className="ml-2 font-semibold">WhatsApp</span>
+                    </div>
+                    <div className={`px-4 py-2 rounded-lg ${tv(isDark,'bg-blue-100 text-blue-800','bg-blue-800/50 text-blue-200')}`}>
+                      <span className="text-lg">💬</span>
+                      <span className="ml-2 font-semibold">Agentes</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">
+                    ⚡ Sin el comprobante, tu servicio NO será activado
                   </p>
                 </div>
               </div>
@@ -1739,11 +1752,7 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
             </button>
             <button 
               onClick={handlePurchase}
-              disabled={!selectedMethod}
-              className={`flex-1 rounded-xl px-4 py-3 font-medium ${selectedMethod 
-                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700' 
-                : 'bg-zinc-300 text-zinc-500 cursor-not-allowed'
-              }`}
+              className="flex-1 rounded-xl px-4 py-3 font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all"
             >
               Completar Compra
             </button>
