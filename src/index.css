@@ -4,3 +4,7 @@
 
 :root { color-scheme: light dark; }
 html, body, #root { height: 100%; }
+
+/* Oculta la scrollbar donde se use 'no-scrollbar' */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
