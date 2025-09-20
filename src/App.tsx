@@ -466,25 +466,6 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('');
   const [purchaseData, setPurchaseData] = useState<any>(null);
   
-  // Panel desplegable de agentes
-  const [agentsDropdownOpen, setAgentsDropdownOpen] = useState(false);
-  
-  // Cerrar dropdown al hacer clic fuera
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (agentsDropdownOpen) {
-        setAgentsDropdownOpen(false);
-      }
-    };
-    
-    if (agentsDropdownOpen) {
-      document.addEventListener('click', handleClickOutside);
-    }
-    
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
-  }, [agentsDropdownOpen]);
 
   const todayISO=new Date().toISOString().slice(0,10);
   const dueToday=purchases.filter(p=>p.end===todayISO);
@@ -565,56 +546,6 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
               >
                 Mi Perfil
               </button>
-              <div className="relative">
-                <button
-                  onClick={() => setAgentsDropdownOpen(!agentsDropdownOpen)}
-                  className={tv(
-                    isDark,
-                    'rounded-xl bg-blue-100 text-blue-700 px-3 py-1.5 text-sm hover:bg-blue-200 flex items-center gap-1',
-                    'rounded-xl bg-blue-800 text-blue-100 px-3 py-1.5 text-sm hover:bg-blue-700 flex items-center gap-1'
-                  )}
-                >
-                  👥 Agentes
-                  <span className={`transition-transform ${agentsDropdownOpen ? 'rotate-180' : ''}`}>▼</span>
-                </button>
-                
-                {agentsDropdownOpen && (
-                  <div className={`absolute top-full right-0 mt-1 w-56 rounded-xl shadow-lg border z-50 ${tv(isDark,'bg-white border-gray-200','bg-zinc-800 border-zinc-700')}`}>
-                    <div className="p-2 space-y-1">
-                      <a
-                        href={whatsappLink(AGENTE_1_WHATSAPP,'¡Hola! Me interesa conocer más información sobre los servicios de streaming disponibles en StreamZone. ¿Podrían brindarme detalles sobre precios y disponibilidad?')}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={`block w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${tv(isDark,'hover:bg-orange-50 text-orange-700','hover:bg-orange-900/20 text-orange-300')}`}
-                        onClick={() => setAgentsDropdownOpen(false)}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span>👨‍💼</span>
-                          <div>
-                            <div className="font-medium">Agente 1</div>
-                            <div className="text-xs opacity-70">+593 98 428 0334</div>
-                          </div>
-                        </div>
-                      </a>
-                      <a
-                        href={whatsappLink(AGENTE_2_WHATSAPP,'¡Hola! Me interesa conocer más información sobre los servicios de streaming disponibles en StreamZone. ¿Podrían brindarme detalles sobre precios y disponibilidad?')}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={`block w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${tv(isDark,'hover:bg-purple-50 text-purple-700','hover:bg-purple-900/20 text-purple-300')}`}
-                        onClick={() => setAgentsDropdownOpen(false)}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span>👨‍💼</span>
-                          <div>
-                            <div className="font-medium">Agente 2</div>
-                            <div className="text-xs opacity-70">+593 99 879 9579</div>
-                          </div>
-                        </div>
-                      </a>
-                    </div>
-                  </div>
-                )}
-              </div>
               {user ? (
                 <button
                   onClick={logoutUser}
@@ -1634,22 +1565,14 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
   const total = service.price * duration;
 
   const handlePurchase = () => {
-    if (selectedMethod && onPurchase) {
-      const purchaseData = {
-        service: service.name,
-        price: service.price,
-        duration: duration,
-        total: total,
-        paymentMethod: selectedMethod,
-        notes: notes,
-        customer: user.name,
-        phone: user.phone,
-        email: user.email,
-        start: new Date().toISOString().slice(0, 10),
-        end: new Date(Date.now() + (isAnnual ? duration * 365 : duration * 30) * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-      };
-      
-      onPurchase(purchaseData);
+    if (selectedMethod) {
+      processPurchase(
+        service,
+        duration,
+        isAnnual,
+        selectedMethod as PaymentMethod,
+        notes
+      );
     }
     onClose();
   };
