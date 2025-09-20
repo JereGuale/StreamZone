@@ -32,7 +32,17 @@ const SERVICES = [
 ] as const;
 
 const ADMIN_WHATSAPP = "+593984280334";
+const AGENTE_1_WHATSAPP = "+593984280334"; // Tu número principal
+const AGENTE_2_WHATSAPP = "+59399879579"; // Tu hermano
 const DEFAULT_ADMIN_EMAILS = ["gualejeremi@gmaill.com", "gualejeremi@gmail.com"];
+
+// Métodos de pago
+const PAYMENT_METHODS = [
+  { id: 'transfer', name: 'Transferencia Bancaria', icon: '🏦', description: 'Pago directo a cuenta bancaria' },
+  { id: 'deposit', name: 'Depósito en Efectivo', icon: '💰', description: 'Depósito en tienda o agencia' },
+  { id: 'mobile', name: 'Pago Móvil', icon: '📱', description: 'Pago desde tu teléfono móvil' },
+  { id: 'store', name: 'Pago en Tienda', icon: '🏪', description: 'Pago presencial en tienda' }
+] as const;
 
 // ===================== Utilidades =====================
 const fmt = (n: number) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "USD" }).format(n);
@@ -68,14 +78,57 @@ function Logo({ className = "h-9 w-9" }: { className?: string }){
 // ===================== Chatbot =====================
 function useChatbot(services: readonly any[]){
   const answer = (q: string) => { const text=q.toLowerCase();
-    if(/hola|buenas|hey|buenos|buenas tardes|buenas noches/.test(text)) return "¡Hola! Bienvenido a StreamZone. Soy su asistente virtual y estoy aquí para brindarle información sobre nuestros servicios de streaming, precios y ayudarle con sus reservas.";
-    if(/precio|cuanto|cuánto|costo|valor/.test(text)){ for(const s of services){ if(text.includes(s.id)||text.includes(s.name.toLowerCase())) return `El precio de ${s.name} es ${fmt(s.price)} ${s.billing==='annual'?'anual':'mensual'}. ¿Le gustaría proceder con la reserva?`; }
-      return `A continuación le muestro algunos ejemplos de precios: ${services.slice(0,4).map((s:any)=>`${s.name} ${fmt(s.price)}`).join(", ")}. Por favor, especifique la plataforma de su interés para obtener el precio exacto.`; }
-    if(/como (compro|comprar|pago|pagar|reservar|adquirir)/.test(text)) return "Para realizar una reserva, seleccione la plataforma deseada, haga clic en 'Reservar', complete sus datos personales y se abrirá WhatsApp con su solicitud formal lista para enviar.";
-    if(/metodo|metodos|pago|forma de pago/.test(text)) return "Aceptamos transferencias bancarias, depósitos y pagos en efectivo. Los métodos de pago pueden personalizarse según sus necesidades.";
-    if(/garantia|soporte|ayuda|problema/.test(text)) return "Ofrecemos soporte técnico completo durante todo su período de suscripción activa. No dude en contactarnos por WhatsApp si experimenta cualquier inconveniente.";
-    if(/contacto|telefono|whatsapp/.test(text)) return "Puede contactarnos directamente por WhatsApp al +593984280334. Estamos disponibles para atenderle y resolver sus consultas.";
-    return "Estoy aquí para asistirle. Puede preguntarme sobre precios, procesos de reserva o cualquier consulta relacionada con nuestros servicios de streaming.";
+    
+    // Saludos
+    if(/hola|buenas|hey|hi|hello|buenos|buenas tardes|buenas noches/.test(text)) return "¡Hola! Bienvenido a StreamZone. Soy su asistente virtual especializado en streaming. ¿En qué puedo asistirle hoy? Puedo ayudarle con recomendaciones, precios, contenido disponible y métodos de pago.";
+    
+    // Recomendaciones de servicios
+    if(/recomendar|recomendación|qué|que ver|mejor|sugerir|cuál|que plataforma/.test(text)) {
+      const popular = services.slice(0, 3);
+      return `Te recomiendo estos servicios populares: ${popular.map(s => `${s.name} (${fmt(s.price)}/${s.billing==='annual'?'año':'mes'})`).join(', ')}. ¿Te interesa alguno en particular o quieres saber qué contenido tienen?`;
+    }
+    
+    // Información sobre contenido
+    if(/película|pelicula|serie|contenido|qué hay|que hay|disponible|ver/.test(text)) {
+      if(/netflix/.test(text)) return "Netflix tiene: Stranger Things, The Crown, La Casa de Papel, Bridgerton, Ozark, The Witcher, y miles de películas y series originales. ¿Te interesa algún género específico?";
+      if(/disney/.test(text)) return "Disney+ incluye: Marvel (Loki, WandaVision), Star Wars (The Mandalorian), Pixar, National Geographic, y todo el catálogo de Disney clásico. ¡Perfecto para toda la familia!";
+      if(/max|hbo/.test(text)) return "Max (HBO) tiene: Game of Thrones, House of the Dragon, The Last of Us, Succession, Euphoria, y películas de Warner Bros. Contenido premium de alta calidad.";
+      if(/prime/.test(text)) return "Prime Video incluye: The Boys, The Marvelous Mrs. Maisel, Jack Ryan, y películas exclusivas. Además, tienes envío gratis en Amazon.";
+      return "Cada plataforma tiene contenido único. Netflix para series originales, Disney+ para Marvel/Star Wars, Max para HBO, Prime para exclusivas. ¿Qué tipo de contenido te gusta más?";
+    }
+    
+    // Precios
+    if(/precio|cuanto|cuánto|costo|valor|vale/.test(text)){ 
+      for(const s of services){ 
+        if(text.includes(s.id)||text.includes(s.name.toLowerCase())) 
+          return `El precio de ${s.name} es ${fmt(s.price)} ${s.billing==='annual'?'al año':'al mes'}. ¿Te interesa proceder con la reserva?`; 
+      }
+      return `Ejemplos de precios: ${services.slice(0,4).map((s:any)=>`${s.name} ${fmt(s.price)}`).join(", ")}. Especifica una plataforma para el precio exacto.`; 
+    }
+    
+    // Proceso de compra
+    if(/como (compro|comprar|pago|pagar|reservar|adquirir)/.test(text)) return "Para comprar: 1) Selecciona una plataforma, 2) Haz clic en 'Reservar', 3) Completa tus datos, 4) Elige método de pago, 5) Recibe acceso inmediato. ¡Es súper fácil! ¿Quieres que te guíe paso a paso?";
+    
+    // Métodos de pago
+    if(/metodo|metodos|pago|transferencia|deposito|efectivo|forma de pago/.test(text)) return "Aceptamos: 💳 Transferencia bancaria, 💰 Depósito en efectivo, 📱 Pago móvil, 🏪 Pago en tienda. Todos los pagos son 100% seguros. ¿Cuál prefieres? Te explico cómo funciona cada uno.";
+    
+    // Contacto y agentes
+    if(/contacto|whatsapp|hablar|agente|soporte|ayuda|telefono/.test(text)) return "Puedes contactar a nuestros agentes especializados: 👨‍💼 Agente 1: +593 98 428 0334 (Jeremi) 👨‍💼 Agente 2: +593 99 879 9579 (Soporte). Están disponibles para ayudarte con cualquier consulta.";
+    
+    // Información sobre streaming
+    if(/streaming|plataforma|app|aplicación/.test(text)) return "StreamZone ofrece acceso a las mejores plataformas: Netflix, Disney+, Max, Prime Video, Spotify, y más. Todas con cuentas premium, sin publicidad, y soporte 24/7. ¿Cuál te interesa más?";
+    
+    // Calidad y características
+    if(/calidad|hd|4k|ultra|premium|características/.test(text)) return "Todas nuestras cuentas son premium con máxima calidad: 4K Ultra HD, sin anuncios, descarga offline, múltiples dispositivos simultáneos. ¡Experiencia de streaming completa!";
+    
+    // Soporte técnico
+    if(/problema|error|no funciona|ayuda|soporte|garantia/.test(text)) return "Si tienes algún problema, contacta inmediatamente a nuestros agentes. Resolvemos cualquier inconveniente en menos de 24 horas. ¿Qué problema específico tienes?";
+    
+    // Despedida
+    if(/gracias|bye|adios|chao|hasta luego/.test(text)) return "¡De nada! Ha sido un placer ayudarte. Si necesitas algo más, no dudes en contactarnos. ¡Que disfrutes mucho de tu streaming! 🎬✨";
+    
+    // Fallback
+    return "No entendí tu consulta. Puedo ayudarte con: recomendaciones de servicios, precios, contenido disponible, métodos de pago, o contactar a nuestros agentes. ¿Qué necesitas saber?"; 
   };
   return {answer};
 }
@@ -190,8 +243,21 @@ export default function App(){
   const[purchases,setPurchases]=useState<any[]>(()=> storage.load('purchases', []));
   const{answer}=useChatbot(SERVICES);
   useEffect(()=> storage.save('purchases', purchases),[purchases]);
-  const onReserve=(s:any)=>{ setSelected(s); setReserveOpen(true); };
+  const onReserve=(s:any)=>{ 
+    if(user) {
+      setPurchaseData(s);
+      setPurchaseModalOpen(true);
+    } else {
+      setSelected(s); 
+      setReserveOpen(true); 
+    }
+  };
   const addPurchase=(rec:any)=> setPurchases(p=>[{...rec,id:uid(),validated:false},...p]);
+
+  // Modal de compra con métodos de pago
+  const [purchaseModalOpen, setPurchaseModalOpen] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('');
+  const [purchaseData, setPurchaseData] = useState<any>(null);
 
   const todayISO=new Date().toISOString().slice(0,10);
   const dueToday=purchases.filter(p=>p.end===todayISO);
@@ -379,7 +445,14 @@ export default function App(){
                     ) : (
                       <button onClick={() => setView('auth')} className={tv(isDark,'rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 md:px-5 py-3 text-sm text-center shadow-lg','rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 md:px-5 py-3 text-sm text-center shadow-lg')}>Iniciar sesión</button>
                     )}
-                    <a href={whatsappLink(ADMIN_WHATSAPP,'¡Hola! Me interesa conocer más información sobre los servicios de streaming disponibles en StreamZone. ¿Podrían brindarme detalles sobre precios y disponibilidad?')} className={tv(isDark,'rounded-xl bg-zinc-200 px-4 md:px-5 py-3 text-sm text-center','rounded-xl bg-zinc-800 text-zinc-100 px-4 md:px-5 py-3 text-sm text-center')} target="_blank" rel="noreferrer">WhatsApp</a>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <a href={whatsappLink(AGENTE_1_WHATSAPP,'¡Hola! Me interesa conocer más información sobre los servicios de streaming disponibles en StreamZone. ¿Podrían brindarme detalles sobre precios y disponibilidad?')} className={tv(isDark,'rounded-xl bg-green-500 text-white px-4 md:px-5 py-3 text-sm text-center hover:bg-green-600','rounded-xl bg-green-500 text-white px-4 md:px-5 py-3 text-sm text-center hover:bg-green-600')} target="_blank" rel="noreferrer">
+                        👨‍💼 Agente 1
+                      </a>
+                      <a href={whatsappLink(AGENTE_2_WHATSAPP,'¡Hola! Me interesa conocer más información sobre los servicios de streaming disponibles en StreamZone. ¿Podrían brindarme detalles sobre precios y disponibilidad?')} className={tv(isDark,'rounded-xl bg-blue-500 text-white px-4 md:px-5 py-3 text-sm text-center hover:bg-blue-600','rounded-xl bg-blue-500 text-white px-4 md:px-5 py-3 text-sm text-center hover:bg-blue-600')} target="_blank" rel="noreferrer">
+                        👨‍💼 Agente 2
+                      </a>
+                    </div>
                   </div>
                 </div>
                 <div className={`relative z-10 rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm backdrop-blur-md border ${tv(isDark,'bg-white/60 border-white/10','bg-zinc-900/50 border-zinc-800')}`}>
@@ -714,6 +787,16 @@ export default function App(){
           <ReserveForm service={selected} onClose={()=>setReserveOpen(false)} onAddPurchase={addPurchase} isDark={isDark} user={user} />
         )}
       </Modal>
+
+      {/* Compra con métodos de pago */}
+      <PurchaseModal 
+        open={purchaseModalOpen} 
+        onClose={()=>setPurchaseModalOpen(false)} 
+        service={purchaseData} 
+        user={user} 
+        isDark={isDark} 
+        onPurchase={addPurchase} 
+      />
 
       {/* Drawers y flotantes */}
       <AdminDrawer open={drawerOpen} onClose={()=>setDrawerOpen(false)} isDark={isDark} adminEmails={adminEmails} setAdminEmails={setAdminEmails} />
@@ -1087,6 +1170,160 @@ function ReserveForm({ service, onClose, onAddPurchase, isDark, user }:{
           <button onClick={confirm} className={tv(isDark,'rounded-xl bg-zinc-900 px-4 py-2 text-white','rounded-xl bg-white px-4 py-2 text-zinc-900')}>
             Confirmar por WhatsApp
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Modal de compra con métodos de pago
+function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
+  open: boolean; onClose: () => void; service: any; user: any; isDark: boolean; onPurchase: (data: any) => void;
+}) {
+  const [selectedMethod, setSelectedMethod] = useState<string>('');
+  const [duration, setDuration] = useState<number>(1);
+  const [notes, setNotes] = useState<string>('');
+
+  if (!open || !service) return null;
+
+  const isAnnual = service.billing === 'annual';
+  const total = service.price * duration;
+
+  const handlePurchase = () => {
+    const purchaseData = {
+      service: service.name,
+      price: service.price,
+      duration: duration,
+      total: total,
+      paymentMethod: selectedMethod,
+      notes: notes,
+      customer: user.name,
+      phone: user.phone,
+      email: user.email,
+      start: new Date().toISOString().slice(0, 10),
+      end: new Date(Date.now() + (isAnnual ? duration * 365 : duration * 30) * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+    };
+    
+    onPurchase(purchaseData);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={onClose}>
+      <div className={`w-full max-w-2xl rounded-3xl p-6 shadow-2xl ${tv(isDark,'bg-white','bg-zinc-900 text-zinc-100')}`} onClick={e=>e.stopPropagation()}>
+        <div className="mb-6 flex items-center justify-between">
+          <h3 className="text-2xl font-bold">Completar Compra</h3>
+          <button 
+            onClick={onClose} 
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold transition-colors ${tv(isDark,'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100','text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800')}`}
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="space-y-6">
+          {/* Información del servicio */}
+          <div className={`rounded-2xl p-4 ${tv(isDark,'bg-zinc-50','bg-zinc-800')}`}>
+            <div className="flex items-center gap-4">
+              <div className={`h-12 w-12 ${service.color} rounded-xl text-white grid place-content-center text-xl font-bold`}>
+                {service.logo}
+              </div>
+              <div>
+                <h4 className="text-lg font-semibold">{service.name}</h4>
+                <p className="text-sm opacity-70">{fmt(service.price)} por {isAnnual ? 'año' : 'mes'}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Duración */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Duración</label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setDuration(1)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium ${duration === 1 ? tv(isDark,'bg-zinc-900 text-white','bg-white text-zinc-900') : tv(isDark,'bg-zinc-100','bg-zinc-700')}`}
+              >
+                1 {isAnnual ? 'año' : 'mes'}
+              </button>
+              <button
+                onClick={() => setDuration(3)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium ${duration === 3 ? tv(isDark,'bg-zinc-900 text-white','bg-white text-zinc-900') : tv(isDark,'bg-zinc-100','bg-zinc-700')}`}
+              >
+                3 {isAnnual ? 'años' : 'meses'}
+              </button>
+              <button
+                onClick={() => setDuration(6)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium ${duration === 6 ? tv(isDark,'bg-zinc-900 text-white','bg-white text-zinc-900') : tv(isDark,'bg-zinc-100','bg-zinc-700')}`}
+              >
+                6 {isAnnual ? 'años' : 'meses'}
+              </button>
+            </div>
+          </div>
+
+          {/* Métodos de pago */}
+          <div>
+            <label className="block text-sm font-medium mb-3">Método de Pago</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {PAYMENT_METHODS.map(method => (
+                <button
+                  key={method.id}
+                  onClick={() => setSelectedMethod(method.id)}
+                  className={`p-4 rounded-xl border-2 text-left transition-all ${selectedMethod === method.id 
+                    ? tv(isDark,'border-blue-500 bg-blue-50','border-blue-500 bg-blue-900/20') 
+                    : tv(isDark,'border-zinc-200 hover:border-zinc-300','border-zinc-700 hover:border-zinc-600')
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{method.icon}</span>
+                    <div>
+                      <div className="font-medium">{method.name}</div>
+                      <div className="text-sm opacity-70">{method.description}</div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Notas */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Notas adicionales (opcional)</label>
+            <textarea
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="Comentarios o instrucciones especiales..."
+              className={`w-full rounded-xl border px-4 py-3 text-sm ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+              rows={3}
+            />
+          </div>
+
+          {/* Total */}
+          <div className={`rounded-2xl p-4 ${tv(isDark,'bg-zinc-900 text-white','bg-white text-zinc-900')}`}>
+            <div className="flex justify-between items-center">
+              <span className="text-lg font-semibold">Total a pagar:</span>
+              <span className="text-2xl font-bold">{fmt(total)}</span>
+            </div>
+          </div>
+
+          {/* Botones */}
+          <div className="flex gap-3">
+            <button 
+              onClick={onClose} 
+              className={`flex-1 rounded-xl px-4 py-3 font-medium ${tv(isDark,'bg-zinc-100 text-zinc-700 hover:bg-zinc-200','bg-zinc-700 text-zinc-200 hover:bg-zinc-600')}`}
+            >
+              Cancelar
+            </button>
+            <button 
+              onClick={handlePurchase}
+              disabled={!selectedMethod}
+              className={`flex-1 rounded-xl px-4 py-3 font-medium ${selectedMethod 
+                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700' 
+                : 'bg-zinc-300 text-zinc-500 cursor-not-allowed'
+              }`}
+            >
+              Completar Compra
+            </button>
+          </div>
         </div>
       </div>
     </div>
