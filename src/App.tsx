@@ -662,20 +662,12 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                   <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight">StreamZone</h1>
                   <p className={tv(isDark,'mt-2 text-base md:text-lg text-zinc-700','mt-2 text-base md:text-lg text-zinc-200')}>Tus plataformas favoritas, al mejor precio.</p>
                   <p className={tv(isDark,'mt-3 text-sm md:text-base text-zinc-600','mt-3 text-sm md:text-base text-zinc-300')}>Reserva por WhatsApp, recibe acceso con soporte inmediato y renueva sin complicaciones. Administra tus servicios desde tu cuenta.</p>
-                  <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                  <div className="mt-6 flex flex-col gap-4">
                     {user ? (
                       <a href="#catalogo" className={tv(isDark,'rounded-xl bg-zinc-900 text-white px-4 md:px-5 py-3 text-sm text-center','rounded-xl bg-white text-zinc-900 px-4 md:px-5 py-3 text-sm text-center')}>Ver catálogo</a>
                     ) : (
                       <button onClick={() => setView('auth')} className={tv(isDark,'rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 md:px-5 py-3 text-sm text-center shadow-lg','rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 md:px-5 py-3 text-sm text-center shadow-lg')}>Iniciar sesión</button>
                     )}
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <a href={whatsappLink(AGENTE_1_WHATSAPP,'¡Hola! Me interesa conocer más información sobre los servicios de streaming disponibles en StreamZone. ¿Podrían brindarme detalles sobre precios y disponibilidad?')} className={tv(isDark,'rounded-xl bg-green-500 text-white px-4 md:px-5 py-3 text-sm text-center hover:bg-green-600','rounded-xl bg-green-500 text-white px-4 md:px-5 py-3 text-sm text-center hover:bg-green-600')} target="_blank" rel="noreferrer">
-                        👨‍💼 Agente 1
-                      </a>
-                      <a href={whatsappLink(AGENTE_2_WHATSAPP,'¡Hola! Me interesa conocer más información sobre los servicios de streaming disponibles en StreamZone. ¿Podrían brindarme detalles sobre precios y disponibilidad?')} className={tv(isDark,'rounded-xl bg-blue-500 text-white px-4 md:px-5 py-3 text-sm text-center hover:bg-blue-600','rounded-xl bg-blue-500 text-white px-4 md:px-5 py-3 text-sm text-center hover:bg-blue-600')} target="_blank" rel="noreferrer">
-                        👨‍💼 Agente 2
-                      </a>
-                    </div>
                   </div>
                 </div>
                 <div className={`relative z-10 rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm backdrop-blur-md border ${tv(isDark,'bg-white/60 border-white/10','bg-zinc-900/50 border-zinc-800')}`}>
@@ -694,6 +686,38 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
             </div>
             <div className="absolute inset-0 -z-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
             <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700" />
+          </section>
+
+          {/* Sección de Agentes */}
+          <section className="mx-auto max-w-6xl px-4 py-8">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl md:text-3xl font-bold mb-2">¿Necesitas Ayuda?</h2>
+              <p className={tv(isDark,'text-zinc-600','text-zinc-300')}>Contacta a nuestros agentes especializados</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+              <a 
+                href={whatsappLink(AGENTE_1_WHATSAPP,'¡Hola! Me interesa conocer más información sobre los servicios de streaming disponibles en StreamZone. ¿Podrían brindarme detalles sobre precios y disponibilidad?')} 
+                className={`p-4 rounded-2xl text-center transition-all hover:scale-105 ${tv(isDark,'bg-green-50 border-2 border-green-200 hover:border-green-300','bg-green-900/20 border-2 border-green-500 hover:border-green-400')}`}
+                target="_blank" 
+                rel="noreferrer"
+              >
+                <div className="text-3xl mb-2">👨‍💼</div>
+                <h3 className="font-semibold text-green-700 dark:text-green-300">Agente 1</h3>
+                <p className="text-sm text-green-600 dark:text-green-400 mt-1">+593 98 428 0334</p>
+                <p className="text-xs text-green-500 dark:text-green-500 mt-2">Jeremi - Soporte Principal</p>
+              </a>
+              <a 
+                href={whatsappLink(AGENTE_2_WHATSAPP,'¡Hola! Me interesa conocer más información sobre los servicios de streaming disponibles en StreamZone. ¿Podrían brindarme detalles sobre precios y disponibilidad?')} 
+                className={`p-4 rounded-2xl text-center transition-all hover:scale-105 ${tv(isDark,'bg-blue-50 border-2 border-blue-200 hover:border-blue-300','bg-blue-900/20 border-2 border-blue-500 hover:border-blue-400')}`}
+                target="_blank" 
+                rel="noreferrer"
+              >
+                <div className="text-3xl mb-2">👨‍💼</div>
+                <h3 className="font-semibold text-blue-700 dark:text-blue-300">Agente 2</h3>
+                <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">+593 99 879 9579</p>
+                <p className="text-xs text-blue-500 dark:text-blue-500 mt-2">Soporte Adicional</p>
+              </a>
+            </div>
           </section>
 
           <section id="catalogo" className="mx-auto max-w-6xl px-4 pb-16">
@@ -1589,10 +1613,10 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
   };
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={onClose}>
-      <div className={`w-full max-w-2xl rounded-3xl p-6 shadow-2xl ${tv(isDark,'bg-white','bg-zinc-900 text-zinc-100')}`} onClick={e=>e.stopPropagation()}>
-        <div className="mb-6 flex items-center justify-between">
-          <h3 className="text-2xl font-bold">Completar Compra</h3>
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-2 md:p-4" onClick={onClose}>
+      <div className={`w-full max-w-2xl max-h-[90vh] rounded-3xl p-4 md:p-6 shadow-2xl overflow-y-auto ${tv(isDark,'bg-white','bg-zinc-900 text-zinc-100')}`} onClick={e=>e.stopPropagation()}>
+        <div className="mb-4 md:mb-6 flex items-center justify-between">
+          <h3 className="text-xl md:text-2xl font-bold">Completar Compra</h3>
           <button 
             onClick={onClose} 
             className={`w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold transition-colors ${tv(isDark,'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100','text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800')}`}
@@ -1666,17 +1690,17 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
           </div>
 
           {/* Información de cuentas bancarias */}
-          <div className={`p-6 rounded-xl ${tv(isDark,'bg-gray-50 border border-gray-200','bg-gray-800 border border-gray-600')}`}>
+          <div className={`p-4 md:p-6 rounded-xl ${tv(isDark,'bg-gray-50 border border-gray-200','bg-gray-800 border border-gray-600')}`}>
             <h4 className="font-semibold mb-4 text-gray-800 dark:text-gray-200">💳 Información de Pago</h4>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               {/* Banco Pichincha */}
-              <div className={`p-4 rounded-lg ${tv(isDark,'bg-white border border-gray-200','bg-gray-700 border border-gray-600')}`}>
+              <div className={`p-3 md:p-4 rounded-lg ${tv(isDark,'bg-white border border-gray-200','bg-gray-700 border border-gray-600')}`}>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">🏦</span>
-                  <span className="font-semibold">Banco Pichincha</span>
+                  <span className="text-lg md:text-xl">🏦</span>
+                  <span className="font-semibold text-sm md:text-base">Banco Pichincha</span>
                 </div>
-                <div className="text-sm space-y-1">
+                <div className="text-xs md:text-sm space-y-1">
                   <div><strong>Titular:</strong> Jeremias Guale Santana</div>
                   <div><strong>Cuenta:</strong> 2209034638</div>
                   <div><strong>Tipo:</strong> Ahorro Transaccional</div>
@@ -1684,12 +1708,12 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
               </div>
 
               {/* Banco Guayaquil */}
-              <div className={`p-4 rounded-lg ${tv(isDark,'bg-white border border-gray-200','bg-gray-700 border border-gray-600')}`}>
+              <div className={`p-3 md:p-4 rounded-lg ${tv(isDark,'bg-white border border-gray-200','bg-gray-700 border border-gray-600')}`}>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">🏛️</span>
-                  <span className="font-semibold">Banco Guayaquil</span>
+                  <span className="text-lg md:text-xl">🏛️</span>
+                  <span className="font-semibold text-sm md:text-base">Banco Guayaquil</span>
                 </div>
-                <div className="text-sm space-y-1">
+                <div className="text-xs md:text-sm space-y-1">
                   <div><strong>Titular:</strong> Jeremias Joel Guale Santana</div>
                   <div><strong>Cuenta:</strong> 0122407273</div>
                   <div><strong>Tipo:</strong> Ahorros</div>
@@ -1697,12 +1721,12 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
               </div>
 
               {/* Banco Pacífico */}
-              <div className={`p-4 rounded-lg ${tv(isDark,'bg-white border border-gray-200','bg-gray-700 border border-gray-600')}`}>
+              <div className={`p-3 md:p-4 rounded-lg ${tv(isDark,'bg-white border border-gray-200','bg-gray-700 border border-gray-600')}`}>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">🌊</span>
-                  <span className="font-semibold">Banco Pacífico</span>
+                  <span className="text-lg md:text-xl">🌊</span>
+                  <span className="font-semibold text-sm md:text-base">Banco Pacífico</span>
                 </div>
-                <div className="text-sm space-y-1">
+                <div className="text-xs md:text-sm space-y-1">
                   <div><strong>Titular:</strong> Byron Guale Santana</div>
                   <div><strong>Cuenta:</strong> 1061220256</div>
                   <div><strong>Tipo:</strong> Ahorros</div>
@@ -1710,12 +1734,12 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
               </div>
 
               {/* PayPal */}
-              <div className={`p-4 rounded-lg ${tv(isDark,'bg-white border border-gray-200','bg-gray-700 border border-gray-600')}`}>
+              <div className={`p-3 md:p-4 rounded-lg ${tv(isDark,'bg-white border border-gray-200','bg-gray-700 border border-gray-600')}`}>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">💳</span>
-                  <span className="font-semibold">PayPal</span>
+                  <span className="text-lg md:text-xl">💳</span>
+                  <span className="font-semibold text-sm md:text-base">PayPal</span>
                 </div>
-                <div className="text-sm space-y-1">
+                <div className="text-xs md:text-sm space-y-1">
                   <div><strong>Email:</strong> guale2023@outlook.com</div>
                   <div><strong>Método:</strong> PayPal</div>
                   <div><strong>Tipo:</strong> Transferencia</div>
@@ -1751,8 +1775,9 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
               value={notes}
               onChange={e => setNotes(e.target.value)}
               placeholder="Comentarios o instrucciones especiales..."
-              className={`w-full rounded-xl border px-4 py-3 text-sm ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
-              rows={3}
+              className={`w-full rounded-xl border px-4 py-3 text-sm resize-none ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+              rows={4}
+              style={{ minHeight: '80px' }}
             />
           </div>
 
