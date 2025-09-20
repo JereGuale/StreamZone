@@ -226,7 +226,7 @@ export default function App(){
                 {/* tus botones */}
               </nav>
             </div>
-            
+            </header>
 
   <header>
   <div>
@@ -253,6 +253,7 @@ export default function App(){
         >
           Registrarme
         </button>
+        
       )}
 
       {adminLogged && view !== 'admin' && (
@@ -263,6 +264,7 @@ export default function App(){
             'rounded-xl bg-zinc-900 text-white px-3 py-1.5 text-sm',
             'rounded-xl bg-white text-zinc-900 px-3 py-1.5 text-sm'
           )}
+
         >
           Menú
         </button>
