@@ -60,6 +60,13 @@ const PAYMENT_METHODS = [
     details: 'Byron Guale Santana\nCuenta: 1061220256\nTipo: Ahorros'
   },
   { 
+    id: 'paypal', 
+    name: 'PayPal', 
+    icon: '💳', 
+    description: 'Pago por PayPal',
+    details: 'Email: guale2023@outlook.com\nMétodo: PayPal\nTipo: Transferencia'
+  },
+  { 
     id: 'mobile', 
     name: 'Pago Móvil', 
     icon: '📱', 
@@ -70,7 +77,7 @@ const PAYMENT_METHODS = [
 
 // ===================== Tipos =====================
 type PurchaseStatus = 'pending' | 'validated' | 'active' | 'expired' | 'cancelled';
-type PaymentMethod = 'pichincha' | 'guayaquil' | 'pacifico' | 'mobile';
+type PaymentMethod = 'pichincha' | 'guayaquil' | 'pacifico' | 'paypal' | 'mobile';
 
 interface UserPurchase {
   id: string;
@@ -165,7 +172,7 @@ function useChatbot(services: readonly any[]){
     if(/como (compro|comprar|pago|pagar|reservar|adquirir)/.test(text)) return "Para comprar: 1) Selecciona una plataforma, 2) Haz clic en 'Reservar', 3) Completa tus datos, 4) Elige método de pago, 5) Recibe acceso inmediato. ¡Es súper fácil! ¿Quieres que te guíe paso a paso?";
     
     // Métodos de pago
-    if(/metodo|metodos|pago|transferencia|deposito|efectivo|forma de pago|banco/.test(text)) return "Aceptamos transferencias a: 🏦 Banco Pichincha (2209034638), 🏛️ Banco Guayaquil (0122407273), 🌊 Banco Pacífico (1061220256), y 📱 Pago móvil. Todos los pagos son 100% seguros. ¿Cuál prefieres? Te doy los detalles completos.";
+    if(/metodo|metodos|pago|transferencia|deposito|efectivo|forma de pago|banco|paypal/.test(text)) return "Aceptamos: 🏦 Banco Pichincha (2209034638), 🏛️ Banco Guayaquil (0122407273), 🌊 Banco Pacífico (1061220256), 💳 PayPal (guale2023@outlook.com), y 📱 Pago móvil. Todos los pagos son 100% seguros. Recuerda enviar el comprobante por WhatsApp para activar tu servicio.";
     
     // Contacto y agentes
     if(/contacto|whatsapp|hablar|agente|soporte|ayuda|telefono/.test(text)) return "Puedes contactar a nuestros agentes especializados: 👨‍💼 Agente 1: +593 98 428 0334 (Jeremi) 👨‍💼 Agente 2: +593 99 879 9579 (Soporte). Están disponibles para ayudarte con cualquier consulta.";
@@ -384,7 +391,13 @@ ${purchase.notes ? `📝 *Notas:* ${purchase.notes}` : ''}
 🆔 *ID de compra:* ${purchase.id}
 
 ⚠️ *PENDIENTE DE VALIDACIÓN*
-Por favor, valida el pago y activa el servicio.`;
+El cliente debe enviar el comprobante de pago por WhatsApp para activar el servicio.
+
+📋 *Cuentas disponibles:*
+🏦 Pichincha: 2209034638 (Jeremias Guale)
+🏛️ Guayaquil: 0122407273 (Jeremias Joel Guale)
+🌊 Pacífico: 1061220256 (Byron Guale)
+💳 PayPal: guale2023@outlook.com`;
 
     // Enviar a ambos agentes
     const agent1Link = `https://wa.me/${AGENTE_1_WHATSAPP.replace('+', '')}?text=${encodeURIComponent(whatsappMessage)}`;
@@ -649,12 +662,13 @@ Por favor, valida el pago y activa el servicio.`;
                 <div className={`relative z-10 rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm backdrop-blur-md border ${tv(isDark,'bg-white/60 border-white/10','bg-zinc-900/50 border-zinc-800')}`}>
                   <div className={tv(isDark,'text-sm md:text-base font-semibold text-zinc-700','text-sm md:text-base font-semibold text-zinc-300')}>💳 Métodos de Pago</div>
                   <p className={tv(isDark,'text-xs md:text-sm text-zinc-500 mt-1','text-xs md:text-sm text-zinc-400 mt-1')}>
-                    Transferencias a: Pichincha, Guayaquil, Pacífico y Pago Móvil
+                    Transferencias bancarias, PayPal y Pago Móvil
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <span className={tv(isDark,'text-xs bg-green-100 text-green-700 px-2 py-1 rounded','text-xs bg-green-800 text-green-200 px-2 py-1 rounded')}>🏦 Pichincha</span>
                     <span className={tv(isDark,'text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded','text-xs bg-blue-800 text-blue-200 px-2 py-1 rounded')}>🏛️ Guayaquil</span>
                     <span className={tv(isDark,'text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded','text-xs bg-purple-800 text-purple-200 px-2 py-1 rounded')}>🌊 Pacífico</span>
+                    <span className={tv(isDark,'text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded','text-xs bg-orange-800 text-orange-200 px-2 py-1 rounded')}>💳 PayPal</span>
                   </div>
                 </div>
               </div>
@@ -1630,23 +1644,85 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Información de cuentas bancarias */}
+          <div className={`p-6 rounded-xl ${tv(isDark,'bg-gray-50 border border-gray-200','bg-gray-800 border border-gray-600')}`}>
+            <h4 className="font-semibold mb-4 text-gray-800 dark:text-gray-200">💳 Información de Pago</h4>
             
-            {/* Detalles del método seleccionado */}
-            {selectedMethod && (
-              <div className={`mt-4 p-4 rounded-xl ${tv(isDark,'bg-blue-50 border border-blue-200','bg-blue-900/20 border border-blue-500')}`}>
-                <h4 className="font-semibold mb-2 text-blue-700 dark:text-blue-300">Detalles de Pago:</h4>
-                <div className="text-sm space-y-1">
-                  {PAYMENT_METHODS.find(m => m.id === selectedMethod)?.details.split('\n').map((line, index) => (
-                    <div key={index} className={tv(isDark,'text-blue-800','text-blue-200')}>
-                      {line}
-                    </div>
-                  ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Banco Pichincha */}
+              <div className={`p-4 rounded-lg ${tv(isDark,'bg-white border border-gray-200','bg-gray-700 border border-gray-600')}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">🏦</span>
+                  <span className="font-semibold">Banco Pichincha</span>
                 </div>
-                <div className="mt-3 text-xs opacity-70">
-                  💡 Envía el comprobante de pago por WhatsApp a nuestros agentes para activar tu servicio
+                <div className="text-sm space-y-1">
+                  <div><strong>Titular:</strong> Jeremias Guale Santana</div>
+                  <div><strong>Cuenta:</strong> 2209034638</div>
+                  <div><strong>Tipo:</strong> Ahorro Transaccional</div>
                 </div>
               </div>
-            )}
+
+              {/* Banco Guayaquil */}
+              <div className={`p-4 rounded-lg ${tv(isDark,'bg-white border border-gray-200','bg-gray-700 border border-gray-600')}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">🏛️</span>
+                  <span className="font-semibold">Banco Guayaquil</span>
+                </div>
+                <div className="text-sm space-y-1">
+                  <div><strong>Titular:</strong> Jeremias Joel Guale Santana</div>
+                  <div><strong>Cuenta:</strong> 0122407273</div>
+                  <div><strong>Tipo:</strong> Ahorros</div>
+                </div>
+              </div>
+
+              {/* Banco Pacífico */}
+              <div className={`p-4 rounded-lg ${tv(isDark,'bg-white border border-gray-200','bg-gray-700 border border-gray-600')}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">🌊</span>
+                  <span className="font-semibold">Banco Pacífico</span>
+                </div>
+                <div className="text-sm space-y-1">
+                  <div><strong>Titular:</strong> Byron Guale Santana</div>
+                  <div><strong>Cuenta:</strong> 1061220256</div>
+                  <div><strong>Tipo:</strong> Ahorros</div>
+                </div>
+              </div>
+
+              {/* PayPal */}
+              <div className={`p-4 rounded-lg ${tv(isDark,'bg-white border border-gray-200','bg-gray-700 border border-gray-600')}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">💳</span>
+                  <span className="font-semibold">PayPal</span>
+                </div>
+                <div className="text-sm space-y-1">
+                  <div><strong>Email:</strong> guale2023@outlook.com</div>
+                  <div><strong>Método:</strong> PayPal</div>
+                  <div><strong>Tipo:</strong> Transferencia</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Instrucciones de confirmación */}
+            <div className={`mt-4 p-4 rounded-lg ${tv(isDark,'bg-yellow-50 border border-yellow-200','bg-yellow-900/20 border border-yellow-500')}`}>
+              <div className="flex items-start gap-2">
+                <span className="text-lg">⚠️</span>
+                <div>
+                  <h5 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-1">Instrucciones Importantes:</h5>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                    Una vez que hayas realizado el pago, <strong>debes confirmar tu compra</strong> enviando una captura del comprobante por WhatsApp a nuestros agentes:
+                  </p>
+                  <div className="mt-2 text-sm">
+                    <div>📱 <strong>Agente 1:</strong> +593 98 428 0334</div>
+                    <div>📱 <strong>Agente 2:</strong> +593 99 879 9579</div>
+                  </div>
+                  <p className="text-xs mt-2 text-yellow-600 dark:text-yellow-400">
+                    Sin el comprobante, tu servicio no será activado.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Notas */}
