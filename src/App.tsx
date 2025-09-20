@@ -68,6 +68,37 @@ const PAYMENT_METHODS = [
   }
 ] as const;
 
+// ===================== Tipos =====================
+type PurchaseStatus = 'pending' | 'validated' | 'active' | 'expired' | 'cancelled';
+type PaymentMethod = 'pichincha' | 'guayaquil' | 'pacifico' | 'mobile';
+
+interface UserPurchase {
+  id: string;
+  serviceId: string;
+  serviceName: string;
+  price: number;
+  duration: number;
+  isAnnual: boolean;
+  paymentMethod: PaymentMethod;
+  notes?: string;
+  status: PurchaseStatus;
+  purchaseDate: string;
+  startDate?: string;
+  endDate?: string;
+  validatedBy?: string;
+  validatedAt?: string;
+  whatsappSent: boolean;
+}
+
+interface UserProfile {
+  id: string;
+  name: string;
+  whatsapp: string;
+  email?: string;
+  purchases: UserPurchase[];
+  createdAt: string;
+}
+
 // ===================== Utilidades =====================
 const fmt = (n: number) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "USD" }).format(n);
 const storage = {
@@ -246,12 +277,17 @@ export default function App(){
   const toggleTheme=()=>setTheme(isDark?'light':'dark');
 
   // Navegación
-  const[view,setView]=useState<'home'|'purchases'|'admin'|'register'|'adminLogin'|'auth'>('home');
+  const[view,setView]=useState<'home'|'purchases'|'admin'|'register'|'adminLogin'|'auth'|'profile'>('home');
 
   // Sesiones
   const[user,setUser]=useState<any>(()=> storage.load('userProfile', null));
   const[adminLogged,setAdminLogged]=useState<boolean>(()=> !!storage.load('adminLogged', false));
+  const[userProfile,setUserProfile]=useState<UserProfile | null>(()=> storage.load('userProfileData', null));
+  const[allPurchases,setAllPurchases]=useState<UserPurchase[]>(()=> storage.load('allPurchases', []));
+  
   useEffect(()=>{ storage.save('userProfile', user); },[user]);
+  useEffect(()=>{ storage.save('userProfileData', userProfile); },[userProfile]);
+  useEffect(()=>{ storage.save('allPurchases', allPurchases); },[allPurchases]);
   useEffect(()=>{ storage.save('adminLogged', adminLogged); },[adminLogged]);
 
   // Lista dinámica de administradores
@@ -278,6 +314,121 @@ export default function App(){
   };
   const addPurchase=(rec:any)=> setPurchases(p=>[{...rec,id:uid(),validated:false},...p]);
 
+  // ===================== Funciones de Compra =====================
+  
+  // Función para crear perfil de usuario
+  const createUserProfile = (name: string, whatsapp: string, email?: string): UserProfile => {
+    return {
+      id: Date.now().toString(),
+      name,
+      whatsapp,
+      email,
+      purchases: [],
+      createdAt: new Date().toISOString()
+    };
+  };
+
+  // Función para procesar compra
+  const processPurchase = (service: any, duration: number, isAnnual: boolean, paymentMethod: PaymentMethod, notes?: string) => {
+    if (!userProfile) return;
+
+    const purchase: UserPurchase = {
+      id: Date.now().toString(),
+      serviceId: service.id,
+      serviceName: service.name,
+      price: service.price * duration,
+      duration,
+      isAnnual,
+      paymentMethod,
+      notes,
+      status: 'pending',
+      purchaseDate: new Date().toISOString(),
+      whatsappSent: false
+    };
+
+    // Actualizar perfil de usuario
+    const updatedProfile = {
+      ...userProfile,
+      purchases: [...userProfile.purchases, purchase]
+    };
+    setUserProfile(updatedProfile);
+
+    // Actualizar lista global de compras
+    setAllPurchases(prev => [...prev, purchase]);
+
+    // Enviar notificación por WhatsApp
+    sendPurchaseNotification(purchase, userProfile);
+
+    // Cerrar modal
+    setPurchaseModalOpen(false);
+    setSelectedPaymentMethod('');
+    setPurchaseData(null);
+  };
+
+  // Función para enviar notificación de compra por WhatsApp
+  const sendPurchaseNotification = (purchase: UserPurchase, profile: UserProfile) => {
+    const paymentMethod = PAYMENT_METHODS.find(m => m.id === purchase.paymentMethod);
+    const whatsappMessage = `🎬 *NUEVA COMPRA - STREAMZONE*
+
+👤 *Cliente:* ${profile.name}
+📱 *WhatsApp:* ${profile.whatsapp}
+${profile.email ? `📧 *Email:* ${profile.email}` : ''}
+
+🛍️ *Servicio:* ${purchase.serviceName}
+💰 *Precio:* ${fmt(purchase.price)}
+⏱️ *Duración:* ${purchase.duration} ${purchase.isAnnual ? 'años' : 'meses'}
+💳 *Método:* ${paymentMethod?.name}
+${purchase.notes ? `📝 *Notas:* ${purchase.notes}` : ''}
+
+📅 *Fecha de compra:* ${new Date(purchase.purchaseDate).toLocaleDateString('es-ES')}
+🆔 *ID de compra:* ${purchase.id}
+
+⚠️ *PENDIENTE DE VALIDACIÓN*
+Por favor, valida el pago y activa el servicio.`;
+
+    // Enviar a ambos agentes
+    const agent1Link = `https://wa.me/${AGENTE_1_WHATSAPP.replace('+', '')}?text=${encodeURIComponent(whatsappMessage)}`;
+    const agent2Link = `https://wa.me/${AGENTE_2_WHATSAPP.replace('+', '')}?text=${encodeURIComponent(whatsappMessage)}`;
+    
+    // Abrir WhatsApp del Agente 1 por defecto
+    window.open(agent1Link, '_blank');
+    
+    // Marcar como enviado
+    const updatedPurchase = { ...purchase, whatsappSent: true };
+    setAllPurchases(prev => prev.map(p => p.id === purchase.id ? updatedPurchase : p));
+  };
+
+  // Función para validar compra (solo admin)
+  const validatePurchase = (purchaseId: string, adminEmail: string) => {
+    const purchase = allPurchases.find(p => p.id === purchaseId);
+    if (!purchase) return;
+
+    const now = new Date();
+    const startDate = now.toISOString();
+    const endDate = new Date(now.getTime() + (purchase.duration * (purchase.isAnnual ? 365 : 30) * 24 * 60 * 60 * 1000)).toISOString();
+
+    const updatedPurchase: UserPurchase = {
+      ...purchase,
+      status: 'active',
+      startDate,
+      endDate,
+      validatedBy: adminEmail,
+      validatedAt: now.toISOString()
+    };
+
+    // Actualizar en la lista global
+    setAllPurchases(prev => prev.map(p => p.id === purchaseId ? updatedPurchase : p));
+
+    // Actualizar en el perfil del usuario
+    if (userProfile) {
+      const updatedProfile = {
+        ...userProfile,
+        purchases: userProfile.purchases.map(p => p.id === purchaseId ? updatedPurchase : p)
+      };
+      setUserProfile(updatedProfile);
+    }
+  };
+
   // Modal de compra con métodos de pago
   const [purchaseModalOpen, setPurchaseModalOpen] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('');
@@ -289,7 +440,13 @@ export default function App(){
   // Navegación con auth
   const goAdmin=()=>{ if(adminLogged) setView('admin'); else setView('adminLogin'); };
   const goPurchases=()=>{ if(user) setView('purchases'); else setView('register'); };
-  const logoutUser=()=>{ setUser(null); storage.del('userProfile'); if(view==='purchases') setView('home'); };
+  const logoutUser=()=>{ 
+    setUser(null); 
+    setUserProfile(null);
+    storage.del('userProfile'); 
+    storage.del('userProfileData');
+    if(view==='purchases' || view==='profile') setView('home'); 
+  };
   const logoutAdmin=()=>{ setAdminLogged(false); storage.del('adminLogged'); if(view==='admin') setView('home'); };
 
   // ======= Admin =======
@@ -345,6 +502,16 @@ export default function App(){
                 )}
               >
                 Mis Compras
+              </button>
+              <button
+                onClick={() => setView('profile')}
+                className={tv(
+                  isDark,
+                  'rounded-xl bg-green-100 text-green-700 px-3 py-1.5 text-sm hover:bg-green-200',
+                  'rounded-xl bg-green-800 text-green-100 px-3 py-1.5 text-sm hover:bg-green-700'
+                )}
+              >
+                Mi Perfil
               </button>
               {user ? (
                 <button
@@ -594,7 +761,12 @@ export default function App(){
                 <h3 className="text-2xl font-bold mb-2">Crear cuenta</h3>
                 <p className="text-sm opacity-80">Regístrate para guardar tus compras y ver el estado</p>
               </div>
-              <UserRegisterForm isDark={isDark} onSubmit={(profile)=>{ setUser(profile); setView('home'); }} />
+              <UserRegisterForm isDark={isDark} onSubmit={(profile)=>{ 
+                setUser(profile); 
+                const userProfile = createUserProfile(profile.name, profile.phone, profile.email);
+                setUserProfile(userProfile);
+                setView('home'); 
+              }} />
               <div className="mt-6 text-center">
                 <button 
                   onClick={() => setView('auth')}
@@ -662,6 +834,148 @@ export default function App(){
                   })}
                 </tbody>
               </table>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* MI PERFIL */}
+      {view==='profile' && (
+        <section className="mx-auto max-w-6xl px-4 pb-16">
+          <div className="mb-8">
+            <h3 className="text-3xl font-bold mb-2">Mi Perfil</h3>
+            <p className={tv(isDark,'text-zinc-600','text-zinc-300')}>Gestiona tu cuenta y compras</p>
+          </div>
+          
+          {!userProfile ? (
+            <div className={`text-center py-16 rounded-2xl border-2 border-dashed ${tv(isDark,'border-zinc-200 bg-zinc-50','border-zinc-700 bg-zinc-800')}`}>
+              <div className="text-6xl mb-4">👤</div>
+              <h4 className="text-xl font-semibold mb-2">No tienes perfil creado</h4>
+              <p className={tv(isDark,'text-zinc-600','text-zinc-400')}>Crea tu perfil para gestionar tus compras</p>
+              <button 
+                onClick={() => setView('register')}
+                className={tv(isDark,'mt-4 rounded-xl bg-zinc-900 text-white px-6 py-3','mt-4 rounded-xl bg-white text-zinc-900 px-6 py-3')}
+              >
+                Crear perfil
+              </button>
+            </div>
+          ) : (
+            <div className="grid gap-6">
+              {/* Información del perfil */}
+              <div className={`p-6 rounded-2xl border ${tv(isDark,'bg-white border-zinc-200','bg-zinc-800 border-zinc-700')}`}>
+                <h3 className="text-xl font-semibold mb-4">Información Personal</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm text-zinc-600 dark:text-zinc-400">Nombre</label>
+                    <p className="font-medium">{userProfile.name}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-zinc-600 dark:text-zinc-400">WhatsApp</label>
+                    <p className="font-medium">{userProfile.whatsapp}</p>
+                  </div>
+                  {userProfile.email && (
+                    <div>
+                      <label className="text-sm text-zinc-600 dark:text-zinc-400">Email</label>
+                      <p className="font-medium">{userProfile.email}</p>
+                    </div>
+                  )}
+                  <div>
+                    <label className="text-sm text-zinc-600 dark:text-zinc-400">Miembro desde</label>
+                    <p className="font-medium">{new Date(userProfile.createdAt).toLocaleDateString('es-ES')}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Estadísticas */}
+              <div className={`p-6 rounded-2xl border ${tv(isDark,'bg-white border-zinc-200','bg-zinc-800 border-zinc-700')}`}>
+                <h3 className="text-xl font-semibold mb-4">Estadísticas</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">{userProfile.purchases.length}</div>
+                    <div className="text-sm text-zinc-600 dark:text-zinc-400">Total Compras</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">
+                      {userProfile.purchases.filter(p => p.status === 'active').length}
+                    </div>
+                    <div className="text-sm text-zinc-600 dark:text-zinc-400">Activas</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-yellow-600">
+                      {userProfile.purchases.filter(p => p.status === 'pending').length}
+                    </div>
+                    <div className="text-sm text-zinc-600 dark:text-zinc-400">Pendientes</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-red-600">
+                      {userProfile.purchases.filter(p => p.status === 'expired').length}
+                    </div>
+                    <div className="text-sm text-zinc-600 dark:text-zinc-400">Expiradas</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Compras recientes */}
+              <div className={`p-6 rounded-2xl border ${tv(isDark,'bg-white border-zinc-200','bg-zinc-800 border-zinc-700')}`}>
+                <h3 className="text-xl font-semibold mb-4">Compras Recientes</h3>
+                {userProfile.purchases.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-2">🛍️</div>
+                    <p className={tv(isDark,'text-zinc-600','text-zinc-400')}>No tienes compras aún</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {userProfile.purchases.slice(0, 5).map(purchase => (
+                      <div key={purchase.id} className={`p-4 rounded-xl border ${tv(isDark,'bg-zinc-50 border-zinc-100','bg-zinc-700 border-zinc-600')}`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold ${SERVICES.find(s => s.id === purchase.serviceId)?.color || 'bg-zinc-500'}`}>
+                              {SERVICES.find(s => s.id === purchase.serviceId)?.logo || '?'}
+                            </div>
+                            <div>
+                              <h4 className="font-medium">{purchase.serviceName}</h4>
+                              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                                {purchase.duration} {purchase.isAnnual ? 'años' : 'meses'} • {fmt(purchase.price)}
+                              </p>
+                            </div>
+                          </div>
+                          <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            purchase.status === 'active' ? 'bg-green-100 text-green-700' :
+                            purchase.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                            purchase.status === 'expired' ? 'bg-red-100 text-red-700' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>
+                            {purchase.status === 'active' ? 'Activo' :
+                             purchase.status === 'pending' ? 'Pendiente' :
+                             purchase.status === 'expired' ? 'Expirado' :
+                             purchase.status === 'cancelled' ? 'Cancelado' : 'Desconocido'}
+                          </div>
+                        </div>
+                        {purchase.startDate && purchase.endDate && (
+                          <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                            <span>Inicio: {new Date(purchase.startDate).toLocaleDateString('es-ES')}</span>
+                            <span className="mx-2">•</span>
+                            <span>Fin: {new Date(purchase.endDate).toLocaleDateString('es-ES')}</span>
+                          </div>
+                        )}
+                        {purchase.validatedBy && (
+                          <div className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
+                            Validado por: {purchase.validatedBy}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {userProfile.purchases.length > 5 && (
+                      <button
+                        onClick={() => setView('purchases')}
+                        className={tv(isDark,'w-full py-2 text-sm text-blue-600 hover:text-blue-700','w-full py-2 text-sm text-blue-400 hover:text-blue-300')}
+                      >
+                        Ver todas las compras ({userProfile.purchases.length})
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </section>
@@ -1221,21 +1535,23 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
   const total = service.price * duration;
 
   const handlePurchase = () => {
-    const purchaseData = {
-      service: service.name,
-      price: service.price,
-      duration: duration,
-      total: total,
-      paymentMethod: selectedMethod,
-      notes: notes,
-      customer: user.name,
-      phone: user.phone,
-      email: user.email,
-      start: new Date().toISOString().slice(0, 10),
-      end: new Date(Date.now() + (isAnnual ? duration * 365 : duration * 30) * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-    };
-    
-    onPurchase(purchaseData);
+    if (selectedMethod && onPurchase) {
+      const purchaseData = {
+        service: service.name,
+        price: service.price,
+        duration: duration,
+        total: total,
+        paymentMethod: selectedMethod,
+        notes: notes,
+        customer: user.name,
+        phone: user.phone,
+        email: user.email,
+        start: new Date().toISOString().slice(0, 10),
+        end: new Date(Date.now() + (isAnnual ? duration * 365 : duration * 30) * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+      };
+      
+      onPurchase(purchaseData);
+    }
     onClose();
   };
 
