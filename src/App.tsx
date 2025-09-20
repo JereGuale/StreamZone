@@ -378,31 +378,62 @@ ${rec.notes ? `📝 *Notas:* ${rec.notes}` : ''}
       
       document.body.appendChild(modal);
       
+      // Función para cerrar modal de forma segura
+      const closeModal = () => {
+        try {
+          if (modal && modal.parentNode) {
+            document.body.removeChild(modal);
+          }
+        } catch (error) {
+          console.log('Modal ya cerrado');
+        }
+      };
+      
       // Event listeners
       document.getElementById('agent1')?.addEventListener('click', () => {
-        document.body.removeChild(modal);
-        window.open(agent1Link, '_blank');
+        closeModal();
+        // Intentar abrir WhatsApp con timeout
+        setTimeout(() => {
+          try {
+            window.open(agent1Link, '_blank');
+          } catch (error) {
+            // Si falla, mostrar mensaje alternativo
+            alert('No se pudo abrir WhatsApp automáticamente. Por favor, contacta al Agente 1: +593 98 428 0334');
+          }
+        }, 100);
       });
       
       document.getElementById('agent2')?.addEventListener('click', () => {
-        document.body.removeChild(modal);
-        window.open(agent2Link, '_blank');
+        closeModal();
+        // Intentar abrir WhatsApp con timeout
+        setTimeout(() => {
+          try {
+            window.open(agent2Link, '_blank');
+          } catch (error) {
+            // Si falla, mostrar mensaje alternativo
+            alert('No se pudo abrir WhatsApp automáticamente. Por favor, contacta al Agente 2: +593 99 879 9579');
+          }
+        }, 100);
       });
       
-      document.getElementById('closeModal')?.addEventListener('click', () => {
-        document.body.removeChild(modal);
-      });
-      
-      document.getElementById('cancel')?.addEventListener('click', () => {
-        document.body.removeChild(modal);
-      });
+      document.getElementById('closeModal')?.addEventListener('click', closeModal);
+      document.getElementById('cancel')?.addEventListener('click', closeModal);
       
       // Cerrar al hacer clic fuera del modal
       modal.addEventListener('click', (e) => {
         if (e.target === modal) {
-          document.body.removeChild(modal);
+          closeModal();
         }
       });
+      
+      // Cerrar con tecla Escape
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          closeModal();
+          document.removeEventListener('keydown', handleEscape);
+        }
+      };
+      document.addEventListener('keydown', handleEscape);
     };
     
     showAgentSelection();
