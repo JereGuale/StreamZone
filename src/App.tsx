@@ -87,17 +87,17 @@ function Badge({ children, isDark }: { children: React.ReactNode; isDark: boolea
 
 function ServiceCard({ s, onReserve, isDark }:{ s:any; onReserve:(s:any)=>void; isDark:boolean; }){
   return (
-    <div className={`group rounded-2xl border p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 ${tv(isDark,'border-zinc-200 bg-white','border-zinc-700 bg-zinc-800')}`}> 
+    <div className={`group rounded-2xl border p-4 md:p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 ${tv(isDark,'border-zinc-200 bg-white','border-zinc-700 bg-zinc-800')}`}> 
       <div className="text-center">
-        <div className={`h-16 w-16 ${s.color} rounded-2xl text-white grid place-content-center text-2xl font-bold mx-auto mb-4 shadow-lg`}>{s.logo}</div>
-        <div className="mb-4">
-          <div className={tv(isDark,'text-zinc-900 font-bold text-lg mb-2','text-white font-bold text-lg mb-2')}>{s.name}</div>
-          <div className={tv(isDark,'text-2xl font-bold text-zinc-700','text-2xl font-bold text-zinc-200')}>{fmt(s.price)}</div>
-          <div className={tv(isDark,'text-sm text-zinc-500','text-sm text-zinc-400')}>por {s.billing==='annual'? 'año':'mes'}</div>
+        <div className={`h-12 w-12 md:h-16 md:w-16 ${s.color} rounded-2xl text-white grid place-content-center text-xl md:text-2xl font-bold mx-auto mb-3 md:mb-4 shadow-lg`}>{s.logo}</div>
+        <div className="mb-3 md:mb-4">
+          <div className={tv(isDark,'text-zinc-900 font-bold text-base md:text-lg mb-1 md:mb-2','text-white font-bold text-base md:text-lg mb-1 md:mb-2')}>{s.name}</div>
+          <div className={tv(isDark,'text-xl md:text-2xl font-bold text-zinc-700','text-xl md:text-2xl font-bold text-zinc-200')}>{fmt(s.price)}</div>
+          <div className={tv(isDark,'text-xs md:text-sm text-zinc-500','text-xs md:text-sm text-zinc-400')}>por {s.billing==='annual'? 'año':'mes'}</div>
         </div>
         <button 
           onClick={()=>onReserve(s)} 
-          className={`w-full rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${tv(isDark,'bg-zinc-900 text-white hover:bg-zinc-800 hover:shadow-lg','bg-white text-zinc-900 hover:bg-zinc-100 hover:shadow-lg')}`}
+          className={`w-full rounded-xl px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-semibold transition-all duration-200 ${tv(isDark,'bg-zinc-900 text-white hover:bg-zinc-800 hover:shadow-lg','bg-white text-zinc-900 hover:bg-zinc-100 hover:shadow-lg')}`}
         >
           Reservar Ahora
         </button>
@@ -227,86 +227,138 @@ export default function App(){
     <div className={`min-h-screen ${tv(isDark,'bg-zinc-50 text-zinc-900','bg-zinc-950 text-zinc-100')}`}>
       {/* Navbar */}
       <header className={`sticky top-0 z-30 border-b backdrop-blur ${tv(isDark,'bg-white/80 border-zinc-200','bg-zinc-950/70 border-zinc-800')}`}>
-        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Logo className="h-9 w-9" />
-            <div className="font-semibold">StreamZone</div>
-            <Badge isDark={isDark}>Seguridad y confianza</Badge>
+        <div className="mx-auto max-w-6xl px-4 py-3">
+          {/* Desktop Layout */}
+          <div className="hidden md:flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Logo className="h-9 w-9" />
+              <div className="font-semibold">StreamZone</div>
+              <Badge isDark={isDark}>Seguridad y confianza</Badge>
+            </div>
+            <nav className="flex items-center gap-2">
+              <button
+                onClick={() => setView('home')}
+                className={tv(
+                  isDark,
+                  'rounded-xl bg-zinc-100 px-3 py-1.5 text-sm hover:bg-zinc-200',
+                  'rounded-xl bg-zinc-800 px-3 py-1.5 text-sm hover:bg-zinc-700'
+                )}
+              >
+                Inicio
+              </button>
+              <button
+                onClick={goPurchases}
+                className={tv(
+                  isDark,
+                  'rounded-xl bg-zinc-100 px-3 py-1.5 text-sm hover:bg-zinc-200',
+                  'rounded-xl bg-zinc-800 px-3 py-1.5 text-sm hover:bg-zinc-700'
+                )}
+              >
+                Mis Compras
+              </button>
+              {user ? (
+                <button
+                  onClick={logoutUser}
+                  className={tv(
+                    isDark,
+                    'rounded-xl bg-red-100 text-red-700 px-3 py-1.5 text-sm hover:bg-red-200',
+                    'rounded-xl bg-red-800 text-red-100 px-3 py-1.5 text-sm hover:bg-red-700'
+                  )}
+                >
+                  Cerrar sesión
+                </button>
+              ) : (
+                <button
+                  onClick={() => setView('register')}
+                  className={tv(
+                    isDark,
+                    'rounded-xl bg-blue-100 text-blue-700 px-3 py-1.5 text-sm hover:bg-blue-200',
+                    'rounded-xl bg-blue-800 text-blue-100 px-3 py-1.5 text-sm hover:bg-blue-700'
+                  )}
+                >
+                  Registrarme
+                </button>
+              )}
+              <button
+                onClick={goAdmin}
+                className={tv(
+                  isDark,
+                  'rounded-xl bg-zinc-900 text-white px-3 py-1.5 text-sm hover:bg-zinc-800',
+                  'rounded-xl bg-white text-zinc-900 px-3 py-1.5 text-sm hover:bg-zinc-200'
+                )}
+              >
+                {adminLogged ? 'Admin' : 'Login Admin'}
+              </button>
+            </nav>
           </div>
-          <nav className="flex items-center gap-2">
-            {/* Botón de inicio */}
-            <button
-              onClick={() => setView('home')}
-              className={tv(
-                isDark,
-                'rounded-xl bg-zinc-100 px-3 py-1.5 text-sm hover:bg-zinc-200',
-                'rounded-xl bg-zinc-800 px-3 py-1.5 text-sm hover:bg-zinc-700'
-              )}
-            >
-              Inicio
-            </button>
 
-            {/* Botón de catálogo */}
-            <button
-              onClick={() => setView('home')}
-              className={tv(
-                isDark,
-                'rounded-xl bg-zinc-100 px-3 py-1.5 text-sm hover:bg-zinc-200',
-                'rounded-xl bg-zinc-800 px-3 py-1.5 text-sm hover:bg-zinc-700'
-              )}
-            >
-              Catálogo
-            </button>
-
-            {/* Botón de mis compras */}
-            <button
-              onClick={goPurchases}
-              className={tv(
-                isDark,
-                'rounded-xl bg-zinc-100 px-3 py-1.5 text-sm hover:bg-zinc-200',
-                'rounded-xl bg-zinc-800 px-3 py-1.5 text-sm hover:bg-zinc-700'
-              )}
-            >
-              Mis Compras
-            </button>
-
-            {/* Botón de registro/login */}
-            {user ? (
+          {/* Mobile Layout */}
+          <div className="md:hidden">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Logo className="h-8 w-8" />
+                <div className="font-semibold text-lg">StreamZone</div>
+              </div>
               <button
-                onClick={logoutUser}
+                onClick={goAdmin}
                 className={tv(
                   isDark,
-                  'rounded-xl bg-red-100 text-red-700 px-3 py-1.5 text-sm hover:bg-red-200',
-                  'rounded-xl bg-red-800 text-red-100 px-3 py-1.5 text-sm hover:bg-red-700'
+                  'rounded-lg bg-zinc-900 text-white px-3 py-1.5 text-xs',
+                  'rounded-lg bg-white text-zinc-900 px-3 py-1.5 text-xs'
                 )}
               >
-                Cerrar sesión
+                {adminLogged ? 'Admin' : 'Admin'}
               </button>
-            ) : (
+            </div>
+            <div className="flex items-center gap-2 overflow-x-auto pb-2">
               <button
-                onClick={() => setView('register')}
+                onClick={() => setView('home')}
                 className={tv(
                   isDark,
-                  'rounded-xl bg-blue-100 text-blue-700 px-3 py-1.5 text-sm hover:bg-blue-200',
-                  'rounded-xl bg-blue-800 text-blue-100 px-3 py-1.5 text-sm hover:bg-blue-700'
+                  'rounded-lg bg-zinc-100 px-3 py-1.5 text-xs whitespace-nowrap',
+                  'rounded-lg bg-zinc-800 px-3 py-1.5 text-xs whitespace-nowrap'
                 )}
               >
-                Registrarme
+                Inicio
               </button>
-            )}
-
-            {/* Botón de admin */}
-            <button
-              onClick={goAdmin}
-              className={tv(
-                isDark,
-                'rounded-xl bg-zinc-900 text-white px-3 py-1.5 text-sm hover:bg-zinc-800',
-                'rounded-xl bg-white text-zinc-900 px-3 py-1.5 text-sm hover:bg-zinc-200'
+              <button
+                onClick={goPurchases}
+                className={tv(
+                  isDark,
+                  'rounded-lg bg-zinc-100 px-3 py-1.5 text-xs whitespace-nowrap',
+                  'rounded-lg bg-zinc-800 px-3 py-1.5 text-xs whitespace-nowrap'
+                )}
+              >
+                Mis Compras
+              </button>
+              {user ? (
+                <button
+                  onClick={logoutUser}
+                  className={tv(
+                    isDark,
+                    'rounded-lg bg-red-100 text-red-700 px-3 py-1.5 text-xs whitespace-nowrap',
+                    'rounded-lg bg-red-800 text-red-100 px-3 py-1.5 text-xs whitespace-nowrap'
+                  )}
+                >
+                  Cerrar sesión
+                </button>
+              ) : (
+                <button
+                  onClick={() => setView('register')}
+                  className={tv(
+                    isDark,
+                    'rounded-lg bg-blue-100 text-blue-700 px-3 py-1.5 text-xs whitespace-nowrap',
+                    'rounded-lg bg-blue-800 text-blue-100 px-3 py-1.5 text-xs whitespace-nowrap'
+                  )}
+                >
+                  Registrarme
+                </button>
               )}
-            >
-              {adminLogged ? 'Admin' : 'Login Admin'}
-            </button>
-          </nav>
+            </div>
+            <div className="mt-2">
+              <Badge isDark={isDark}>Seguridad y confianza</Badge>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -315,20 +367,20 @@ export default function App(){
       {view==='home' && (
         <>
           <section className="relative">
-            <div className="relative mx-auto max-w-6xl px-4 py-16 md:py-24">
-              <div className="grid items-center gap-8 md:grid-cols-2">
+            <div className="relative mx-auto max-w-6xl px-4 py-12 md:py-16 lg:py-24">
+              <div className="grid items-center gap-6 md:gap-8 md:grid-cols-2">
                 <div className="relative z-10">
-                  <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">StreamZone</h1>
-                  <p className={tv(isDark,'mt-2 text-lg text-zinc-700','mt-2 text-lg text-zinc-200')}>Tus plataformas favoritas, al mejor precio.</p>
-                  <p className={tv(isDark,'mt-3 text-zinc-600','mt-3 text-zinc-300')}>Reserva por WhatsApp, recibe acceso con soporte inmediato y renueva sin complicaciones. Administra tus servicios desde tu cuenta.</p>
-                  <div className="mt-6 flex gap-3">
-                    <a href="#catalogo" className={tv(isDark,'rounded-xl bg-zinc-900 text-white px-5 py-3 text-sm','rounded-xl bg-white text-zinc-900 px-5 py-3 text-sm')}>Ver catálogo</a>
-                    <a href={whatsappLink(ADMIN_WHATSAPP,'¡Hola! Me interesa conocer más información sobre los servicios de streaming disponibles en StreamZone. ¿Podrían brindarme detalles sobre precios y disponibilidad?')} className={tv(isDark,'rounded-xl bg-zinc-200 px-5 py-3 text-sm','rounded-xl bg-zinc-800 text-zinc-100 px-5 py-3 text-sm')} target="_blank" rel="noreferrer">WhatsApp</a>
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight">StreamZone</h1>
+                  <p className={tv(isDark,'mt-2 text-base md:text-lg text-zinc-700','mt-2 text-base md:text-lg text-zinc-200')}>Tus plataformas favoritas, al mejor precio.</p>
+                  <p className={tv(isDark,'mt-3 text-sm md:text-base text-zinc-600','mt-3 text-sm md:text-base text-zinc-300')}>Reserva por WhatsApp, recibe acceso con soporte inmediato y renueva sin complicaciones. Administra tus servicios desde tu cuenta.</p>
+                  <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                    <a href="#catalogo" className={tv(isDark,'rounded-xl bg-zinc-900 text-white px-4 md:px-5 py-3 text-sm text-center','rounded-xl bg-white text-zinc-900 px-4 md:px-5 py-3 text-sm text-center')}>Ver catálogo</a>
+                    <a href={whatsappLink(ADMIN_WHATSAPP,'¡Hola! Me interesa conocer más información sobre los servicios de streaming disponibles en StreamZone. ¿Podrían brindarme detalles sobre precios y disponibilidad?')} className={tv(isDark,'rounded-xl bg-zinc-200 px-4 md:px-5 py-3 text-sm text-center','rounded-xl bg-zinc-800 text-zinc-100 px-4 md:px-5 py-3 text-sm text-center')} target="_blank" rel="noreferrer">WhatsApp</a>
                   </div>
                 </div>
-                <div className={`relative z-10 rounded-3xl p-6 shadow-sm backdrop-blur-md border ${tv(isDark,'bg-white/60 border-white/10','bg-zinc-900/50 border-zinc-800')}`}>
-                  <div className={tv(isDark,'text-sm text-zinc-700','text-sm text-zinc-300')}>Mi perfil</div>
-                  <p className={tv(isDark,'text-xs text-zinc-500 mt-1','text-xs text-zinc-400 mt-1')}>Completa tus datos al reservar: nombre y WhatsApp.</p>
+                <div className={`relative z-10 rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm backdrop-blur-md border ${tv(isDark,'bg-white/60 border-white/10','bg-zinc-900/50 border-zinc-800')}`}>
+                  <div className={tv(isDark,'text-sm md:text-base font-semibold text-zinc-700','text-sm md:text-base font-semibold text-zinc-300')}>Mi perfil</div>
+                  <p className={tv(isDark,'text-xs md:text-sm text-zinc-500 mt-1','text-xs md:text-sm text-zinc-400 mt-1')}>Completa tus datos al reservar: nombre y WhatsApp.</p>
                 </div>
               </div>
             </div>
@@ -337,13 +389,13 @@ export default function App(){
           </section>
 
           <section id="catalogo" className="mx-auto max-w-6xl px-4 pb-16">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Nuestro Catálogo</h2>
-              <p className={tv(isDark,'text-zinc-600 text-lg','text-zinc-300 text-lg')}>
+            <div className="text-center mb-8 md:mb-12">
+              <h2 className="text-2xl md:text-3xl font-bold mb-4">Nuestro Catálogo</h2>
+              <p className={tv(isDark,'text-zinc-600 text-base md:text-lg','text-zinc-300 text-base md:text-lg')}>
                 Descubre todas las plataformas de streaming disponibles
               </p>
             </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
               {SERVICES.map(s=> <ServiceCard key={s.id} s={s} onReserve={onReserve} isDark={isDark}/>) }
             </div>
           </section>
