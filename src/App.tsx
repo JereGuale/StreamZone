@@ -169,7 +169,7 @@ export default function App(){
   const toggleTheme=()=>setTheme(isDark?'light':'dark');
 
   // Navegación
-  const[view,setView]=useState<'home'|'purchases'|'admin'|'register'|'adminLogin'>('home');
+  const[view,setView]=useState<'home'|'purchases'|'admin'|'register'|'adminLogin'|'auth'>('home');
 
   // Sesiones
   const[user,setUser]=useState<any>(()=> storage.load('userProfile', null));
@@ -269,14 +269,14 @@ export default function App(){
                 </button>
               ) : (
                 <button
-                  onClick={() => setView('register')}
+                  onClick={() => setView('auth')}
                   className={tv(
                     isDark,
-                    'rounded-xl bg-blue-100 text-blue-700 px-3 py-1.5 text-sm hover:bg-blue-200',
-                    'rounded-xl bg-blue-800 text-blue-100 px-3 py-1.5 text-sm hover:bg-blue-700'
+                    'rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-1.5 text-sm hover:from-blue-600 hover:to-purple-700 shadow-lg',
+                    'rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-1.5 text-sm hover:from-blue-600 hover:to-purple-700 shadow-lg'
                   )}
                 >
-                  Registrarme
+                  Iniciar sesión
                 </button>
               )}
               <button
@@ -344,14 +344,14 @@ export default function App(){
                 </button>
               ) : (
                 <button
-                  onClick={() => setView('register')}
+                  onClick={() => setView('auth')}
                   className={tv(
                     isDark,
-                    'rounded-lg bg-blue-100 text-blue-700 px-3 py-1.5 text-xs whitespace-nowrap',
-                    'rounded-lg bg-blue-800 text-blue-100 px-3 py-1.5 text-xs whitespace-nowrap'
+                    'rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 py-1.5 text-xs whitespace-nowrap shadow-lg',
+                    'rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 py-1.5 text-xs whitespace-nowrap shadow-lg'
                   )}
                 >
-                  Registrarme
+                  Iniciar sesión
                 </button>
               )}
             </div>
@@ -374,7 +374,11 @@ export default function App(){
                   <p className={tv(isDark,'mt-2 text-base md:text-lg text-zinc-700','mt-2 text-base md:text-lg text-zinc-200')}>Tus plataformas favoritas, al mejor precio.</p>
                   <p className={tv(isDark,'mt-3 text-sm md:text-base text-zinc-600','mt-3 text-sm md:text-base text-zinc-300')}>Reserva por WhatsApp, recibe acceso con soporte inmediato y renueva sin complicaciones. Administra tus servicios desde tu cuenta.</p>
                   <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                    <a href="#catalogo" className={tv(isDark,'rounded-xl bg-zinc-900 text-white px-4 md:px-5 py-3 text-sm text-center','rounded-xl bg-white text-zinc-900 px-4 md:px-5 py-3 text-sm text-center')}>Ver catálogo</a>
+                    {user ? (
+                      <a href="#catalogo" className={tv(isDark,'rounded-xl bg-zinc-900 text-white px-4 md:px-5 py-3 text-sm text-center','rounded-xl bg-white text-zinc-900 px-4 md:px-5 py-3 text-sm text-center')}>Ver catálogo</a>
+                    ) : (
+                      <button onClick={() => setView('auth')} className={tv(isDark,'rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 md:px-5 py-3 text-sm text-center shadow-lg','rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 md:px-5 py-3 text-sm text-center shadow-lg')}>Iniciar sesión</button>
+                    )}
                     <a href={whatsappLink(ADMIN_WHATSAPP,'¡Hola! Me interesa conocer más información sobre los servicios de streaming disponibles en StreamZone. ¿Podrían brindarme detalles sobre precios y disponibilidad?')} className={tv(isDark,'rounded-xl bg-zinc-200 px-4 md:px-5 py-3 text-sm text-center','rounded-xl bg-zinc-800 text-zinc-100 px-4 md:px-5 py-3 text-sm text-center')} target="_blank" rel="noreferrer">WhatsApp</a>
                   </div>
                 </div>
@@ -402,6 +406,79 @@ export default function App(){
         </>
       )}
 
+      {/* AUTENTICACIÓN */}
+      {view==='auth' && (
+        <section className="min-h-[80vh] relative">
+          <div className="absolute inset-0 -z-10" style={{backgroundImage:"url(/img/bg-cinema.jpg)", backgroundSize:'cover', backgroundPosition:'center'}} />
+          <div className="absolute inset-0 -z-0 bg-black/60" />
+          <div className="relative z-10 mx-auto max-w-md px-4 py-16">
+            <div className={tv(isDark,'rounded-3xl bg-white/95 p-8 shadow-2xl','rounded-3xl bg-zinc-900/95 p-8 shadow-2xl text-zinc-100')}>
+              <div className="text-center mb-8">
+                <h3 className="text-3xl font-bold mb-2">¡Bienvenido!</h3>
+                <p className="text-sm opacity-80">Inicia sesión o regístrate para acceder a tus servicios</p>
+              </div>
+              
+              <div className="space-y-4">
+                {/* Botón de Registro */}
+                <button
+                  onClick={() => setView('register')}
+                  className={`w-full rounded-2xl p-4 text-center font-semibold transition-all duration-200 hover:scale-105 ${tv(
+                    isDark,
+                    'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:from-blue-600 hover:to-purple-700',
+                    'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:from-blue-600 hover:to-purple-700'
+                  )}`}
+                >
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-xl">✨</span>
+                    <div>
+                      <div className="text-lg">Crear cuenta nueva</div>
+                      <div className="text-sm opacity-90">Regístrate para guardar tus compras</div>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Divider */}
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-zinc-300 dark:border-zinc-600"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className={tv(isDark,'bg-white px-2 text-zinc-500','bg-zinc-900 px-2 text-zinc-400')}>o</span>
+                  </div>
+                </div>
+
+                {/* Botón de Login */}
+                <button
+                  onClick={() => setView('adminLogin')}
+                  className={`w-full rounded-2xl p-4 text-center font-semibold transition-all duration-200 hover:scale-105 ${tv(
+                    isDark,
+                    'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 border-2 border-zinc-200',
+                    'bg-zinc-800 text-zinc-200 hover:bg-zinc-700 border-2 border-zinc-600'
+                  )}`}
+                >
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-xl">🔑</span>
+                    <div>
+                      <div className="text-lg">Ya tengo cuenta</div>
+                      <div className="text-sm opacity-70">Iniciar sesión con mis datos</div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              <div className="mt-8 text-center">
+                <button 
+                  onClick={() => setView('home')}
+                  className={tv(isDark,'text-zinc-500 hover:text-zinc-700 text-sm','text-zinc-400 hover:text-zinc-200 text-sm')}
+                >
+                  ← Volver al inicio
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* REGISTRO */}
       {view==='register' && (
         <section className="min-h-[80vh] relative">
@@ -416,10 +493,10 @@ export default function App(){
               <UserRegisterForm isDark={isDark} onSubmit={(profile)=>{ setUser(profile); setView('home'); }} />
               <div className="mt-6 text-center">
                 <button 
-                  onClick={() => setView('home')}
+                  onClick={() => setView('auth')}
                   className={tv(isDark,'text-zinc-500 hover:text-zinc-700 text-sm','text-zinc-400 hover:text-zinc-200 text-sm')}
                 >
-                  ← Volver al inicio
+                  ← Volver a autenticación
                 </button>
               </div>
             </div>
