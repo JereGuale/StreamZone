@@ -1895,3 +1895,4 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
   console.assert(daysBetween(d3,dneg)===-4,'daysBetween negativo');
   console.assert(whatsappLink('123','hola')==='https://wa.me/123?text=hola','wa link');
 }catch(e){ console.warn('Self-tests failed:',e); }})();
+
