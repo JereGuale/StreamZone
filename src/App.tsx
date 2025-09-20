@@ -323,6 +323,34 @@ export default function App(){
     const newPurchase = {...rec,id:uid(),validated:false};
     setPurchases(p=>[newPurchase,...p]);
     
+    // También agregar al sistema nuevo de compras para sincronización
+    if (userProfile) {
+      const service = SERVICES.find(s => s.name === rec.service);
+      const userPurchase: UserPurchase = {
+        id: newPurchase.id,
+        serviceId: service?.id || 'unknown',
+        serviceName: rec.service,
+        price: rec.total,
+        duration: rec.duration,
+        isAnnual: rec.duration > 6,
+        paymentMethod: 'pichincha',
+        notes: rec.notes,
+        status: 'pending',
+        purchaseDate: new Date().toISOString(),
+        whatsappSent: false
+      };
+      
+      // Actualizar perfil de usuario
+      const updatedProfile = {
+        ...userProfile,
+        purchases: [...userProfile.purchases, userPurchase]
+      };
+      setUserProfile(updatedProfile);
+      
+      // Actualizar lista global de compras
+      setAllPurchases(prev => [...prev, userPurchase]);
+    }
+    
     // Crear mensaje de WhatsApp
     const whatsappMessage = `🎬 *CONFIRMACIÓN DE COMPRA - STREAMZONE*
 
@@ -478,8 +506,24 @@ ${rec.notes ? `📝 *Notas:* ${rec.notes}` : ''}
     };
     setUserProfile(updatedProfile);
 
-    // Actualizar lista global de compras
+    // Actualizar lista global de compras (nuevo sistema)
     setAllPurchases(prev => [...prev, purchase]);
+
+    // Actualizar lista de compras del admin (sistema antiguo para compatibilidad)
+    const adminPurchase = {
+      id: purchase.id,
+      customer: userProfile.name,
+      phone: userProfile.whatsapp,
+      service: purchase.serviceName,
+      price: purchase.price,
+      duration: purchase.duration,
+      total: purchase.price,
+      start: new Date().toISOString().slice(0, 10),
+      end: new Date(Date.now() + (purchase.isAnnual ? purchase.duration * 365 : purchase.duration * 30) * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+      validated: false,
+      notes: purchase.notes || ''
+    };
+    setPurchases(prev => [adminPurchase, ...prev]);
 
     // Enviar notificación por WhatsApp
     sendPurchaseNotification(purchase, userProfile);
@@ -566,8 +610,11 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
       validatedAt: now.toISOString()
     };
 
-    // Actualizar en la lista global
+    // Actualizar en la lista global (nuevo sistema)
     setAllPurchases(prev => prev.map(p => p.id === purchaseId ? updatedPurchase : p));
+
+    // Actualizar en la lista del admin (sistema antiguo para compatibilidad)
+    setPurchases(prev => prev.map(p => p.id === purchaseId ? { ...p, validated: true } : p));
 
     // Actualizar en el perfil del usuario
     if (userProfile) {
@@ -583,6 +630,81 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
   const [purchaseModalOpen, setPurchaseModalOpen] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('');
   const [purchaseData, setPurchaseData] = useState<any>(null);
+
+  // Modal de registro de compra por admin
+  const [adminRegisterPurchaseOpen, setAdminRegisterPurchaseOpen] = useState(false);
+
+  // Función para registrar compra desde el admin
+  const adminRegisterPurchase = (purchaseData: any) => {
+    // Buscar si el usuario ya existe en el sistema
+    let targetUserProfile = null;
+    
+    // Buscar en el localStorage por email o teléfono
+    try {
+      const allProfiles = JSON.parse(localStorage.getItem('userProfileData') || 'null');
+      if (allProfiles && (allProfiles.whatsapp === purchaseData.phone || allProfiles.email === purchaseData.email)) {
+        targetUserProfile = allProfiles;
+      }
+    } catch (error) {
+      console.log('No se pudo buscar perfil existente');
+    }
+    
+    // Si no se encuentra un usuario existente, crear uno nuevo
+    if (!targetUserProfile) {
+      targetUserProfile = createUserProfile(purchaseData.name, purchaseData.phone, purchaseData.email);
+    }
+
+    const service = SERVICES.find(s => s.name === purchaseData.service);
+    const purchase: UserPurchase = {
+      id: Date.now().toString(),
+      serviceId: service?.id || 'unknown',
+      serviceName: purchaseData.service,
+      price: purchaseData.price,
+      duration: purchaseData.duration,
+      isAnnual: purchaseData.isAnnual || false,
+      paymentMethod: purchaseData.paymentMethod || 'pichincha',
+      notes: purchaseData.notes,
+      status: 'active', // Admin registra como activa directamente
+      purchaseDate: new Date().toISOString(),
+      startDate: purchaseData.startDate || new Date().toISOString(),
+      endDate: purchaseData.endDate,
+      validatedBy: 'admin',
+      validatedAt: new Date().toISOString(),
+      whatsappSent: false
+    };
+
+    // Actualizar perfil de usuario
+    const updatedProfile = {
+      ...targetUserProfile,
+      purchases: [...targetUserProfile.purchases, purchase]
+    };
+    setUserProfile(updatedProfile);
+
+    // Actualizar lista global de compras
+    setAllPurchases(prev => [...prev, purchase]);
+
+    // Actualizar lista de compras del admin (sistema antiguo para compatibilidad)
+    const adminPurchase = {
+      id: purchase.id,
+      customer: purchaseData.name,
+      phone: purchaseData.phone,
+      service: purchase.serviceName,
+      price: purchase.price,
+      duration: purchase.duration,
+      total: purchase.price,
+      start: purchase.startDate?.slice(0, 10) || new Date().toISOString().slice(0, 10),
+      end: purchase.endDate?.slice(0, 10) || new Date(Date.now() + (purchase.duration * (purchase.isAnnual ? 365 : 30) * 24 * 60 * 60 * 1000)).toISOString().slice(0, 10),
+      validated: true,
+      notes: purchase.notes || ''
+    };
+    setPurchases(prev => [adminPurchase, ...prev]);
+
+    // Cerrar modal
+    setAdminRegisterPurchaseOpen(false);
+    
+    // Mostrar mensaje de confirmación
+    alert(`✅ Compra registrada exitosamente para ${purchaseData.name} (${purchaseData.phone})\n\nServicio: ${purchase.serviceName}\nPrecio: ${fmt(purchase.price)}\nDuración: ${purchase.duration} ${purchase.isAnnual ? 'años' : 'meses'}\nEstado: Activo\n\nLa compra aparecerá en la cuenta del usuario si tiene una cuenta registrada.`);
+  };
   
 
   const todayISO=new Date().toISOString().slice(0,10);
@@ -1225,7 +1347,7 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                 </div>
               </div>
               
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <button 
                   onClick={()=>setAdminSub('purchases')} 
                   className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
@@ -1233,6 +1355,15 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                   <div className="text-2xl mb-2">🛒</div>
                   <div className="text-xl font-bold mb-2">Gestionar Compras</div>
                   <div className="text-sm opacity-70">Revisa, valida y notifica por WhatsApp</div>
+                </button>
+                
+                <button 
+                  onClick={()=>setAdminRegisterPurchaseOpen(true)} 
+                  className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-blue-600 text-white shadow-lg','bg-blue-600 text-white shadow-lg')}`}
+                >
+                  <div className="text-2xl mb-2">➕</div>
+                  <div className="text-xl font-bold mb-2">Registrar Compra</div>
+                  <div className="text-sm opacity-70">Crear compra manual para un usuario</div>
                 </button>
                 
                 <button 
@@ -1291,9 +1422,17 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
         onPurchase={addPurchase} 
       />
 
+      {/* Modal de registro de compra por admin */}
+      <AdminRegisterPurchaseModal 
+        open={adminRegisterPurchaseOpen} 
+        onClose={()=>setAdminRegisterPurchaseOpen(false)} 
+        onRegister={adminRegisterPurchase} 
+        isDark={isDark} 
+      />
+
       {/* Drawers y flotantes */}
       <AdminDrawer open={drawerOpen} onClose={()=>setDrawerOpen(false)} isDark={isDark} adminEmails={adminEmails} setAdminEmails={setAdminEmails} />
-      <AdminMenuDrawer open={menuOpen} onClose={()=>setMenuOpen(false)} isDark={isDark} setSubView={setAdminSub} openAdmins={()=>setDrawerOpen(true)} onExportCSV={exportCSV} onLogout={logoutAdmin} />
+      <AdminMenuDrawer open={menuOpen} onClose={()=>setMenuOpen(false)} isDark={isDark} setSubView={setAdminSub} openAdmins={()=>setDrawerOpen(true)} onExportCSV={exportCSV} onLogout={logoutAdmin} onRegisterPurchase={()=>setAdminRegisterPurchaseOpen(true)} />
       <FloatingChatbot answerFn={(q)=>useChatbot(SERVICES).answer(q)} isDark={isDark}/>
       <FloatingThemeToggle isDark={isDark} onToggle={toggleTheme} />
     </div>
@@ -1433,8 +1572,8 @@ function AdminDrawer({ open, onClose, isDark, adminEmails, setAdminEmails }:{ op
 }
 
 // Drawer de menú Admin (desplegable izquierdo)
-function AdminMenuDrawer({ open, onClose, isDark, setSubView, openAdmins, onExportCSV, onLogout }:{
-  open:boolean; onClose:()=>void; isDark:boolean; setSubView:(v:'dashboard'|'purchases')=>void; openAdmins:()=>void; onExportCSV:()=>void; onLogout:()=>void;
+function AdminMenuDrawer({ open, onClose, isDark, setSubView, openAdmins, onExportCSV, onLogout, onRegisterPurchase }:{
+  open:boolean; onClose:()=>void; isDark:boolean; setSubView:(v:'dashboard'|'purchases')=>void; openAdmins:()=>void; onExportCSV:()=>void; onLogout:()=>void; onRegisterPurchase:()=>void;
 }){
   if(!open) return null;
   return (
@@ -1467,6 +1606,15 @@ function AdminMenuDrawer({ open, onClose, isDark, setSubView, openAdmins, onExpo
             <div className="flex items-center gap-3">
               <span className="text-xl">🛒</span>
               <span className="font-semibold">Gestionar Compras</span>
+            </div>
+          </button>
+          <button 
+            onClick={()=>{onRegisterPurchase(); onClose();}} 
+            className={`w-full rounded-xl p-4 text-left transition-all hover:scale-105 ${tv(isDark,'hover:bg-blue-50','hover:bg-blue-900/20')}`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl">➕</span>
+              <span className="font-semibold text-blue-600 dark:text-blue-400">Registrar Compra</span>
             </div>
           </button>
           <button 
@@ -1881,6 +2029,203 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
             </button>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Modal de registro de compra por admin
+function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark }: {
+  open: boolean; onClose: () => void; onRegister: (data: any) => void; isDark: boolean;
+}) {
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    service: '',
+    price: '',
+    duration: 1,
+    isAnnual: false,
+    startDate: new Date().toISOString().slice(0, 10),
+    notes: ''
+  });
+
+  if (!open) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const endDate = new Date(formData.startDate);
+    const monthsToAdd = formData.isAnnual ? formData.duration * 12 : formData.duration;
+    endDate.setMonth(endDate.getMonth() + monthsToAdd);
+
+    onRegister({
+      ...formData,
+      price: parseFloat(formData.price),
+      endDate: endDate.toISOString()
+    });
+    
+    // Reset form
+    setFormData({
+      name: '',
+      phone: '',
+      email: '',
+      service: '',
+      price: '',
+      duration: 1,
+      isAnnual: false,
+      startDate: new Date().toISOString().slice(0, 10),
+      notes: ''
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={onClose}>
+      <div className={`w-full max-w-2xl rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto ${tv(isDark,'bg-white','bg-zinc-900')}`} onClick={e=>e.stopPropagation()}>
+        <div className="mb-6 flex items-center justify-between">
+          <h3 className="text-2xl font-bold">Registrar Compra Manual</h3>
+          <button 
+            onClick={onClose} 
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold transition-colors ${tv(isDark,'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100','text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800')}`}
+          >
+            ×
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Información del cliente */}
+          <div className={`p-4 rounded-xl ${tv(isDark,'bg-zinc-50','bg-zinc-800')}`}>
+            <h4 className="font-semibold mb-4">👤 Información del Cliente</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Nombre completo *</label>
+                <input
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                  placeholder="Juan Pérez"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">WhatsApp *</label>
+                <input
+                  required
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                  placeholder="+593987654321"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-2">Email (opcional)</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                  placeholder="juan@correo.com"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Información del servicio */}
+          <div className={`p-4 rounded-xl ${tv(isDark,'bg-zinc-50','bg-zinc-800')}`}>
+            <h4 className="font-semibold mb-4">🛍️ Información del Servicio</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Servicio *</label>
+                <select
+                  required
+                  value={formData.service}
+                  onChange={(e) => setFormData({...formData, service: e.target.value})}
+                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                >
+                  <option value="">Seleccionar servicio</option>
+                  {SERVICES.map(service => (
+                    <option key={service.id} value={service.name}>
+                      {service.name} - {fmt(service.price)}/{service.billing === 'annual' ? 'año' : 'mes'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Precio (USD) *</label>
+                <input
+                  required
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.price}
+                  onChange={(e) => setFormData({...formData, price: e.target.value})}
+                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                  placeholder="4.00"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Duración *</label>
+                <div className="flex gap-2">
+                  <input
+                    required
+                    type="number"
+                    min="1"
+                    value={formData.duration}
+                    onChange={(e) => setFormData({...formData, duration: parseInt(e.target.value) || 1})}
+                    className={`flex-1 rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                  />
+                  <select
+                    value={formData.isAnnual ? 'annual' : 'monthly'}
+                    onChange={(e) => setFormData({...formData, isAnnual: e.target.value === 'annual'})}
+                    className={`rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                  >
+                    <option value="monthly">Meses</option>
+                    <option value="annual">Años</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Fecha de inicio *</label>
+                <input
+                  required
+                  type="date"
+                  value={formData.startDate}
+                  onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Notas */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Notas adicionales</label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) => setFormData({...formData, notes: e.target.value})}
+              className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+              rows={3}
+              placeholder="Comentarios o instrucciones especiales..."
+            />
+          </div>
+
+          {/* Botones */}
+          <div className="flex gap-3">
+            <button 
+              type="button"
+              onClick={onClose} 
+              className={`flex-1 rounded-xl px-4 py-3 font-medium ${tv(isDark,'bg-zinc-100 text-zinc-700 hover:bg-zinc-200','bg-zinc-700 text-zinc-200 hover:bg-zinc-600')}`}
+            >
+              Cancelar
+            </button>
+            <button 
+              type="submit"
+              className="flex-1 rounded-xl px-4 py-3 font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all"
+            >
+              Registrar Compra
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
