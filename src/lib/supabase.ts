@@ -410,6 +410,7 @@ export const getUserActivePurchases = async (phone: string) => {
   }
 };
 
+
 // ============ FUNCIONES DE RENOVACIÓN ============
 
 // Función para obtener servicios próximos a vencer

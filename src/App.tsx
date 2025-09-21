@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { supabase, createUser, getUserByPhone, updateUser, createPurchase, syncServices, DatabasePurchase, getUserPurchases, getUserByEmail, generateResetToken, verifyResetToken, resetPassword, loginUser, approvePurchase, getPendingPurchases, getUserActivePurchases, getExpiringServices, createRenewal, getRenewalHistory, toggleAutoRenewal, getRenewalNotifications, getRenewalStats, RenewalHistory, ExpiringService } from "./lib/supabase";
+import { supabase, createUser, getUserByPhone, updateUser, createPurchase, syncServices, DatabasePurchase, getUserPurchases, getUserByEmail, generateResetToken, verifyResetToken, resetPassword, loginUser, approvePurchase, getPendingPurchases, getUserActivePurchases, getAllPurchases, getExpiringServices, createRenewal, getRenewalHistory, toggleAutoRenewal, getRenewalNotifications, getRenewalStats, RenewalHistory, ExpiringService } from "./lib/supabase";
 
 /**
  * StreamZone – Tienda de Streaming (React + TS + Tailwind)
@@ -697,15 +697,29 @@ export default function App(){
     }
   };
 
+  // Cargar TODAS las compras desde Supabase (para admin)
+  const loadAllPurchasesFromSupabase = async () => {
+    try {
+      const result = await getAllPurchases();
+      if (result.data) {
+        setAllPurchases(result.data);
+        console.log('✅ Todas las compras cargadas desde Supabase:', result.data.length);
+        return result.data;
+      } else {
+        console.warn('⚠️ No se pudieron cargar las compras desde Supabase');
+        return [];
+      }
+    } catch (error) {
+      console.error('❌ Error cargando todas las compras:', error);
+      return [];
+    }
+  };
+
   // Función para actualizar todas las estadísticas del dashboard
   const refreshAllStats = async () => {
     try {
-      // Recargar todas las compras (para estadísticas del dashboard)
-      const allPurchasesResult = await getPendingPurchases();
-      if (allPurchasesResult.data) {
-        // Aquí podrías cargar todas las compras si tuvieras una función getAllPurchases
-        // Por ahora usamos las pendientes y las activas se cargan por separado
-      }
+      // Recargar TODAS las compras desde Supabase
+      await loadAllPurchasesFromSupabase();
       
       // Recargar compras pendientes
       await loadPendingPurchases();
@@ -716,7 +730,7 @@ export default function App(){
       // Recargar estadísticas de renovaciones
       await loadRenewalStats();
       
-      console.log('✅ Todas las estadísticas actualizadas');
+      console.log('✅ Todas las estadísticas actualizadas desde Supabase');
       
     } catch (error) {
       console.error('❌ Error actualizando estadísticas:', error);
