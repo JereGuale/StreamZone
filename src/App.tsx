@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { supabase, createUser, getUserByPhone, createPurchase, syncServices, DatabasePurchase, getUserPurchases } from "./lib/supabase";
+import { supabase, createUser, getUserByPhone, updateUser, createPurchase, syncServices, DatabasePurchase, getUserPurchases, getUserByEmail, generateResetToken, verifyResetToken, resetPassword, loginUser, approvePurchase, getPendingPurchases, getUserActivePurchases, getExpiringServices, createRenewal, getRenewalHistory, toggleAutoRenewal, getRenewalNotifications, getRenewalStats, RenewalHistory, ExpiringService } from "./lib/supabase";
 
 /**
  * StreamZone – Tienda de Streaming (React + TS + Tailwind)
@@ -130,7 +130,11 @@ const storage = {
   del(key: string){ localStorage.removeItem(key); }
 };
 function uid(){ return Math.random().toString(36).slice(2,10); }
-function daysBetween(a: string, b: string){ const d1=new Date(a), d2=new Date(b); return Math.ceil((d2.getTime()-d1.getTime())/(1000*60*60*24)); }
+function daysBetween(a: string, b: string){ 
+  const d1=new Date(a), d2=new Date(b); 
+  const diff = d2.getTime()-d1.getTime();
+  return Math.ceil(diff/(1000*60*60*24)); 
+}
 function whatsappLink(to: string, text: string){ return `https://wa.me/${to}?text=${encodeURIComponent(text)}`; }
 function tv<T>(isDark: boolean, light: T, dark: T){ return isDark? dark : light; }
 function ownPurchases(list: any[], user: any){ if(!user) return []; return list.filter(p=>p.validated && p.phone===user.phone); }
@@ -155,16 +159,47 @@ function Logo({ className = "h-9 w-9" }: { className?: string }){
 
 // ===================== Chatbot Inteligente =====================
 function useChatbot(services: readonly any[], combos: readonly any[]){
-  const answer = (q: string) => { 
+  const answer = async (q: string, context: string[] = []) => { 
     const text = q.toLowerCase().trim();
+    const fullContext = [...context, text].join(' '); // Combinar contexto con pregunta actual
     
     // Saludos y bienvenida
     if(/hola|buenas|hey|hi|hello|buenos|buenas tardes|buenas noches/.test(text)) {
-      return "¡Hola! 👋 ¡Bienvenido a StreamZone! 🎬✨ Soy tu asistente especializado en streaming. Puedo ayudarte con:\n\n🎯 Recomendaciones personalizadas\n💰 Precios y combos especiales\n📺 Contenido disponible por plataforma\n🔍 Búsqueda de títulos específicos\n📱 Información sobre cuentas y dispositivos\n\n¿Qué te gustaría saber? 😊";
+      return "¡Hola! 👋 ¡Bienvenido a StreamZone! 🎬✨ Soy tu asistente especializado en streaming. Puedo ayudarte con:\n\n🎯 Recomendaciones personalizadas\n💰 Precios y combos especiales\n📺 Contenido disponible por plataforma\n🔍 Búsqueda de títulos específicos\n📱 Información sobre cuentas y dispositivos\n🔐 Recuperación de contraseña\n\n¿Qué te gustaría saber? 😊";
+    }
+    
+    // Recuperación de contraseña
+    if(/olvide|olvidé|contraseña|password|recuperar|reset|resetear/.test(text)) {
+      return "🔐 **RECUPERACIÓN DE CONTRASEÑA** 🔐\n\n¡No te preocupes! Puedo ayudarte a recuperar tu contraseña.\n\n📧 **Dime tu email** y te generaré un código de recuperación.\n\nEjemplo: `miemail@gmail.com`\n\n⚠️ **Importante:** El código se mostrará aquí en el chat, no se envía por email.\n\n¿Cuál es tu email registrado?";
+    }
+    
+    // Detectar email para generar token
+    if(/@.*\./.test(text) && !/netflix|disney|hbo|amazon|spotify/.test(text)) {
+      const emailMatch = text.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+      if (emailMatch) {
+        const email = emailMatch[1];
+        try {
+          console.log('🔍 Chatbot generando token para:', email);
+          const result = await generateResetToken(email);
+          console.log('🔍 Chatbot resultado completo:', result);
+          console.log('🔍 Token generado:', result.data?.token);
+          console.log('🔍 Usuario:', result.data?.user);
+          
+          if (result.data) {
+            return `🔐 **¡CÓDIGO GENERADO EXITOSAMENTE!** ✅\n\n📧 Email: ${email}\n🔑 **Tu código de recuperación:**\n\n**${result.data.token}**\n\n📋 **Instrucciones:**\n1. Ve a "Iniciar sesión" → "¿Olvidaste tu contraseña?"\n2. Ingresa tu email: ${email}\n3. Copia y pega este código: **${result.data.token}**\n4. Crea tu nueva contraseña\n\n⏰ **El código expira en 30 minutos**\n\n💡 ¡Guarda este código en un lugar seguro!`;
+          } else {
+            console.log('🔍 Error en resultado:', result.error);
+            return `❌ **Error generando código**\n\n📧 Email: ${email}\n🚫 ${result.error?.message || 'Error desconocido'}\n\n💡 **Posibles causas:**\n• El email no está registrado\n• Problema de conexión\n\n🔧 **Solución:**\n• Verifica que el email sea correcto\n• Intenta crear una cuenta nueva si no tienes una`;
+          }
+        } catch (error) {
+          console.log('🔍 Chatbot error en catch:', error);
+          return `❌ **Error en el proceso**\n\n📧 Email: ${email}\n🚫 Error: ${error}\n\n💡 Intenta de nuevo o contacta soporte.`;
+        }
+      }
     }
     
     // Recomendaciones inteligentes por género/preferencias
-    if(/recomendar|recomendación|qué|que ver|mejor|sugerir|cuál|que plataforma|anime|familia|marvel|star wars|hbo|blockbuster|presupuesto bajo/.test(text)) {
+    if(/recomendar|recomendación|recomendaciones|qué|que ver|mejor|sugerir|cuál|que plataforma|anime|familia|marvel|star wars|hbo|blockbuster|presupuesto bajo|dame|quiero ver|ayuda|opciones/.test(text)) {
       
       // Recomendaciones específicas por contenido
       if(/anime|manga|japonés|japones/.test(text)) {
@@ -245,12 +280,12 @@ function useChatbot(services: readonly any[], combos: readonly any[]){
     }
     
     // Información sobre cuentas y dispositivos
-    if(/cuenta|perfil|dispositivo|device|cuántos|cuantos|compartir|usuarios/.test(text)) {
+    if(/cuenta|perfil|dispositivo|device|cuántos|cuantos|compartir|usuarios|como funciona|funciona|incluye|que incluye/.test(text)) {
       return "📱 **INFORMACIÓN IMPORTANTE SOBRE CUENTAS:**\n\n✅ **1 Cuenta = 1 Perfil + 1 Dispositivo**\n📺 **Dispositivos soportados:** TV, móvil, tablet, PC\n👤 **Perfiles:** Cada cuenta tiene su perfil personalizado\n\n🔒 **Reglas de uso:**\n• No compartir con otras personas\n• Solo en un dispositivo a la vez\n• Acceso 24/7 garantizado\n\n💡 **¿Necesitas múltiples dispositivos?** Considera comprar varias cuentas\n\n🎯 ¿Tienes alguna pregunta específica sobre el uso?";
     }
     
     // Precios y combos
-    if(/precio|cuanto|cuánto|costo|valor|vale|combo|descuento/.test(text)) {
+    if(/precio|cuanto|cuánto|costo|valor|vale|combo|descuento|pagar|pago|dinero|barato|caro|oferta/.test(text)) {
       // Precios específicos por servicio
       for(const s of services){ 
         if(text.includes(s.id)||text.includes(s.name.toLowerCase())) {
@@ -273,12 +308,12 @@ function useChatbot(services: readonly any[], combos: readonly any[]){
     }
     
     // Proceso de compra detallado
-    if(/como (compro|comprar|pago|pagar|reservar|adquirir)|proceso|pasos/.test(text)) {
+    if(/como (compro|comprar|pago|pagar|reservar|adquirir)|proceso|pasos|quiero comprar|necesito comprar|como hago para|como puedo/.test(text)) {
       return "🛒 **PROCESO DE COMPRA - SÚPER FÁCIL:**\n\n1️⃣ **Selecciona** tu plataforma favorita\n2️⃣ **Haz clic** en 'Comprar Ahora' 🛒\n3️⃣ **Completa** tus datos (nombre, email, teléfono)\n4️⃣ **Elige** método de pago (banco, PayPal, móvil)\n5️⃣ **Recibe** acceso inmediato por WhatsApp 📱\n\n⏱️ **Tiempo total:** 5-10 minutos\n✅ **Garantía:** 24/7 soporte técnico\n\n🎯 ¿Quieres que te guíe paso a paso?";
     }
     
     // Métodos de pago detallados
-    if(/metodo|metodos|pago|transferencia|deposito|efectivo|forma de pago|banco|paypal|pago móvil/.test(text)) {
+    if(/metodo|metodos|pago|transferencia|deposito|efectivo|forma de pago|banco|paypal|pago móvil|como pago|donde pago|donde deposito|transferir/.test(text)) {
       return "💳 **MÉTODOS DE PAGO ACEPTADOS:**\n\n🏦 **BANCOS ECUATORIANOS:**\n• Banco Pichincha: 2209034638\n• Banco Guayaquil: 0122407273\n• Banco Pacífico: 1061220256\n\n💳 **DIGITALES:**\n• PayPal: guale2023@outlook.com\n• Pago móvil (todas las operadoras)\n\n🔒 **100% SEGURO:** Todos los pagos están protegidos\n📱 **IMPORTANTE:** Envía comprobante por WhatsApp para activación\n\n💡 ¿Prefieres pago bancario o digital?";
     }
     
@@ -310,8 +345,28 @@ function useChatbot(services: readonly any[], combos: readonly any[]){
       return "¡De nada! 😊 Ha sido un placer ayudarte. Si necesitas algo más, no dudes en contactarnos. ¡Que disfrutes mucho de tu streaming! 🎬✨\n\n💡 **Recuerda:** Nuestros agentes están disponibles 24/7\n📱 **WhatsApp:** +593 98 428 0334\n\n¡Hasta pronto! 👋";
     }
     
-    // Fallback inteligente con opciones
-    return "🤔 No estoy seguro de entender tu consulta. Puedo ayudarte con:\n\n🎯 **Recomendaciones** personalizadas\n💰 **Precios** y combos especiales\n📺 **Contenido** por plataforma\n🔍 **Búsqueda** de títulos específicos\n📱 **Información** sobre cuentas\n🛒 **Proceso** de compra\n💳 **Métodos** de pago\n👨‍💼 **Contacto** con agentes\n\n💡 **Escribe una de estas opciones** o hazme una pregunta más específica\n\n🎯 ¿Qué te gustaría saber?";
+    // Fallback inteligente - intentar dar una respuesta útil basada en palabras clave
+    const words = text.split(' ');
+    const hasStreamingWords = words.some(word => 
+      ['netflix', 'disney', 'max', 'hbo', 'prime', 'spotify', 'streaming', 'película', 'serie', 'música'].includes(word.toLowerCase())
+    );
+    
+    if (hasStreamingWords) {
+      return "🎬 Veo que mencionas contenido de streaming. Te puedo ayudar con:\n\n📺 **Información sobre plataformas:**\n• Netflix, Disney+, Max, Prime Video, Spotify\n• Catálogos completos y precios\n• Recomendaciones personalizadas\n\n🔍 **¿Qué te interesa más?**\n• Ver precios de una plataforma específica\n• Saber qué contenido tiene cada una\n• Encontrar títulos específicos\n\n💡 **Ejemplo:** '¿Qué hay en Netflix?' o '¿Cuánto cuesta Disney+?'";
+    }
+    
+    // Respuesta más amigable y variada
+    const responses = [
+      "🤔 Hmm, no estoy seguro de entender exactamente qué necesitas. ¿Podrías ser más específico?\n\n🎯 **Algunas cosas que puedo ayudarte:**\n• Recomendaciones de streaming\n• Precios y combos\n• Búsqueda de películas/series\n• Información sobre cuentas\n\n💡 **Prueba preguntando:** '¿Qué me recomiendas?' o '¿Cuánto cuesta Netflix?'",
+      
+      "😊 Me gustaría ayudarte, pero necesito entender mejor tu pregunta.\n\n🎬 **Soy experto en:**\n• Recomendaciones de plataformas de streaming\n• Información sobre precios y combos\n• Búsqueda de contenido específico\n• Proceso de compra y pagos\n\n💭 **¿Qué te gustaría saber sobre streaming?**",
+      
+      "🎯 ¡Estoy aquí para ayudarte con todo lo relacionado a streaming!\n\n📺 **Puedo ayudarte con:**\n• Encontrar la plataforma perfecta para ti\n• Comparar precios y combos\n• Buscar películas o series específicas\n• Explicar cómo funciona todo\n\n🤔 **¿Qué tipo de contenido te gusta más?** (acción, familia, anime, etc.)"
+    ];
+    
+    // Usar el índice del mensaje para variar la respuesta
+    const randomIndex = Math.floor(Math.random() * responses.length);
+    return responses[randomIndex];
   };
   
   return {answer};
@@ -379,13 +434,14 @@ function Modal({ open, onClose, children, title, isDark }:{ open:boolean; onClos
 }
 
 // === FloatingChatbot ===
-function FloatingChatbot({ answerFn, isDark }:{ answerFn:(q:string)=>string; isDark:boolean; }){
+function FloatingChatbot({ answerFn, isDark }:{ answerFn:(q:string, context?:string[])=>Promise<string>; isDark:boolean; }){
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([{ role: "bot", text: "¡Hola! 👋 ¡Bienvenido a StreamZone! 🎬✨ Soy tu asistente especializado en streaming. ¿En qué puedo ayudarte hoy?" }]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [conversationContext, setConversationContext] = useState<string[]>([]);
   
-  const send = () => { 
+  const send = async () => { 
     const q = input.trim(); 
     if(!q) return; 
     
@@ -394,12 +450,19 @@ function FloatingChatbot({ answerFn, isDark }:{ answerFn:(q:string)=>string; isD
     setInput("");
     setIsTyping(true);
     
-    // Simular delay de respuesta para mejor UX
-    setTimeout(() => {
-      const a = answerFn(q);
+    // Actualizar contexto de conversación
+    setConversationContext(prev => [...prev.slice(-3), q.toLowerCase()]); // Mantener últimas 3 preguntas
+    
+    try {
+      // Obtener respuesta asíncrona
+      const a = await answerFn(q, conversationContext);
       setMessages(m=>[...m,{role:'bot',text:a}]);
+    } catch (error) {
+      console.error('Error en chatbot:', error);
+      setMessages(m=>[...m,{role:'bot',text:'❌ Lo siento, hubo un error. Por favor intenta de nuevo.'}]);
+    } finally {
       setIsTyping(false);
-    }, 800);
+    }
   };
   
   const formatMessage = (text: string) => {
@@ -414,6 +477,7 @@ function FloatingChatbot({ answerFn, isDark }:{ answerFn:(q:string)=>string; isD
   
   return (<>
     <button 
+      data-chat-button
       onClick={()=>setOpen(!open)} 
       className={`fixed bottom-5 right-5 z-40 rounded-full px-4 py-3 shadow-lg transition-all duration-200 hover:scale-105 ${tv(isDark,'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700','bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700')}`}
     >
@@ -452,6 +516,26 @@ function FloatingChatbot({ answerFn, isDark }:{ answerFn:(q:string)=>string; isD
                   <span className="animate-pulse">...</span>
                 </span>
               </div>
+            </div>
+          )}
+          
+          {/* Botones de sugerencias rápidas */}
+          {messages.length <= 1 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {[
+                "🎯 Recomiéndame algo",
+                "💰 Ver precios",
+                "📺 ¿Qué hay en Netflix?",
+                "🛒 ¿Cómo compro?"
+              ].map((suggestion, index) => (
+                <button
+                  key={index}
+                  onClick={() => setInput(suggestion)}
+                  className={`px-3 py-2 rounded-full text-xs font-medium transition-all hover:scale-105 ${tv(isDark,'bg-zinc-100 text-zinc-700 hover:bg-zinc-200','bg-zinc-700 text-zinc-300 hover:bg-zinc-600')}`}
+                >
+                  {suggestion}
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -499,7 +583,7 @@ export default function App(){
   const toggleTheme=()=>setTheme(isDark?'light':'dark');
 
   // Navegación
-  const[view,setView]=useState<'home'|'combos'|'purchases'|'admin'|'register'|'adminLogin'|'auth'|'profile'>('home');
+  const[view,setView]=useState<'home'|'combos'|'admin'|'register'|'adminLogin'|'auth'|'profile'>('home');
 
   // Sesiones
   const[user,setUser]=useState<any>(()=> storage.load('userProfile', null));
@@ -517,11 +601,11 @@ export default function App(){
     const syncServicesOnInit = async () => {
       try {
         // Sincronizar servicios individuales
-        await syncServices(SERVICES);
+        await syncServices([...SERVICES]);
         console.log('Servicios sincronizados con Supabase');
         
         // Sincronizar combos
-        await syncServices(COMBOS);
+        await syncServices([...COMBOS]);
         console.log('Combos sincronizados con Supabase');
       } catch (error) {
         console.error('Error sincronizando servicios:', error);
@@ -539,10 +623,337 @@ export default function App(){
   const [drawerOpen, setDrawerOpen] = useState(false); // admins
   const [menuOpen, setMenuOpen] = useState(false);    // menú
 
+  // Estados para autenticación
+  const [authStep, setAuthStep] = useState<'login'|'email'|'code'|'newpassword'>('login');
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetToken, setResetToken] = useState('');
+  const [resetCode, setResetCode] = useState('');
+  
+  // Estados para administración
+  const[pendingPurchases,setPendingPurchases]=useState<DatabasePurchase[]>([]);
+  const[adminLoading,setAdminLoading]=useState(false);
+  const[selectedPurchase,setSelectedPurchase]=useState<DatabasePurchase | null>(null);
+  const[serviceCredentials,setServiceCredentials]=useState({email:'',password:'',notes:''});
+  
+  // Estados para registro de compra personalizada
+  const[customPurchase,setCustomPurchase]=useState({
+    customer:'',
+    phone:'',
+    email:'',
+    service:'',
+    months:1,
+    serviceEmail:'',
+    servicePassword:'',
+    notes:''
+  });
+  
+  // Estados para perfil de usuario
+  const[userActivePurchases,setUserActivePurchases]=useState<DatabasePurchase[]>([]);
+  
+  // Estados para renovaciones
+  const[expiringServices,setExpiringServices]=useState<ExpiringService[]>([]);
+  const[renewalHistory,setRenewalHistory]=useState<RenewalHistory[]>([]);
+  const[renewalStats,setRenewalStats]=useState<any>(null);
+  const[selectedPurchaseForRenewal,setSelectedPurchaseForRenewal]=useState<DatabasePurchase | null>(null);
+  const[renewalLoading,setRenewalLoading]=useState(false);
+
+  // Debug para authStep
+  useEffect(() => {
+    console.log('🔍 authStep cambió a:', authStep);
+    console.log('🔍 view actual:', view);
+  }, [authStep, view]);
+
+  // Cargar compras del usuario cuando accede al perfil
+  useEffect(() => {
+    if (view === 'profile' && user) {
+      loadUserPurchases(user.phone);
+    }
+  }, [view, user]);
+
+  // Cargar servicios próximos a vencer cuando se accede al admin
+  useEffect(() => {
+    if (view === 'admin') {
+      loadExpiringServices();
+      loadRenewalStats();
+    }
+  }, [view]);
+
+  // Cargar compras pendientes cuando se accede al admin
+  const loadPendingPurchases = async () => {
+    setAdminLoading(true);
+    try {
+      const result = await getPendingPurchases();
+      if (result.data) {
+        setPendingPurchases(result.data);
+        console.log('✅ Compras pendientes cargadas:', result.data.length);
+      } else {
+        console.log('⚠️ No se pudieron cargar las compras pendientes');
+        setPendingPurchases([]);
+      }
+    } catch (error) {
+      console.error('Error cargando compras pendientes:', error);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  // Función para actualizar todas las estadísticas del dashboard
+  const refreshAllStats = async () => {
+    try {
+      // Recargar todas las compras (para estadísticas del dashboard)
+      const allPurchasesResult = await getPendingPurchases();
+      if (allPurchasesResult.data) {
+        // Aquí podrías cargar todas las compras si tuvieras una función getAllPurchases
+        // Por ahora usamos las pendientes y las activas se cargan por separado
+      }
+      
+      // Recargar compras pendientes
+      await loadPendingPurchases();
+      
+      // Recargar servicios próximos a vencer
+      await loadExpiringServices();
+      
+      // Recargar estadísticas de renovaciones
+      await loadRenewalStats();
+      
+      console.log('✅ Todas las estadísticas actualizadas');
+      
+    } catch (error) {
+      console.error('❌ Error actualizando estadísticas:', error);
+    }
+  };
+
+  // Cargar compras activas del usuario cuando accede al perfil
+  const loadUserPurchases = async (phone: string) => {
+    try {
+      const result = await getUserActivePurchases(phone);
+      if (result.data) {
+        setUserActivePurchases(result.data);
+      }
+    } catch (error) {
+      console.error('Error cargando compras del usuario:', error);
+    }
+  };
+
+  // Aprobar una compra con credenciales
+  const handleApprovePurchase = async () => {
+    if (!selectedPurchase || !serviceCredentials.email || !serviceCredentials.password) {
+      alert('Por favor completa el email y contraseña del servicio');
+      return;
+    }
+
+    setAdminLoading(true);
+    try {
+      const result = await approvePurchase(
+        selectedPurchase.id,
+        serviceCredentials.email,
+        serviceCredentials.password,
+        serviceCredentials.notes,
+        'admin' // Por ahora hardcodeado
+      );
+
+      if (result.data) {
+        // Actualizar inmediatamente el estado local
+        setPendingPurchases(prev => prev.filter(p => p.id !== selectedPurchase.id));
+        
+        alert('✅ Compra aprobada exitosamente');
+        setSelectedPurchase(null);
+        setServiceCredentials({email:'',password:'',notes:''});
+        
+        // Recargar también desde la base de datos para asegurar sincronización
+        setTimeout(() => {
+          refreshAllStats();
+        }, 500);
+      } else {
+        alert('❌ Error aprobando la compra');
+      }
+    } catch (error) {
+      console.error('Error aprobando compra:', error);
+      alert('❌ Error aprobando la compra');
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  // Rechazar compra (eliminar de la base de datos)
+  const handleRejectPurchase = async (purchaseId: string) => {
+    if (!confirm('¿Estás seguro de que quieres rechazar esta compra? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    setAdminLoading(true);
+    try {
+      // Eliminar la compra de la base de datos
+      const { error } = await supabase
+        .from('purchases')
+        .delete()
+        .eq('id', purchaseId);
+
+      if (error) throw error;
+      
+      // Actualizar inmediatamente el estado local para reflejar el cambio
+      setPendingPurchases(prev => prev.filter(p => p.id !== purchaseId));
+      
+      alert('❌ Compra rechazada y eliminada');
+      
+      // Recargar también desde la base de datos para asegurar sincronización
+      setTimeout(() => {
+        refreshAllStats();
+      }, 500);
+      
+    } catch (error) {
+      console.error('Error rechazando compra:', error);
+      alert('❌ Error rechazando la compra');
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  // Eliminar compra activa (para el administrador)
+  const handleDeleteActivePurchase = async (purchaseId: string, customerName: string, serviceName: string) => {
+    if (!confirm(`⚠️ ADVERTENCIA: ¿Estás seguro de que quieres ELIMINAR PERMANENTEMENTE la compra activa de ${customerName} - ${serviceName}?\n\nEsta acción:\n• Eliminará la compra de la base de datos\n• El cliente perderá acceso al servicio\n• NO se puede deshacer\n\nEscribe "ELIMINAR" para confirmar:`)) {
+      return;
+    }
+
+    // Verificación adicional
+    const confirmation = prompt('Para confirmar la eliminación, escribe exactamente: ELIMINAR');
+    if (confirmation !== 'ELIMINAR') {
+      alert('❌ Eliminación cancelada. Debes escribir "ELIMINAR" para confirmar.');
+      return;
+    }
+
+    setAdminLoading(true);
+    try {
+      // Eliminar la compra de la base de datos
+      const { error } = await supabase
+        .from('purchases')
+        .delete()
+        .eq('id', purchaseId);
+
+      if (error) throw error;
+      
+      alert(`✅ Compra de ${customerName} - ${serviceName} eliminada permanentemente`);
+      
+      // Recargar todas las estadísticas
+      setTimeout(() => {
+        refreshAllStats();
+      }, 500);
+      
+    } catch (error) {
+      console.error('Error eliminando compra activa:', error);
+      alert('❌ Error eliminando la compra');
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  // ============ FUNCIONES DE RENOVACIÓN ============
+
+  // Cargar servicios próximos a vencer
+  const loadExpiringServices = async () => {
+    try {
+      const result = await getExpiringServices(7);
+      if (result.data) {
+        setExpiringServices(result.data);
+      }
+    } catch (error) {
+      console.error('Error cargando servicios próximos a vencer:', error);
+    }
+  };
+
+  // Cargar estadísticas de renovaciones
+  const loadRenewalStats = async () => {
+    try {
+      const result = await getRenewalStats();
+      if (result.data) {
+        setRenewalStats(result.data);
+      }
+    } catch (error) {
+      console.error('Error cargando estadísticas de renovaciones:', error);
+    }
+  };
+
+  // Crear renovación manual
+  const handleCreateRenewal = async (purchaseId: string, months: number) => {
+    setRenewalLoading(true);
+    try {
+      const result = await createRenewal(purchaseId, months, 'admin');
+      if (result.data) {
+        alert('✅ Renovación creada exitosamente');
+        loadExpiringServices(); // Recargar servicios próximos a vencer
+        loadRenewalStats(); // Recargar estadísticas
+      } else {
+        alert('❌ Error creando renovación');
+      }
+    } catch (error) {
+      console.error('Error creando renovación:', error);
+      alert('❌ Error creando renovación');
+    } finally {
+      setRenewalLoading(false);
+    }
+  };
+
+
+  // Crear compra personalizada (para compras fuera de la página)
+  const handleCreateCustomPurchase = async () => {
+    if (!customPurchase.customer || !customPurchase.phone || !customPurchase.service || !customPurchase.serviceEmail || !customPurchase.servicePassword) {
+      alert('Por favor completa todos los campos obligatorios');
+      return;
+    }
+
+    setAdminLoading(true);
+    try {
+      // Calcular fechas
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setMonth(endDate.getMonth() + customPurchase.months);
+
+      const purchaseData: Omit<DatabasePurchase, 'id' | 'created_at'> = {
+        customer: customPurchase.customer,
+        phone: customPurchase.phone,
+        service: customPurchase.service,
+        start: startDate.toISOString().split('T')[0],
+        end: endDate.toISOString().split('T')[0],
+        months: customPurchase.months,
+        validated: true, // Las compras personalizadas se aprueban automáticamente
+        service_email: customPurchase.serviceEmail,
+        service_password: customPurchase.servicePassword,
+        admin_notes: customPurchase.notes || 'Compra registrada manualmente por admin',
+        approved_by: 'admin',
+        approved_at: new Date().toISOString()
+      };
+
+      const result = await createPurchase(purchaseData);
+      
+      if (result.data) {
+        alert('✅ Compra personalizada creada exitosamente');
+        setCustomPurchase({
+          customer:'',
+          phone:'',
+          email:'',
+          service:'',
+          months:1,
+          serviceEmail:'',
+          servicePassword:'',
+          notes:''
+        });
+        setAdminRegisterPurchaseOpen(false);
+        refreshAllStats(); // Recargar todas las estadísticas
+      } else {
+        alert('❌ Error creando compra personalizada');
+      }
+    } catch (error) {
+      console.error('Error creando compra personalizada:', error);
+      alert('❌ Error creando compra personalizada');
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
   // Reservas
   const[reserveOpen,setReserveOpen]=useState(false); const[selected,setSelected]=useState<any|null>(null);
   const[purchases,setPurchases]=useState<any[]>(()=> storage.load('purchases', []));
-  const{answer}=useChatbot(SERVICES);
+  const{answer}=useChatbot(SERVICES, COMBOS);
   useEffect(()=> storage.save('purchases', purchases),[purchases]);
   const onReserve=(s:any)=>{ 
     if(user) {
@@ -629,31 +1040,31 @@ export default function App(){
       setPurchases(p => [updatedPurchase, ...p]);
       
       // 5. También agregar al sistema nuevo de compras para sincronización
-      if (userProfile) {
-        const service = SERVICES.find(s => s.name === rec.service);
-        const userPurchase: UserPurchase = {
+    if (userProfile) {
+      const service = SERVICES.find(s => s.name === rec.service);
+      const userPurchase: UserPurchase = {
           id: savedPurchase.id,
-          serviceId: service?.id || 'unknown',
-          serviceName: rec.service,
-          price: rec.total,
-          duration: rec.duration,
-          isAnnual: rec.duration > 6,
-          paymentMethod: 'pichincha',
-          notes: rec.notes,
-          status: 'pending',
-          purchaseDate: new Date().toISOString(),
-          whatsappSent: false
-        };
-        
-        // Actualizar perfil de usuario
-        const updatedProfile = {
-          ...userProfile,
-          purchases: [...userProfile.purchases, userPurchase]
-        };
-        setUserProfile(updatedProfile);
-        
-        // Actualizar lista global de compras
-        setAllPurchases(prev => [...prev, userPurchase]);
+        serviceId: service?.id || 'unknown',
+        serviceName: rec.service,
+        price: rec.total,
+        duration: rec.duration,
+        isAnnual: rec.duration > 6,
+        paymentMethod: 'pichincha',
+        notes: rec.notes,
+        status: 'pending',
+        purchaseDate: new Date().toISOString(),
+        whatsappSent: false
+      };
+      
+      // Actualizar perfil de usuario
+      const updatedProfile = {
+        ...userProfile,
+        purchases: [...userProfile.purchases, userPurchase]
+      };
+      setUserProfile(updatedProfile);
+      
+      // Actualizar lista global de compras
+      setAllPurchases(prev => [...prev, userPurchase]);
       }
       
       console.log('Compra guardada exitosamente en Supabase:', savedPurchase);
@@ -1027,19 +1438,28 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
   const dueToday=purchases.filter(p=>p.end===todayISO);
 
   // Navegación con auth
-  const goAdmin=()=>{ if(adminLogged) setView('admin'); else setView('adminLogin'); };
-  const goPurchases=()=>{ if(user) setView('purchases'); else setView('register'); };
+  const goAdmin=()=>{ 
+    if(adminLogged) {
+      setView('admin');
+      // Cargar automáticamente todas las estadísticas al entrar al panel
+      refreshAllStats();
+    } else {
+      setView('adminLogin'); 
+    }
+  };
+  const goPurchases=()=>{ if(user) setView('profile'); else setView('register'); };
   const logoutUser=()=>{ 
     setUser(null); 
     setUserProfile(null);
     storage.del('userProfile'); 
     storage.del('userProfileData');
-    if(view==='purchases' || view==='profile') setView('home'); 
+    if(view==='profile') setView('home'); 
   };
   const logoutAdmin=()=>{ setAdminLogged(false); storage.del('adminLogged'); if(view==='admin') setView('home'); };
 
   // ======= Admin =======
   const [adminSub, setAdminSub] = useState<'dashboard'|'purchases'>('dashboard');
+  const [adminPurchaseView, setAdminPurchaseView] = useState<'pending'|'active'>('pending');
   const [pFilter, setPFilter] = useState<'pending'|'validated'|'all'>('pending');
   const [query, setQuery] = useState('');
   const countPending = purchases.filter(p=>!p.validated).length;
@@ -1092,26 +1512,18 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
               >
                 🎯 Combos
               </button>
-              <button
-                onClick={goPurchases}
-                className={tv(
-                  isDark,
-                  'rounded-xl px-3 py-1.5 text-sm hover:bg-zinc-100',
-                  'rounded-xl px-3 py-1.5 text-sm hover:bg-zinc-800'
-                )}
-              >
-                Mis Compras
-              </button>
+              {user && (
               <button
                 onClick={() => setView('profile')}
                 className={tv(
                   isDark,
-                  'rounded-xl bg-green-100 text-green-700 px-3 py-1.5 text-sm hover:bg-green-200',
-                  'rounded-xl bg-green-800 text-green-100 px-3 py-1.5 text-sm hover:bg-green-700'
+                    'rounded-xl px-3 py-1.5 text-sm hover:bg-zinc-100',
+                    'rounded-xl px-3 py-1.5 text-sm hover:bg-zinc-800'
                 )}
               >
-                Mi Perfil
+                  👤 Mi Perfil
               </button>
+              )}
               {user ? (
                 <button
                   onClick={logoutUser}
@@ -1186,16 +1598,6 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                 )}
               >
                 🎯 Combos
-              </button>
-              <button
-                onClick={goPurchases}
-                className={tv(
-                  isDark,
-                  'rounded-lg bg-zinc-100 px-3 py-1.5 text-xs whitespace-nowrap',
-                  'rounded-lg bg-zinc-800 px-3 py-1.5 text-xs whitespace-nowrap'
-                )}
-              >
-                Mis Compras
               </button>
               {user ? (
                 <button
@@ -1277,7 +1679,11 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-              {SERVICES.map(s=> <ServiceCard key={s.id} s={s} onReserve={onReserve} isDark={isDark}/>) }
+              {SERVICES.map(s=> (
+                <div key={s.id}>
+                  <ServiceCard s={s} onReserve={onReserve} isDark={isDark}/>
+                </div>
+              ))}
             </div>
           </section>
         </>
@@ -1291,70 +1697,159 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
           <div className="relative z-10 mx-auto max-w-md px-4 py-16">
             <div className={tv(isDark,'rounded-3xl bg-white/95 p-8 shadow-2xl','rounded-3xl bg-zinc-900/95 p-8 shadow-2xl text-zinc-100')}>
               <div className="text-center mb-8">
-                <h3 className="text-3xl font-bold mb-2">¡Bienvenido!</h3>
-                <p className="text-sm opacity-80">Inicia sesión o regístrate para acceder a tus servicios</p>
+                {authStep === 'login' && (
+                  <>
+                    <h3 className="text-3xl font-bold mb-2">🔐 Iniciar Sesión</h3>
+                    <p className="text-sm opacity-80">Accede a tu cuenta de StreamZone</p>
+                  </>
+                )}
+                {authStep === 'email' && (
+                  <>
+                    <h3 className="text-3xl font-bold mb-2">📧 Recuperar Contraseña</h3>
+                    <p className="text-sm opacity-80">Paso 1: Ingresa tu email para recibir el código</p>
+                  </>
+                )}
               </div>
               
-              <div className="space-y-4">
-                {/* Botón de Registro */}
+              {authStep === 'login' && (
+                <UserLoginForm 
+                  isDark={isDark}
+                  onLogin={(userData) => {
+                    // Guardar datos del usuario
+                    setUser(userData);
+                    setUserProfile(userData);
+                    setView('home');
+                  }}
+                  onForgotPassword={() => setAuthStep('email')}
+                />
+              )}
+              
+              {authStep === 'email' && (
+                <ForgotPasswordForm 
+                  isDark={isDark}
+                  onBack={() => setAuthStep('login')}
+                  onTokenSent={(email, token) => {
+                    setResetEmail(email);
+                    setResetToken(token);
+                    setAuthStep('code');
+                  }}
+                />
+              )}
+
+              {authStep === 'code' && (
+                <CodeVerificationForm 
+                  isDark={isDark}
+                  email={resetEmail}
+                  onBack={() => setAuthStep('email')}
+                  onCodeVerified={(token) => {
+                    setResetToken(token);
+                    setAuthStep('newpassword');
+                  }}
+                />
+              )}
+
+              {authStep === 'newpassword' && (
+                <ResetPasswordForm 
+                  isDark={isDark}
+                  email={resetEmail}
+                  token={resetToken}
+                  onSuccess={() => {
+                    setAuthStep('login');
+                    setResetEmail('');
+                    setResetToken('');
+                  }}
+                />
+              )}
+
+              {authStep === 'login' && (
+                <>
+                  <div className="mt-6 text-center space-y-3">
+                    <div className="text-sm opacity-70">¿No tienes cuenta?</div>
                 <button
                   onClick={() => setView('register')}
-                  className={`w-full rounded-2xl p-4 text-center font-semibold transition-all duration-200 hover:scale-105 ${tv(
+                      className={`w-full rounded-xl px-4 py-2 font-medium transition-all ${tv(
                     isDark,
-                    'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:from-blue-600 hover:to-purple-700',
-                    'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:from-blue-600 hover:to-purple-700'
+                        'bg-gradient-to-r from-green-500 to-blue-500 text-white hover:from-green-600 hover:to-blue-600',
+                        'bg-gradient-to-r from-blue-500 to-green-600 text-white hover:from-blue-600 hover:to-green-700'
                   )}`}
                 >
-                  <div className="flex items-center justify-center gap-3">
-                    <span className="text-xl">✨</span>
-                    <div>
-                      <div className="text-lg">Crear cuenta nueva</div>
-                      <div className="text-sm opacity-90">Regístrate para guardar tus compras</div>
-                    </div>
-                  </div>
+                      ✨ Crear cuenta nueva
                 </button>
-
-                {/* Divider */}
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-zinc-300 dark:border-zinc-600"></div>
                   </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className={tv(isDark,'bg-white px-2 text-zinc-500','bg-zinc-900 px-2 text-zinc-400')}>o</span>
+
+                  <div className="mt-6 text-center">
+                    <button 
+                      onClick={() => setView('home')}
+                      className={tv(isDark,'text-zinc-500 hover:text-zinc-700 text-sm','text-zinc-400 hover:text-zinc-200 text-sm')}
+                    >
+                      ← Volver al inicio
+                    </button>
+                  </div>
+                </>
+              )}
                   </div>
                 </div>
+        </section>
+      )}
 
-                {/* Botón de Login */}
-                <button
-                  onClick={() => setView('adminLogin')}
-                  className={`w-full rounded-2xl p-4 text-center font-semibold transition-all duration-200 hover:scale-105 ${tv(
-                    isDark,
-                    'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 border-2 border-zinc-200',
-                    'bg-zinc-800 text-zinc-200 hover:bg-zinc-700 border-2 border-zinc-600'
-                  )}`}
-                >
-                  <div className="flex items-center justify-center gap-3">
-                    <span className="text-xl">🔑</span>
+
+      {/* PASO 2: INGRESAR CÓDIGO */}
+      {view==='auth' && authStep==='code' && (
+        <section className="min-h-[80vh] relative">
+          <div className="absolute inset-0 -z-10" style={{backgroundImage:"url(/img/bg-cinema.jpg)", backgroundSize:'cover', backgroundPosition:'center'}} />
+          <div className="absolute inset-0 -z-0 bg-black/60" />
+          <div className="relative z-10 mx-auto max-w-md px-4 py-16">
+            <div className={tv(isDark,'rounded-3xl bg-white/95 p-8 shadow-2xl','rounded-3xl bg-zinc-900/95 p-8 shadow-2xl text-zinc-100')}>
+              <div className="text-center mb-8">
+                <h3 className="text-3xl font-bold mb-2">🔢 Verificar Código</h3>
+                <p className="text-sm opacity-80">Paso 2: Ingresa el código que enviamos a {resetEmail}</p>
+              </div>
+              
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                // Verificar el código
+                const result = await verifyResetToken(resetCode);
+                if (result.data) {
+                  setAuthStep('newpassword');
+                } else {
+                  alert('Código inválido o expirado');
+                }
+              }} className="space-y-4">
                     <div>
-                      <div className="text-lg">Ya tengo cuenta</div>
-                      <div className="text-sm opacity-70">Iniciar sesión con mis datos</div>
+                  <label className={tv(isDark,'text-sm text-zinc-700','text-sm text-zinc-300')}>Código de verificación</label>
+                  <input
+                    required
+                    type="text"
+                    className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-800 text-zinc-100')}`}
+                    value={resetCode}
+                    onChange={e => setResetCode(e.target.value)}
+                    placeholder="123456"
+                    maxLength={6}
+                  />
                     </div>
-                  </div>
-                </button>
-              </div>
-
-              <div className="mt-8 text-center">
-                <button 
-                  onClick={() => setView('home')}
-                  className={tv(isDark,'text-zinc-500 hover:text-zinc-700 text-sm','text-zinc-400 hover:text-zinc-200 text-sm')}
+                
+                <button
+                  type="submit"
+                  className={`w-full rounded-xl px-4 py-3 font-semibold transition-all ${tv(isDark,'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700','bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700')}`}
                 >
-                  ← Volver al inicio
+                  🔍 Verificar Código
+                </button>
+
+                <div className="text-center">
+                <button 
+                    type="button"
+                    onClick={() => setAuthStep('email')}
+                    className={`text-sm ${tv(isDark,'text-zinc-500 hover:text-zinc-700','text-zinc-400 hover:text-zinc-200')}`}
+                >
+                    ← Volver al paso anterior
                 </button>
               </div>
+              </form>
             </div>
           </div>
         </section>
       )}
+
 
       {/* REGISTRO */}
       {view==='register' && (
@@ -1461,15 +1956,15 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                   </div>
                 </div>
                 
-                <button 
+              <button 
                   onClick={() => onReserve(combo)}
                   className="w-full bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-4 rounded-xl transition-colors"
-                >
+              >
                   Comprar Combo
-                </button>
-              </div>
+              </button>
+            </div>
             ))}
-          </div>
+            </div>
           
           <div className="mt-12 text-center">
             <div className={`${tv(isDark,'bg-blue-50 border-blue-200','bg-blue-900/20 border-blue-700')} border rounded-2xl p-6`}>
@@ -1483,201 +1978,294 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
         </section>
       )}
 
-      {/* MIS COMPRAS */}
-      {view==='purchases' && (
-        <section className="mx-auto max-w-6xl px-4 pb-16">
-          <div className="mb-8">
-            <h3 className="text-3xl font-bold mb-2">Mis Compras</h3>
-            <p className={tv(isDark,'text-zinc-600','text-zinc-300')}>Gestiona y revisa el estado de tus servicios</p>
-          </div>
-          
-          {ownPurchases(purchases,user).length===0 ? (
-            <div className={`text-center py-16 rounded-2xl border-2 border-dashed ${tv(isDark,'border-zinc-200 bg-zinc-50','border-zinc-700 bg-zinc-800')}`}>
-              <div className="text-6xl mb-4">📦</div>
-              <h4 className="text-xl font-semibold mb-2">No tienes compras aún</h4>
-              <p className={tv(isDark,'text-zinc-600','text-zinc-400')}>Explora nuestro catálogo y reserva tu primer servicio</p>
-              <button 
-                onClick={() => setView('home')}
-                className={tv(isDark,'mt-4 rounded-xl bg-zinc-900 text-white px-6 py-3','mt-4 rounded-xl bg-white text-zinc-900 px-6 py-3')}
-              >
-                Ver Catálogo
-              </button>
-            </div>
-          ) : (
-            <div className={`overflow-x-auto rounded-2xl border ${tv(isDark,'border-zinc-200 bg-white','border-zinc-700 bg-zinc-800')}`}> 
-              <table className="w-full text-sm">
-                <thead className={tv(isDark,'bg-zinc-50 text-zinc-700','bg-zinc-900 text-zinc-300')}>
-                  <tr>
-                    <th className="p-4 text-left font-semibold">Servicio</th>
-                    <th className="p-4 text-left font-semibold">Inicio</th>
-                    <th className="p-4 text-left font-semibold">Fin</th>
-                    <th className="p-4 text-left font-semibold">Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ownPurchases(purchases,user).map(p=>{ 
-                    const days=daysBetween(new Date().toISOString().slice(0,10),p.end); 
-                    const status=days<0?'Vencido':days===0?'Vence hoy':`${days} días restantes`; 
-                    return (
-                      <tr key={p.id} className={tv(isDark,'border-t border-zinc-200','border-t border-zinc-700')}>
-                        <td className="p-4 font-medium">{p.service}</td>
-                        <td className="p-4">{p.start}</td>
-                        <td className="p-4">{p.end}</td>
-                        <td className="p-4">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            days < 0 ? 'bg-red-100 text-red-800' : 
-                            days === 0 ? 'bg-yellow-100 text-yellow-800' : 
-                            'bg-green-100 text-green-800'
-                          }`}>
-                            {status}
-                          </span>
-                        </td>
-                      </tr> 
-                    ); 
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-      )}
+      {/* MIS COMPRAS ELIMINADO - LAS COMPRAS SE MUESTRAN EN EL PERFIL */}
 
       {/* MI PERFIL */}
       {view==='profile' && (
         <section className="mx-auto max-w-6xl px-4 pb-16">
           <div className="mb-8">
-            <h3 className="text-3xl font-bold mb-2">Mi Perfil</h3>
-            <p className={tv(isDark,'text-zinc-600','text-zinc-300')}>Gestiona tu cuenta y compras</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-3xl font-bold mb-2">👤 Mi Perfil</h3>
+                <p className={tv(isDark,'text-zinc-600','text-zinc-300')}>Gestiona tu cuenta y compras activas</p>
+              </div>
+              <button 
+                onClick={() => setView('home')}
+                className={tv(isDark,'rounded-xl bg-zinc-100 text-zinc-700 px-4 py-2 text-sm hover:bg-zinc-200','rounded-xl bg-zinc-800 text-zinc-200 px-4 py-2 text-sm hover:bg-zinc-700')}
+              >
+                ← Inicio
+              </button>
+            </div>
           </div>
           
-          {!userProfile ? (
+          {!user ? (
             <div className={`text-center py-16 rounded-2xl border-2 border-dashed ${tv(isDark,'border-zinc-200 bg-zinc-50','border-zinc-700 bg-zinc-800')}`}>
-              <div className="text-6xl mb-4">👤</div>
-              <h4 className="text-xl font-semibold mb-2">No tienes perfil creado</h4>
-              <p className={tv(isDark,'text-zinc-600','text-zinc-400')}>Crea tu perfil para gestionar tus compras</p>
+              <div className="text-6xl mb-4">🔐</div>
+              <h4 className="text-xl font-semibold mb-2">Inicia sesión para ver tu perfil</h4>
+              <p className={tv(isDark,'text-zinc-600','text-zinc-400')}>Necesitas iniciar sesión para ver tus compras</p>
               <button 
-                onClick={() => setView('register')}
+                onClick={() => setView('auth')}
                 className={tv(isDark,'mt-4 rounded-xl bg-zinc-900 text-white px-6 py-3','mt-4 rounded-xl bg-white text-zinc-900 px-6 py-3')}
               >
-                Crear perfil
+                Iniciar sesión
               </button>
             </div>
           ) : (
             <div className="grid gap-6">
               {/* Información del perfil */}
               <div className={`p-6 rounded-2xl border ${tv(isDark,'bg-white border-zinc-200','bg-zinc-800 border-zinc-700')}`}>
-                <h3 className="text-xl font-semibold mb-4">Información Personal</h3>
+                <h3 className="text-xl font-semibold mb-4">👤 Información Personal</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm text-zinc-600 dark:text-zinc-400">Nombre</label>
-                    <p className="font-medium">{userProfile.name}</p>
+                    <p className="font-medium">{user.name}</p>
                   </div>
                   <div>
                     <label className="text-sm text-zinc-600 dark:text-zinc-400">WhatsApp</label>
-                    <p className="font-medium">{userProfile.whatsapp}</p>
+                    <p className="font-medium">{user.phone}</p>
                   </div>
-                  {userProfile.email && (
                     <div>
                       <label className="text-sm text-zinc-600 dark:text-zinc-400">Email</label>
-                      <p className="font-medium">{userProfile.email}</p>
+                    <p className="font-medium">{user.email}</p>
                     </div>
-                  )}
                   <div>
                     <label className="text-sm text-zinc-600 dark:text-zinc-400">Miembro desde</label>
-                    <p className="font-medium">{new Date(userProfile.createdAt).toLocaleDateString('es-ES')}</p>
+                    <p className="font-medium">{new Date().toLocaleDateString('es-ES')}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Estadísticas */}
+              {/* Mis Compras Activas */}
               <div className={`p-6 rounded-2xl border ${tv(isDark,'bg-white border-zinc-200','bg-zinc-800 border-zinc-700')}`}>
-                <h3 className="text-xl font-semibold mb-4">Estadísticas</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{userProfile.purchases.length}</div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">Total Compras</div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold">🛍️ Mis Compras Activas</h3>
+                  <button 
+                    onClick={() => loadUserPurchases(user.phone)}
+                    className={`px-3 py-1 rounded-lg text-sm ${tv(isDark,'bg-blue-100 text-blue-700 hover:bg-blue-200','bg-blue-900/30 text-blue-400 hover:bg-blue-900/50')}`}
+                  >
+                    🔄 Actualizar
+                  </button>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">
-                      {userProfile.purchases.filter(p => p.status === 'active').length}
-                    </div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">Activas</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-600">
-                      {userProfile.purchases.filter(p => p.status === 'pending').length}
-                    </div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">Pendientes</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-red-600">
-                      {userProfile.purchases.filter(p => p.status === 'expired').length}
-                    </div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">Expiradas</div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Compras recientes */}
-              <div className={`p-6 rounded-2xl border ${tv(isDark,'bg-white border-zinc-200','bg-zinc-800 border-zinc-700')}`}>
-                <h3 className="text-xl font-semibold mb-4">Compras Recientes</h3>
-                {userProfile.purchases.length === 0 ? (
+                {userActivePurchases.length === 0 ? (
                   <div className="text-center py-8">
-                    <div className="text-4xl mb-2">🛍️</div>
-                    <p className={tv(isDark,'text-zinc-600','text-zinc-400')}>No tienes compras aún</p>
-                  </div>
+                    <div className="text-4xl mb-2">📺</div>
+                    <p className={tv(isDark,'text-zinc-600','text-zinc-400')}>No tienes compras activas</p>
+                    <button 
+                      onClick={() => setView('home')}
+                      className={`mt-4 px-4 py-2 rounded-xl text-sm ${tv(isDark,'bg-blue-600 text-white hover:bg-blue-700','bg-blue-500 text-white hover:bg-blue-600')}`}
+                    >
+                      Ver Catálogo
+                    </button>
+                    </div>
                 ) : (
                   <div className="space-y-4">
-                    {userProfile.purchases.slice(0, 5).map(purchase => (
-                      <div key={purchase.id} className={`p-4 rounded-xl border ${tv(isDark,'bg-zinc-50 border-zinc-100','bg-zinc-700 border-zinc-600')}`}>
-                        <div className="flex items-center justify-between mb-2">
+                    {userActivePurchases.map((purchase) => (
+                      <div key={purchase.id} className={`p-4 rounded-xl border ${tv(isDark,'bg-green-50 border-green-200','bg-green-900/20 border-green-700')}`}>
+                        <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold ${SERVICES.find(s => s.id === purchase.serviceId)?.color || 'bg-zinc-500'}`}>
-                              {SERVICES.find(s => s.id === purchase.serviceId)?.logo || '?'}
+                            <div className="text-2xl">
+                              {purchase.service === 'Netflix' ? '🔴' :
+                               purchase.service === 'Disney+' ? '🔵' :
+                               purchase.service === 'Max' ? '🟣' :
+                               purchase.service === 'Prime Video' ? '📦' :
+                               purchase.service === 'Spotify' ? '🎵' : '📺'}
+                  </div>
+                            <div>
+                              <h4 className="font-bold text-lg">{purchase.service}</h4>
+                              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                                {purchase.months} meses • Activo
+                              </p>
+                    </div>
+                  </div>
+                          <div className={`px-3 py-1 rounded-full text-xs font-medium ${tv(isDark,'bg-green-100 text-green-800','bg-green-900/30 text-green-400')}`}>
+                            ✅ Activo
+                    </div>
+                  </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                          <div>
+                            <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">📅 Fecha de inicio</label>
+                            <p className="font-medium">{new Date(purchase.start).toLocaleDateString('es-ES')}</p>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">⏰ Fecha de vencimiento</label>
+                            <p className="font-medium">{new Date(purchase.end).toLocaleDateString('es-ES')}</p>
+                </div>
+              </div>
+
+                        {purchase.service_email && purchase.service_password && (
+                          <div className={`p-3 rounded-lg ${tv(isDark,'bg-blue-50 border border-blue-200','bg-blue-900/20 border border-blue-700')}`}>
+                            <h5 className="font-semibold mb-2 text-blue-800 dark:text-blue-300">🔑 Credenciales del Servicio</h5>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              <div>
+                                <label className="text-xs text-blue-600 dark:text-blue-400">Email:</label>
+                                <p className="font-mono text-sm bg-white dark:bg-zinc-800 p-2 rounded border">{purchase.service_email}</p>
                             </div>
                             <div>
-                              <h4 className="font-medium">{purchase.serviceName}</h4>
-                              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                                {purchase.duration} {purchase.isAnnual ? 'años' : 'meses'} • {fmt(purchase.price)}
-                              </p>
+                                <label className="text-xs text-blue-600 dark:text-blue-400">Contraseña:</label>
+                                <p className="font-mono text-sm bg-white dark:bg-zinc-800 p-2 rounded border">{purchase.service_password}</p>
                             </div>
                           </div>
-                          <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            purchase.status === 'active' ? 'bg-green-100 text-green-700' :
-                            purchase.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                            purchase.status === 'expired' ? 'bg-red-100 text-red-700' :
-                            'bg-gray-100 text-gray-700'
-                          }`}>
-                            {purchase.status === 'active' ? 'Activo' :
-                             purchase.status === 'pending' ? 'Pendiente' :
-                             purchase.status === 'expired' ? 'Expirado' :
-                             purchase.status === 'cancelled' ? 'Cancelado' : 'Desconocido'}
+                            {purchase.admin_notes && (
+                              <div className="mt-2">
+                                <label className="text-xs text-blue-600 dark:text-blue-400">Notas:</label>
+                                <p className="text-sm bg-white dark:bg-zinc-800 p-2 rounded border">{purchase.admin_notes}</p>
                           </div>
+                            )}
                         </div>
-                        {purchase.startDate && purchase.endDate && (
-                          <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                            <span>Inicio: {new Date(purchase.startDate).toLocaleDateString('es-ES')}</span>
-                            <span className="mx-2">•</span>
-                            <span>Fin: {new Date(purchase.endDate).toLocaleDateString('es-ES')}</span>
-                          </div>
                         )}
-                        {purchase.validatedBy && (
-                          <div className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
-                            Validado por: {purchase.validatedBy}
+
+                         {/* Información de Renovación */}
+                         <div className={`p-3 rounded-lg mt-3 ${tv(isDark,'bg-blue-50 border border-blue-200','bg-blue-900/20 border border-blue-700')}`}>
+                           <h5 className="font-semibold mb-2 text-blue-800 dark:text-blue-300">ℹ️ Información del Servicio</h5>
+                           <div className="text-sm text-blue-700 dark:text-blue-300">
+                             <p>📅 <strong>Duración:</strong> {purchase.months} {purchase.months === 1 ? 'mes' : 'meses'}</p>
+                             <p>⏰ <strong>Estado:</strong> Activo</p>
+                             <p>📧 <strong>Contacto:</strong> Para renovaciones, contacta al administrador</p>
+                           </div>
+                         </div>
                           </div>
-                        )}
-                      </div>
                     ))}
-                    {userProfile.purchases.length > 5 && (
-                      <button
-                        onClick={() => setView('purchases')}
-                        className={tv(isDark,'w-full py-2 text-sm text-blue-600 hover:text-blue-700','w-full py-2 text-sm text-blue-400 hover:text-blue-300')}
-                      >
-                        Ver todas las compras ({userProfile.purchases.length})
-                      </button>
-                    )}
+                          </div>
+                        )}
+                        </div>
+                          </div>
+                        )}
+
+
+          {/* MODAL DE REGISTRAR COMPRA PERSONALIZADA */}
+          {adminRegisterPurchaseOpen && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+              <div className={`w-full max-w-2xl rounded-2xl p-6 shadow-2xl ${tv(isDark,'bg-white','bg-zinc-800')}`}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold">➕ Registrar Compra Personalizada</h3>
+                  <button
+                    onClick={() => setAdminRegisterPurchaseOpen(false)}
+                    className="text-2xl hover:text-red-500"
+                  >
+                    ×
+                  </button>
+                      </div>
+                
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                  Para registrar compras realizadas fuera de la página web
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">👤 Nombre del Cliente *</label>
+                    <input
+                      type="text"
+                      value={customPurchase.customer}
+                      onChange={(e) => setCustomPurchase(prev => ({...prev, customer: e.target.value}))}
+                      className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                      placeholder="Ej: Juan Pérez"
+                    />
                   </div>
-                )}
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-2">📱 Teléfono *</label>
+                    <input
+                      type="tel"
+                      value={customPurchase.phone}
+                      onChange={(e) => setCustomPurchase(prev => ({...prev, phone: e.target.value}))}
+                      className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                      placeholder="Ej: 0999123456"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-2">📧 Email del Cliente</label>
+                    <input
+                      type="email"
+                      value={customPurchase.email}
+                      onChange={(e) => setCustomPurchase(prev => ({...prev, email: e.target.value}))}
+                      className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                      placeholder="Ej: cliente@email.com"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-2">📺 Servicio *</label>
+                    <select
+                      value={customPurchase.service}
+                      onChange={(e) => setCustomPurchase(prev => ({...prev, service: e.target.value}))}
+                      className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                    >
+                      <option value="">Seleccionar servicio</option>
+                      {SERVICES.map(service => (
+                        <option key={service.id} value={service.name}>{service.name}</option>
+                      ))}
+                      {COMBOS.map(combo => (
+                        <option key={combo.id} value={combo.name}>{combo.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-2">📅 Duración (meses) *</label>
+                    <select
+                      value={customPurchase.months}
+                      onChange={(e) => setCustomPurchase(prev => ({...prev, months: parseInt(e.target.value)}))}
+                      className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                    >
+                      <option value={1}>1 mes</option>
+                      <option value={3}>3 meses</option>
+                      <option value={6}>6 meses</option>
+                      <option value={12}>12 meses</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-2">📧 Email del Servicio *</label>
+                    <input
+                      type="email"
+                      value={customPurchase.serviceEmail}
+                      onChange={(e) => setCustomPurchase(prev => ({...prev, serviceEmail: e.target.value}))}
+                      className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                      placeholder="Ej: usuario@netflix.com"
+                    />
+                  </div>
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2">🔑 Contraseña del Servicio *</label>
+                  <input
+                    type="password"
+                    value={customPurchase.servicePassword}
+                    onChange={(e) => setCustomPurchase(prev => ({...prev, servicePassword: e.target.value}))}
+                    className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                    placeholder="Contraseña del servicio"
+                  />
+                </div>
+                
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-2">📝 Notas Adicionales</label>
+                  <textarea
+                    value={customPurchase.notes}
+                    onChange={(e) => setCustomPurchase(prev => ({...prev, notes: e.target.value}))}
+                    className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                    rows={3}
+                    placeholder="Información adicional sobre esta compra..."
+                  />
+                </div>
+                
+                <div className="flex gap-3">
+                      <button
+                    onClick={() => setAdminRegisterPurchaseOpen(false)}
+                    className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all ${tv(isDark,'bg-zinc-200 text-zinc-700 hover:bg-zinc-300','bg-zinc-700 text-zinc-200 hover:bg-zinc-600')}`}
+                      >
+                    Cancelar
+                      </button>
+                  <button
+                    onClick={handleCreateCustomPurchase}
+                    disabled={adminLoading}
+                    className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all ${adminLoading ? 'opacity-50 cursor-not-allowed' : ''} ${tv(isDark,'bg-blue-600 text-white hover:bg-blue-700','bg-blue-500 text-white hover:bg-blue-600')}`}
+                  >
+                    {adminLoading ? '⏳ Creando...' : '✅ Registrar Compra'}
+                  </button>
+                  </div>
               </div>
             </div>
           )}
@@ -1715,18 +2303,16 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-3xl font-bold">Panel Administrador</h3>
+                <h3 className="text-3xl font-bold">🔧 Panel Administrador</h3>
                 <p className={tv(isDark,'text-zinc-600','text-zinc-300')}>Gestiona compras, administradores y configuración</p>
               </div>
               <div className="flex items-center gap-3">
-                <Badge isDark={isDark}>
-                  {dueToday.length} vencen hoy
-                </Badge>
                 <button 
-                  onClick={()=>setMenuOpen(true)} 
-                  className={tv(isDark,'rounded-xl bg-zinc-900 text-white px-4 py-2 text-sm hover:bg-zinc-800','rounded-xl bg-white text-zinc-900 px-4 py-2 text-sm hover:bg-zinc-100')}
+                   onClick={refreshAllStats}
+                   disabled={adminLoading}
+                   className={tv(isDark,'rounded-xl bg-blue-600 text-white px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50','rounded-xl bg-blue-500 text-white px-4 py-2 text-sm hover:bg-blue-600 disabled:opacity-50')}
                 >
-                  ☰ Menú
+                   {adminLoading ? '⏳ Cargando...' : '🔄 Actualizar Todo'}
                 </button>
                 <button 
                   onClick={() => setView('home')}
@@ -1738,49 +2324,47 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
             </div>
           </div>
 
-          {/* DASHBOARD mejorado */}
-          {adminSub==='dashboard' && (
-            <>
+          {/* DASHBOARD COMPLETO */}
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-                <div className={`rounded-2xl p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-medium text-zinc-500 mb-1">Total Compras</div>
-                      <div className="text-3xl font-bold">{purchases.length}</div>
-                    </div>
-                    <div className="text-3xl">📊</div>
-                  </div>
+            <div className={`rounded-2xl p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-medium text-zinc-500 mb-1">Total Compras</div>
+                  <div className="text-3xl font-bold">{purchases.length}</div>
                 </div>
-                <div className={`rounded-2xl p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-medium text-zinc-500 mb-1">Pendientes</div>
-                      <div className="text-3xl font-bold text-amber-600">{purchases.filter(p=>!p.validated).length}</div>
-                    </div>
-                    <div className="text-3xl">⏳</div>
-                  </div>
+                <div className="text-3xl">📊</div>
+              </div>
+            </div>
+            <div className={`rounded-2xl p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-medium text-zinc-500 mb-1">Pendientes</div>
+                  <div className="text-3xl font-bold text-amber-600">{pendingPurchases.length}</div>
                 </div>
-                <div className={`rounded-2xl p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-medium text-zinc-500 mb-1">Validadas</div>
-                      <div className="text-3xl font-bold text-green-600">{purchases.filter(p=>p.validated).length}</div>
-                    </div>
-                    <div className="text-3xl">✅</div>
-                  </div>
+                <div className="text-3xl">⏳</div>
+              </div>
+            </div>
+            <div className={`rounded-2xl p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-medium text-zinc-500 mb-1">Validadas</div>
+                  <div className="text-3xl font-bold text-green-600">{purchases.filter(p=>p.validated).length}</div>
                 </div>
+                <div className="text-3xl">✅</div>
+              </div>
+            </div>
                 <div className={`rounded-2xl p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-sm font-medium text-zinc-500 mb-1">Vencen Hoy</div>
-                      <div className="text-3xl font-bold text-red-600">{dueToday.length}</div>
+                  <div className="text-3xl font-bold text-red-600">{expiringServices.filter(s => s.days_remaining === 0).length}</div>
                     </div>
                     <div className="text-3xl">⚠️</div>
                   </div>
                 </div>
               </div>
               
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
                 <button 
                   onClick={()=>setAdminSub('purchases')} 
                   className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
@@ -1817,20 +2401,314 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                   <div className="text-sm opacity-70">Descargar reporte en formato CSV</div>
                 </button>
               </div>
-            </>
+
+          {/* GESTIÓN DE COMPRAS */}
+          <div className={`rounded-2xl p-6 shadow-lg mb-6 ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+            {/* Navegación por pestañas */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setAdminPurchaseView('pending')}
+                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                    adminPurchaseView === 'pending' 
+                      ? tv(isDark,'bg-amber-100 text-amber-800','bg-amber-900/30 text-amber-400')
+                      : tv(isDark,'bg-zinc-100 text-zinc-600 hover:bg-zinc-200','bg-zinc-700 text-zinc-300 hover:bg-zinc-600')
+                  }`}
+                >
+                  ⏳ Pendientes ({pendingPurchases.length})
+                </button>
+                <button
+                  onClick={() => setAdminPurchaseView('active')}
+                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                    adminPurchaseView === 'active' 
+                      ? tv(isDark,'bg-green-100 text-green-800','bg-green-900/30 text-green-400')
+                      : tv(isDark,'bg-zinc-100 text-zinc-600 hover:bg-zinc-200','bg-zinc-700 text-zinc-300 hover:bg-zinc-600')
+                  }`}
+                >
+                  ✅ Activas ({purchases.filter(p => p.validated).length})
+                </button>
+              </div>
+            </div>
+
+            {/* CONTENIDO DE PESTAÑAS */}
+            {adminPurchaseView === 'pending' && (
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-xl font-bold">⏳ Compras Pendientes</h4>
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${tv(isDark,'bg-amber-100 text-amber-800','bg-amber-900/30 text-amber-400')}`}>
+                    {pendingPurchases.length} pendientes
+                  </span>
+                </div>
+                
+                {adminLoading ? (
+                  <div className="text-center py-8">
+                    <div className="text-2xl mb-2">⏳</div>
+                    <p>Cargando compras pendientes...</p>
+                  </div>
+                ) : pendingPurchases.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="text-2xl mb-2">✅</div>
+                    <p>No hay compras pendientes</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pendingPurchases.map((purchase) => (
+                      <div key={purchase.id} className={`p-4 rounded-xl border ${tv(isDark,'bg-zinc-50 border-zinc-200','bg-zinc-700 border-zinc-600')}`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className="font-semibold">{purchase.customer}</span>
+                              <span className={`px-2 py-1 rounded text-xs ${tv(isDark,'bg-blue-100 text-blue-800','bg-blue-900/30 text-blue-400')}`}>
+                                {purchase.service}
+                              </span>
+                            </div>
+                            <div className="text-sm text-zinc-500 mb-2">
+                              📱 {purchase.phone} • 📅 {new Date(purchase.created_at).toLocaleDateString()}
+                            </div>
+                            <div className="text-sm">
+                              <span className="font-medium">Duración:</span> {purchase.months} meses • 
+                              <span className="font-medium"> Inicio:</span> {purchase.start} • 
+                              <span className="font-medium"> Fin:</span> {purchase.end}
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setSelectedPurchase(purchase)}
+                              className={`px-3 py-2 rounded-xl font-medium transition-all text-sm ${tv(isDark,'bg-green-600 text-white hover:bg-green-700','bg-green-500 text-white hover:bg-green-600')}`}
+                            >
+                              ✅ Aprobar
+                            </button>
+                            <button
+                              onClick={() => handleRejectPurchase(purchase.id)}
+                              className={`px-3 py-2 rounded-xl font-medium transition-all text-sm ${tv(isDark,'bg-red-600 text-white hover:bg-red-700','bg-red-500 text-white hover:bg-red-600')}`}
+                            >
+                              ❌ Rechazar
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* PESTAÑA DE COMPRAS ACTIVAS */}
+            {adminPurchaseView === 'active' && (
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-xl font-bold">✅ Compras Activas</h4>
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${tv(isDark,'bg-green-100 text-green-800','bg-green-900/30 text-green-400')}`}>
+                    {purchases.filter(p => p.validated).length} activas
+                  </span>
+                </div>
+                
+                {adminLoading ? (
+                  <div className="text-center py-8">
+                    <div className="text-2xl mb-2">⏳</div>
+                    <p>Cargando compras activas...</p>
+                  </div>
+                ) : purchases.filter(p => p.validated).length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="text-2xl mb-2">📺</div>
+                    <p>No hay compras activas</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {purchases.filter(p => p.validated).map((purchase) => (
+                      <div key={purchase.id} className={`p-4 rounded-xl border ${tv(isDark,'bg-green-50 border-green-200','bg-green-900/20 border-green-700')}`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className="font-semibold">{purchase.customer}</span>
+                              <span className={`px-2 py-1 rounded text-xs ${tv(isDark,'bg-green-100 text-green-800','bg-green-900/30 text-green-400')}`}>
+                                {purchase.service}
+                              </span>
+                              <span className={`px-2 py-1 rounded text-xs ${tv(isDark,'bg-blue-100 text-blue-800','bg-blue-900/30 text-blue-400')}`}>
+                                ✅ Activa
+                              </span>
+                            </div>
+                            <div className="text-sm text-zinc-500 mb-2">
+                              📱 {purchase.phone} • 📅 {new Date(purchase.created_at).toLocaleDateString()}
+                            </div>
+                            <div className="text-sm">
+                              <span className="font-medium">Duración:</span> {purchase.months} meses • 
+                              <span className="font-medium"> Inicio:</span> {purchase.start} • 
+                              <span className="font-medium"> Fin:</span> {purchase.end}
+                            </div>
+                            {purchase.service_email && purchase.service_password && (
+                              <div className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
+                                📧 {purchase.service_email} • 🔑 Contraseña disponible
+                              </div>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => handleDeleteActivePurchase(purchase.id, purchase.customer, purchase.service)}
+                            className={`px-3 py-2 rounded-xl font-medium transition-all text-sm ${tv(isDark,'bg-red-600 text-white hover:bg-red-700','bg-red-500 text-white hover:bg-red-600')}`}
+                          >
+                            🗑️ Eliminar
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+              
+          {/* ESTADÍSTICAS DE RENOVACIONES */}
+          {renewalStats && (
+            <div className={`rounded-2xl p-6 shadow-lg mb-6 ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+              <h4 className="text-xl font-bold mb-4">📊 Estadísticas de Renovaciones</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">{renewalStats.totalPurchases}</div>
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400">Total Compras</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{renewalStats.autoRenewalEnabled}</div>
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400">Auto-Renovación</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-amber-600">{renewalStats.expiringThisWeek}</div>
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400">Vencen Esta Semana</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-600">{renewalStats.expiredServices}</div>
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400">Expirados</div>
+                </div>
+              </div>
+            </div>
           )}
 
-          {/* COMPRAS */}
-          {adminSub==='purchases' && (
-            <>
-              <AdminPurchases
-                isDark={isDark}
-                purchases={purchases}
-                setPurchases={setPurchases}
-                onBack={()=>setAdminSub('dashboard')}
-                exportCSV={exportCSV}
-              />
-            </>
+          {/* SERVICIOS PRÓXIMOS A VENCER */}
+          <div className={`rounded-2xl p-6 shadow-lg mb-6 ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-xl font-bold">⏰ Servicios Próximos a Vencer</h4>
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${tv(isDark,'bg-amber-100 text-amber-800','bg-amber-900/30 text-amber-400')}`}>
+                {expiringServices.length} próximos a vencer
+              </span>
+            </div>
+            
+            {expiringServices.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-2xl mb-2">✅</div>
+                <p>No hay servicios próximos a vencer</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {expiringServices.map((service) => (
+                  <div key={service.purchase_id} className={`p-4 rounded-xl border ${tv(isDark,'bg-amber-50 border-amber-200','bg-amber-900/20 border-amber-600')}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="font-semibold">{service.customer_name}</span>
+                          <span className={`px-2 py-1 rounded text-xs ${tv(isDark,'bg-blue-100 text-blue-800','bg-blue-900/30 text-blue-400')}`}>
+                            {service.service_name}
+                          </span>
+                          <span className={`px-2 py-1 rounded text-xs ${service.days_remaining <= 3 ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'}`}>
+                            {service.days_remaining} días
+                          </span>
+                        </div>
+                        <div className="text-sm text-zinc-500 mb-2">
+                          📱 {service.customer_phone} • 📅 Vence: {new Date(service.end_date).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleCreateRenewal(service.purchase_id, 1)}
+                          disabled={renewalLoading}
+                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${tv(isDark,'bg-green-600 text-white hover:bg-green-700 disabled:opacity-50','bg-green-500 text-white hover:bg-green-600 disabled:opacity-50')}`}
+                        >
+                          🔄 Renovar 1 mes
+                        </button>
+                        <button
+                          onClick={() => handleCreateRenewal(service.purchase_id, 3)}
+                          disabled={renewalLoading}
+                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${tv(isDark,'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50','bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50')}`}
+                        >
+                          🔄 Renovar 3 meses
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* MODAL PARA APROBAR COMPRA */}
+          {selectedPurchase && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+              <div className={`w-full max-w-md rounded-2xl p-6 shadow-2xl ${tv(isDark,'bg-white','bg-zinc-800')}`}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold">✅ Aprobar Compra</h3>
+                <button 
+                    onClick={() => setSelectedPurchase(null)}
+                    className="text-2xl hover:text-red-500"
+                >
+                    ×
+                </button>
+                </div>
+                
+                <div className="mb-4">
+                  <p className="font-medium">{selectedPurchase.customer}</p>
+                  <p className="text-sm text-zinc-500">{selectedPurchase.service} • {selectedPurchase.months} meses</p>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">📧 Email del Servicio</label>
+                    <input
+                      type="email"
+                      value={serviceCredentials.email}
+                      onChange={(e) => setServiceCredentials(prev => ({...prev, email: e.target.value}))}
+                      className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                      placeholder="usuario@netflix.com"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-2">🔑 Contraseña del Servicio</label>
+                    <input
+                      type="password"
+                      value={serviceCredentials.password}
+                      onChange={(e) => setServiceCredentials(prev => ({...prev, password: e.target.value}))}
+                      className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                      placeholder="••••••••"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-2">📝 Notas (opcional)</label>
+                    <textarea
+                      value={serviceCredentials.notes}
+                      onChange={(e) => setServiceCredentials(prev => ({...prev, notes: e.target.value}))}
+                      className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                      rows={3}
+                      placeholder="Notas adicionales..."
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex gap-3 mt-6">
+                <button 
+                    onClick={() => setSelectedPurchase(null)}
+                    className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all ${tv(isDark,'bg-zinc-200 text-zinc-700 hover:bg-zinc-300','bg-zinc-700 text-zinc-200 hover:bg-zinc-600')}`}
+                >
+                    Cancelar
+                </button>
+                <button 
+                    onClick={handleApprovePurchase}
+                    disabled={adminLoading || !serviceCredentials.email || !serviceCredentials.password}
+                    className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all ${adminLoading || !serviceCredentials.email || !serviceCredentials.password ? 'opacity-50 cursor-not-allowed' : ''} ${tv(isDark,'bg-green-600 text-white hover:bg-green-700','bg-green-500 text-white hover:bg-green-600')}`}
+                >
+                    {adminLoading ? '⏳ Aprobando...' : '✅ Aprobar Compra'}
+                </button>
+              </div>
+              </div>
+            </div>
           )}
         </section>
       )}
@@ -1866,7 +2744,7 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
       {/* Drawers y flotantes */}
       <AdminDrawer open={drawerOpen} onClose={()=>setDrawerOpen(false)} isDark={isDark} adminEmails={adminEmails} setAdminEmails={setAdminEmails} />
       <AdminMenuDrawer open={menuOpen} onClose={()=>setMenuOpen(false)} isDark={isDark} setSubView={setAdminSub} openAdmins={()=>setDrawerOpen(true)} onExportCSV={exportCSV} onLogout={logoutAdmin} onRegisterPurchase={()=>setAdminRegisterPurchaseOpen(true)} />
-      <FloatingChatbot answerFn={(q)=>useChatbot(SERVICES, COMBOS).answer(q)} isDark={isDark}/>
+      <FloatingChatbot answerFn={(q, context)=>useChatbot(SERVICES, COMBOS).answer(q, context)} isDark={isDark}/>
       <FloatingThemeToggle isDark={isDark} onToggle={toggleTheme} />
     </div>
   );
@@ -1905,7 +2783,6 @@ function AdminPurchases({ isDark, purchases, setPurchases, onBack, exportCSV }:{
         )}
         {listFiltered.map(p => (
           <PurchaseCard
-            key={p.id}
             item={p}
             isDark={isDark}
             onToggleValidate={() => setPurchases(ps => ps.map(x => x.id===p.id ? { ...x, validated: !x.validated } : x))}
@@ -2087,14 +2964,576 @@ function AdminMenuDrawer({ open, onClose, isDark, setSubView, openAdmins, onExpo
 
 // ========== Formularios ==========
 function UserRegisterForm({ isDark, onSubmit }:{ isDark:boolean; onSubmit:(profile:any)=>void; }){
-  const[name,setName]=useState(''); const[phone,setPhone]=useState(''); const[email,setEmail]=useState('');
-  const submit=(e:React.FormEvent)=>{ e.preventDefault(); if(!name||!phone) return; onSubmit({name,phone: cleanPhone(phone),email}); };
+  const[name,setName]=useState(''); 
+  const[phone,setPhone]=useState(''); 
+  const[email,setEmail]=useState('');
+  const[password,setPassword]=useState('');
+  const[confirmPassword,setConfirmPassword]=useState('');
+  const[showPassword,setShowPassword]=useState(false);
+  const[msg,setMsg]=useState('');
+  const[loading,setLoading]=useState(false);
+
+  const submit=async (e:React.FormEvent)=>{ 
+    e.preventDefault(); 
+    setMsg('');
+    setLoading(true);
+
+    // Validaciones
+    if(!name||!phone||!email||!password) {
+      setMsg('Todos los campos son obligatorios');
+      setLoading(false);
+      return;
+    }
+
+    if(password !== confirmPassword) {
+      setMsg('Las contraseñas no coinciden');
+      setLoading(false);
+      return;
+    }
+
+    if(password.length < 6) {
+      setMsg('La contraseña debe tener al menos 6 caracteres');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Crear usuario en Supabase
+      const { data: newUser, error } = await supabase
+        .from('users')
+        .insert([{
+          name,
+          phone: cleanPhone(phone),
+          email: email.toLowerCase().trim(),
+          password
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        if (error.code === '23505') { // Código de violación de constraint único
+          setMsg('Ya existe un usuario con este email o teléfono');
+        } else {
+          setMsg('Error al crear la cuenta');
+        }
+        setLoading(false);
+        return;
+      }
+
+      setMsg('✅ Cuenta creada exitosamente');
+      onSubmit({name,phone: cleanPhone(phone),email,password});
+    } catch (error) {
+      setMsg('Error al crear la cuenta');
+      setLoading(false);
+    }
+  };
+
   return (
-    <form onSubmit={submit} className="space-y-3">
-      <div><label className={tv(isDark,'text-xs text-zinc-700','text-xs text-zinc-300')}>Nombre</label><input className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} value={name} onChange={e=>setName(e.target.value)} placeholder="Tu nombre"/></div>
-      <div><label className={tv(isDark,'text-xs text-zinc-700','text-xs text-zinc-300')}>WhatsApp</label><input className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+593..."/></div>
-      <div><label className={tv(isDark,'text-xs text-zinc-700','text-xs text-zinc-300')}>Correo (opcional)</label><input className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} value={email} onChange={e=>setEmail(e.target.value)} placeholder="tu@correo.com"/></div>
-      <button type="submit" className={tv(isDark,'rounded-xl bg-zinc-900 text-white px-4 py-2','rounded-xl bg-white text-zinc-900 px-4 py-2')}>Crear cuenta</button>
+    <form onSubmit={submit} className="space-y-4">
+      <div>
+        <label className={tv(isDark,'text-sm text-zinc-700','text-sm text-zinc-300')}>Nombre completo</label>
+        <input 
+          required
+          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+          value={name} 
+          onChange={e=>setName(e.target.value)} 
+          placeholder="Tu nombre completo"
+          disabled={loading}
+        />
+      </div>
+      
+      <div>
+        <label className={tv(isDark,'text-sm text-zinc-700','text-sm text-zinc-300')}>WhatsApp</label>
+        <input 
+          required
+          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+          value={phone} 
+          onChange={e=>setPhone(e.target.value)} 
+          placeholder="+593 99 999 9999"
+          disabled={loading}
+        />
+      </div>
+      
+      <div>
+        <label className={tv(isDark,'text-sm text-zinc-700','text-sm text-zinc-300')}>Correo electrónico</label>
+        <input 
+          required
+          type="email"
+          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+          value={email} 
+          onChange={e=>setEmail(e.target.value)} 
+          placeholder="tu@correo.com"
+          disabled={loading}
+        />
+      </div>
+
+      <div>
+        <label className={tv(isDark,'text-sm text-zinc-700','text-sm text-zinc-300')}>Contraseña</label>
+        <input 
+          required
+          type={showPassword ? 'text' : 'password'}
+          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+          value={password} 
+          onChange={e=>setPassword(e.target.value)} 
+          placeholder="••••••••"
+          minLength={6}
+          disabled={loading}
+        />
+      </div>
+
+      <div>
+        <label className={tv(isDark,'text-sm text-zinc-700','text-sm text-zinc-300')}>Confirmar contraseña</label>
+        <input 
+          required
+          type={showPassword ? 'text' : 'password'}
+          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+          value={confirmPassword} 
+          onChange={e=>setConfirmPassword(e.target.value)} 
+          placeholder="••••••••"
+          minLength={6}
+          disabled={loading}
+        />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input 
+          type="checkbox" 
+          id="showPassword"
+          checked={showPassword}
+          onChange={e=>setShowPassword(e.target.checked)}
+          className="rounded"
+          disabled={loading}
+        />
+        <label htmlFor="showPassword" className={tv(isDark,'text-sm text-zinc-700','text-sm text-zinc-300')}>
+          Mostrar contraseña
+        </label>
+      </div>
+
+      {msg && (
+        <div className={`text-sm ${msg.includes('✅') ? 'text-green-600' : 'text-red-600'}`}>
+          {msg}
+        </div>
+      )}
+
+      <button 
+        type="submit" 
+        disabled={loading}
+        className={`w-full rounded-xl px-4 py-3 font-semibold transition-all ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${tv(isDark,'bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700','bg-gradient-to-r from-green-500 to-blue-600 text-white hover:from-green-600 hover:to-blue-700')}`}
+      >
+        {loading ? '⏳ Creando cuenta...' : '🚀 Crear cuenta'}
+      </button>
+    </form>
+  );
+}
+
+// ============ FORMULARIOS DE LOGIN Y RECUPERACIÓN ============
+
+function UserLoginForm({ isDark, onLogin, onForgotPassword }:{ isDark:boolean; onLogin:(user:any)=>void; onForgotPassword:()=>void; }){
+  const[email,setEmail]=useState(""); 
+  const[pass,setPass]=useState("");
+  const[msg,setMsg]=useState('');
+  const[show,setShow]=useState(false);
+  const[loading,setLoading]=useState(false);
+  
+  const submit=async (e:React.FormEvent)=>{ 
+    e.preventDefault();
+    setLoading(true);
+    setMsg('');
+    
+    try {
+      const result = await loginUser(email, pass);
+      if (result.data) {
+        setMsg('Login exitoso');
+        onLogin(result.data);
+      } else {
+        setMsg('Credenciales incorrectas');
+      }
+    } catch (error) {
+      setMsg('Error en el login');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <div>
+        <label className={tv(isDark,'text-sm text-zinc-700','text-sm text-zinc-300')}>Correo electrónico</label>
+        <input 
+          required 
+          type="email"
+          className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
+          value={email} 
+          onChange={e=>setEmail(e.target.value)} 
+          placeholder="tu@correo.com"
+          disabled={loading}
+        />
+      </div>
+      <div>
+        <label className={tv(isDark,'text-sm text-zinc-700','text-sm text-zinc-300')}>Contraseña</label>
+        <div className="flex gap-2">
+          <input 
+            required 
+            type={show? 'text':'password'} 
+            className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
+            value={pass} 
+            onChange={e=>setPass(e.target.value)} 
+            placeholder="••••••"
+            disabled={loading}
+          />
+          <button 
+            type="button" 
+            onClick={()=>setShow(s=>!s)} 
+            className={tv(isDark,'rounded-xl bg-zinc-100 px-4 py-3','rounded-xl bg-zinc-700 px-4 py-3')}
+            disabled={loading}
+          >
+            {show?'👁️':'👁️‍🗨️'}
+          </button>
+        </div>
+      </div>
+      {msg && (
+        <div className={`text-sm ${msg.includes('exitoso') ? 'text-green-600' : 'text-red-600'}`}>
+          {msg}
+        </div>
+      )}
+      <button 
+        type="submit" 
+        disabled={loading}
+        className={`w-full rounded-xl px-4 py-3 font-semibold transition-all ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${tv(isDark,'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700','bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700')}`}
+      >
+        {loading ? '⏳ Iniciando sesión...' : '🚀 Iniciar Sesión'}
+      </button>
+      
+      <div className="text-center">
+        <button 
+          type="button"
+          onClick={onForgotPassword}
+          className={`text-sm ${tv(isDark,'text-zinc-500 hover:text-zinc-700','text-zinc-400 hover:text-zinc-200')}`}
+          disabled={loading}
+        >
+          ¿Olvidaste tu contraseña?
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function ForgotPasswordForm({ isDark, onBack, onTokenSent }:{ isDark:boolean; onBack:()=>void; onTokenSent:(email:string,token:string)=>void; }){
+  const[email,setEmail]=useState("");
+  const[msg,setMsg]=useState('');
+  const[loading,setLoading]=useState(false);
+  
+  const submit=async (e:React.FormEvent)=>{ 
+    e.preventDefault();
+    setLoading(true);
+    setMsg('');
+    
+    try {
+      console.log('🔍 Generando token para:', email);
+      const result = await generateResetToken(email);
+      console.log('🔍 Resultado:', result);
+      
+      if (result.data) {
+        const tokenMessage = `✅ Token generado: ${result.data.token}. Usa este código para continuar.`;
+        console.log('🔍 Mensaje:', tokenMessage);
+        setMsg(tokenMessage);
+        onTokenSent(email, result.data.token);
+      } else {
+        console.log('🔍 Error:', result.error);
+        setMsg(result.error?.message || 'Error generando token');
+      }
+    } catch (error) {
+      console.log('🔍 Error en catch:', error);
+      setMsg('Error en el proceso');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <div className="text-center mb-6">
+        <h3 className="text-xl font-bold mb-2">🔐 Recuperar Contraseña</h3>
+        <p className="text-sm opacity-80">Para recuperar tu contraseña, necesitas un código de verificación</p>
+      </div>
+      
+      <div className={`p-4 rounded-xl mb-4 ${tv(isDark,'bg-blue-50 border border-blue-200','bg-blue-900/20 border border-blue-400/30')}`}>
+        <div className="flex items-start gap-3">
+          <div className="text-2xl">💬</div>
+          <div>
+            <h4 className="font-semibold mb-2">📋 Instrucciones:</h4>
+            <ol className="text-sm space-y-1 list-decimal list-inside">
+              <li>Haz clic en el botón <span className="font-semibold">"Chat"</span> (esquina inferior derecha)</li>
+              <li>Escribe: <span className="font-mono bg-gray-200 dark:bg-gray-700 px-1 rounded">"olvidé mi contraseña"</span></li>
+              <li>Envía tu email: <span className="font-semibold">ejemplo@gmail.com</span></li>
+              <li>Copia el código que te dé el chatbot</li>
+              <li>Regresa aquí y pega el código</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      
+      <div className="text-center mb-4">
+        <button 
+          type="button"
+          onClick={() => {
+            // Abrir el chatbot (necesitamos acceso al estado del chatbot)
+            const chatButton = document.querySelector('[data-chat-button]') as HTMLButtonElement;
+            if (chatButton) chatButton.click();
+          }}
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all ${tv(isDark,'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700','bg-gradient-to-r from-purple-500 to-blue-600 text-white hover:from-purple-600 hover:to-blue-700')}`}
+        >
+          💬 Abrir Chatbot
+        </button>
+      </div>
+      
+      <div>
+        <label className={tv(isDark,'text-sm text-zinc-700','text-sm text-zinc-300')}>Correo electrónico</label>
+        <input 
+          required 
+          type="email"
+          className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
+          value={email} 
+          onChange={e=>setEmail(e.target.value)} 
+          placeholder="tu@correo.com"
+          disabled={loading}
+        />
+      </div>
+      
+      {msg && (
+        <div className={`text-sm ${msg.includes('✅') ? 'text-green-600' : 'text-red-600'}`}>
+          {msg}
+        </div>
+      )}
+
+      {msg && msg.includes('No existe un usuario') && (
+        <div className="text-center">
+          <button 
+            type="button"
+            onClick={() => setView('register')}
+            className={`text-sm ${tv(isDark,'text-blue-600 hover:text-blue-700','text-blue-400 hover:text-blue-300')}`}
+          >
+            ✨ Crear cuenta nueva
+          </button>
+        </div>
+      )}
+      
+      <button 
+        type="submit" 
+        disabled={loading}
+        className={`w-full rounded-xl px-4 py-3 font-semibold transition-all ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${tv(isDark,'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600','bg-gradient-to-r from-red-500 to-orange-600 text-white hover:from-red-600 hover:to-orange-700')}`}
+      >
+        {loading ? '⏳ Generando token...' : '📧 Enviar Token de Recuperación'}
+      </button>
+      
+      <div className="text-center">
+        <button 
+          type="button"
+          onClick={onBack}
+          className={`text-sm ${tv(isDark,'text-zinc-500 hover:text-zinc-700','text-zinc-400 hover:text-zinc-200')}`}
+          disabled={loading}
+        >
+          ← Volver al login
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function CodeVerificationForm({ isDark, email, onBack, onCodeVerified }:{ isDark:boolean; email:string; onBack:()=>void; onCodeVerified:(token:string)=>void; }){
+  const[code,setCode]=useState("");
+  const[msg,setMsg]=useState('');
+  const[loading,setLoading]=useState(false);
+  
+  const submit=async (e:React.FormEvent)=>{ 
+    e.preventDefault();
+    setLoading(true);
+    setMsg('');
+    
+    try {
+      // Verificar el código (token) con Supabase
+      const result = await verifyResetToken(code);
+      if (result.data) {
+        setMsg('✅ Código verificado correctamente');
+        onCodeVerified(code);
+      } else {
+        setMsg('❌ Código inválido o expirado');
+      }
+    } catch (error) {
+      setMsg('Error verificando código');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <div className="text-center mb-6">
+        <h3 className="text-xl font-bold mb-2">🔐 Verificar Código</h3>
+      </div>
+      
+      <div className={`p-4 rounded-xl mb-4 ${tv(isDark,'bg-green-50 border border-green-200','bg-green-900/20 border border-green-400/30')}`}>
+        <div className="flex items-start gap-3">
+          <div className="text-2xl">🔑</div>
+          <div>
+            <h4 className="font-semibold mb-2">💡 ¿No tienes el código?</h4>
+            <p className="text-sm mb-2">El código se obtiene del chatbot en el paso anterior.</p>
+            <p className="text-sm text-green-600 dark:text-green-400">
+              <strong>Tip:</strong> Si no lo tienes, vuelve al paso anterior y sigue las instrucciones.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <div className="text-center mb-4">
+        <button 
+          type="button"
+          onClick={() => {
+            const chatButton = document.querySelector('[data-chat-button]') as HTMLButtonElement;
+            if (chatButton) chatButton.click();
+          }}
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all ${tv(isDark,'bg-gradient-to-r from-green-500 to-blue-600 text-white hover:from-green-600 hover:to-blue-700','bg-gradient-to-r from-blue-500 to-green-600 text-white hover:from-blue-600 hover:to-green-700')}`}
+        >
+          💬 Abrir Chatbot
+        </button>
+      </div>
+      
+      <div>
+        <label className={tv(isDark,'text-sm text-zinc-700','text-sm text-zinc-300')}>Código de verificación</label>
+        <input 
+          required 
+          type="text"
+          className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
+          value={code} 
+          onChange={e=>setCode(e.target.value)} 
+          placeholder="Ingresa el código de 6 dígitos"
+          disabled={loading}
+        />
+      </div>
+      
+      {msg && (
+        <div className={`text-sm ${msg.includes('✅') ? 'text-green-600' : 'text-red-600'}`}>
+          {msg}
+        </div>
+      )}
+      
+      <button 
+        type="submit" 
+        disabled={loading}
+        className={`w-full rounded-xl px-4 py-3 font-semibold transition-all ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${tv(isDark,'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700','bg-gradient-to-r from-purple-500 to-blue-600 text-white hover:from-purple-600 hover:to-blue-700')}`}
+      >
+        {loading ? '⏳ Verificando código...' : '✅ Verificar Código'}
+      </button>
+      
+      <div className="text-center">
+        <button 
+          type="button"
+          onClick={onBack}
+          className={`text-sm ${tv(isDark,'text-zinc-500 hover:text-zinc-700','text-zinc-400 hover:text-zinc-200')}`}
+          disabled={loading}
+        >
+          ← Volver a ingresar email
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function ResetPasswordForm({ isDark, email, token, onSuccess }:{ isDark:boolean; email:string; token:string; onSuccess:()=>void; }){
+  const[newPassword,setNewPassword]=useState("");
+  const[confirmPassword,setConfirmPassword]=useState("");
+  const[msg,setMsg]=useState('');
+  const[loading,setLoading]=useState(false);
+  const[showPassword,setShowPassword]=useState(false);
+  
+  const submit=async (e:React.FormEvent)=>{ 
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      setMsg('Las contraseñas no coinciden');
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      setMsg('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+    
+    setLoading(true);
+    setMsg('');
+    
+    try {
+      const result = await resetPassword(token, newPassword);
+      if (result.data) {
+        setMsg('✅ Contraseña restablecida exitosamente');
+        setTimeout(() => onSuccess(), 2000);
+      } else {
+        setMsg(result.error?.message || 'Error restableciendo contraseña');
+      }
+    } catch (error) {
+      setMsg('Error en el proceso');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <div className="text-center mb-6">
+        <h3 className="text-xl font-bold mb-2">🔄 Nueva Contraseña</h3>
+        <p className="text-sm opacity-80">Crea una nueva contraseña para tu cuenta</p>
+        <p className="text-xs opacity-60 mt-1">Email: {email}</p>
+      </div>
+      
+      <div>
+        <label className={tv(isDark,'text-sm text-zinc-700','text-sm text-zinc-300')}>Nueva contraseña</label>
+        <div className="flex gap-2">
+          <input 
+            required 
+            type={showPassword? 'text':'password'} 
+            className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
+            value={newPassword} 
+            onChange={e=>setNewPassword(e.target.value)} 
+            placeholder="Mínimo 6 caracteres"
+            disabled={loading}
+          />
+          <button 
+            type="button" 
+            onClick={()=>setShowPassword(s=>!s)} 
+            className={tv(isDark,'rounded-xl bg-zinc-100 px-4 py-3','rounded-xl bg-zinc-700 px-4 py-3')}
+            disabled={loading}
+          >
+            {showPassword?'👁️':'👁️‍🗨️'}
+          </button>
+        </div>
+      </div>
+      
+      <div>
+        <label className={tv(isDark,'text-sm text-zinc-700','text-sm text-zinc-300')}>Confirmar contraseña</label>
+        <input 
+          required 
+          type="password" 
+          className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
+          value={confirmPassword} 
+          onChange={e=>setConfirmPassword(e.target.value)} 
+          placeholder="Repite la contraseña"
+          disabled={loading}
+        />
+      </div>
+      
+      {msg && (
+        <div className={`text-sm ${msg.includes('✅') ? 'text-green-600' : 'text-red-600'}`}>
+          {msg}
+        </div>
+      )}
+      
+      <button 
+        type="submit" 
+        disabled={loading}
+        className={`w-full rounded-xl px-4 py-3 font-semibold transition-all ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${tv(isDark,'bg-gradient-to-r from-green-500 to-blue-500 text-white hover:from-green-600 hover:to-blue-600','bg-gradient-to-r from-blue-500 to-green-600 text-white hover:from-blue-600 hover:to-green-700')}`}
+      >
+        {loading ? '⏳ Restableciendo...' : '✅ Restablecer Contraseña'}
+      </button>
     </form>
   );
 }
@@ -2675,4 +4114,5 @@ function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark }: {
   console.assert(whatsappLink('123','hola')==='https://wa.me/123?text=hola','wa link');
   console.log('✅ Todas las pruebas pasaron correctamente');
 }catch(e){ console.warn('Self-tests failed:',e); }})();
+
 
