@@ -702,7 +702,9 @@ export default function App(){
     try {
       const result = await getAllPurchases();
       if (result.data) {
+        // Actualizar tanto allPurchases como purchases para sincronizar el dashboard
         setAllPurchases(result.data);
+        setPurchases(result.data); // ¡IMPORTANTE! Actualizar purchases para el dashboard
         console.log('✅ Todas las compras cargadas desde Supabase:', result.data.length);
         return result.data;
       } else {
@@ -2377,44 +2379,45 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                   </div>
                 </div>
               </div>
-              
+
+          {/* BOTONES DE ACCIÓN */}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-                <button 
-                  onClick={()=>setAdminSub('purchases')} 
-                  className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
-                >
-                  <div className="text-2xl mb-2">🛒</div>
-                  <div className="text-xl font-bold mb-2">Gestionar Compras</div>
-                  <div className="text-sm opacity-70">Revisa, valida y notifica por WhatsApp</div>
-                </button>
-                
-                <button 
-                  onClick={()=>setAdminRegisterPurchaseOpen(true)} 
-                  className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-blue-600 text-white shadow-lg','bg-blue-600 text-white shadow-lg')}`}
-                >
-                  <div className="text-2xl mb-2">➕</div>
-                  <div className="text-xl font-bold mb-2">Registrar Compra</div>
-                  <div className="text-sm opacity-70">Crear compra manual para un usuario</div>
-                </button>
-                
-                <button 
-                  onClick={()=>setDrawerOpen(true)} 
-                  className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
-                >
-                  <div className="text-2xl mb-2">👥</div>
-                  <div className="text-xl font-bold mb-2">Administradores</div>
-                  <div className="text-sm opacity-70">Agregar o quitar correos con acceso</div>
-                </button>
-                
-                <button 
-                  onClick={exportCSV} 
-                  className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
-                >
-                  <div className="text-2xl mb-2">📊</div>
-                  <div className="text-xl font-bold mb-2">Exportar Datos</div>
-                  <div className="text-sm opacity-70">Descargar reporte en formato CSV</div>
-                </button>
-              </div>
+            <button 
+              onClick={()=>setAdminSub('purchases')} 
+              className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
+            >
+              <div className="text-2xl mb-2">🛒</div>
+              <div className="text-xl font-bold mb-2">Gestionar Compras</div>
+              <div className="text-sm opacity-70">Revisa, valida y notifica por WhatsApp</div>
+            </button>
+            
+            <button 
+              onClick={()=>setAdminRegisterPurchaseOpen(true)} 
+              className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-blue-600 text-white shadow-lg','bg-blue-600 text-white shadow-lg')}`}
+            >
+              <div className="text-2xl mb-2">➕</div>
+              <div className="text-xl font-bold mb-2">Registrar Compra</div>
+              <div className="text-sm opacity-70">Crear compra manual para un usuario</div>
+            </button>
+            
+            <button 
+              onClick={()=>setDrawerOpen(true)} 
+              className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
+            >
+              <div className="text-2xl mb-2">👥</div>
+              <div className="text-xl font-bold mb-2">Administradores</div>
+              <div className="text-sm opacity-70">Agregar o quitar correos con acceso</div>
+            </button>
+            
+            <button 
+              onClick={exportCSV} 
+              className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
+            >
+              <div className="text-2xl mb-2">📊</div>
+              <div className="text-xl font-bold mb-2">Exportar Datos</div>
+              <div className="text-sm opacity-70">Descargar reporte en formato CSV</div>
+            </button>
+          </div>
 
           {/* GESTIÓN DE COMPRAS */}
           <div className={`rounded-2xl p-6 shadow-lg mb-6 ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
