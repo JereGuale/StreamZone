@@ -2331,6 +2331,12 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                    {adminLoading ? '⏳ Cargando...' : '🔄 Actualizar Todo'}
                 </button>
                 <button 
+                  onClick={logoutAdmin}
+                  className={tv(isDark,'rounded-xl bg-red-600 text-white px-4 py-2 text-sm hover:bg-red-700','rounded-xl bg-red-500 text-white px-4 py-2 text-sm hover:bg-red-600')}
+                >
+                  🚪 Cerrar Sesión
+                </button>
+                <button 
                   onClick={() => setView('home')}
                   className={tv(isDark,'rounded-xl bg-zinc-100 text-zinc-700 px-4 py-2 text-sm hover:bg-zinc-200','rounded-xl bg-zinc-800 text-zinc-200 px-4 py-2 text-sm hover:bg-zinc-700')}
                 >
