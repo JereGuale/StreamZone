@@ -27,3 +27,4 @@ $$ LANGUAGE plpgsql;
 
 -- Verificar que la función se creó correctamente
 SELECT * FROM get_expiring_services(7) LIMIT 5;
+

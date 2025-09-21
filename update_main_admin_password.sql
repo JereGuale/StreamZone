@@ -13,3 +13,4 @@ WHERE email = 'gualejere@gmail.com';
 
 -- Mostrar mensaje de confirmación
 SELECT '✅ Contraseña del administrador principal actualizada' as status;
+

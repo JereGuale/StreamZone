@@ -20,3 +20,4 @@ VALUES ('gualejere@gmail.com', 'Admin_GUA_1234');
 -- Verificar
 SELECT 'Tabla creada' as resultado;
 SELECT * FROM admin_emails;
+

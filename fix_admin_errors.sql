@@ -21,3 +21,4 @@ UPDATE admin_emails SET is_active = true WHERE is_active IS NULL;
 
 -- Verificar el estado actual
 SELECT email, is_active, created_at FROM admin_emails ORDER BY created_at DESC;
+

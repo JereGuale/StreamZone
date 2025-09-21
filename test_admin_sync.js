@@ -66,3 +66,4 @@ async function testAdminSync() {
 testAdminSync();
 
 console.log('🏁 Prueba completada. Revisa la consola para ver los resultados.');
+

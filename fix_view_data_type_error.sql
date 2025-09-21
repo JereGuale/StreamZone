@@ -83,3 +83,4 @@ SELECT 'renewal_stats view' as item,
     CASE WHEN EXISTS (SELECT 1 FROM information_schema.views WHERE table_name = 'renewal_stats') 
     THEN 'exists' ELSE 'missing' END as status;
 
+

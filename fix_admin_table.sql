@@ -40,3 +40,4 @@ SELECT
     is_active,
     created_at
 FROM admin_emails;
+

@@ -23,3 +23,4 @@ SELECT COUNT(*) as total_registros FROM admin_emails;
 
 -- 4. Mostrar todos los datos si existen
 SELECT * FROM admin_emails;
+

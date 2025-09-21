@@ -63,3 +63,4 @@ console.log('   3. Abre el apartado de administradores');
 console.log('   4. Verifica que aparecen todos los administradores de Supabase');
 console.log('   5. Prueba agregar un nuevo administrador');
 console.log('   6. Verifica que aparece inmediatamente en la lista');
+

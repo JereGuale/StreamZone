@@ -22,3 +22,4 @@ ON CONFLICT (email) DO UPDATE SET
 SELECT email, password, is_active, created_at 
 FROM admin_emails 
 ORDER BY is_active DESC, created_at ASC;
+

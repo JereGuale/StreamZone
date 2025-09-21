@@ -17,3 +17,4 @@ FROM information_schema.columns
 WHERE table_name = 'purchases' 
 AND column_name IN ('auto_renewal', 'renewal_reminder_sent', 'renewal_attempts', 'last_renewal_attempt', 'renewal_status', 'original_purchase_id', 'is_renewal')
 ORDER BY column_name;
+

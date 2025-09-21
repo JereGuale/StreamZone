@@ -22,3 +22,4 @@ ON CONFLICT (email) DO NOTHING;
 -- Verificar que se creó correctamente
 SELECT 'Tabla admin_emails creada exitosamente' as status;
 SELECT COUNT(*) as total_admins FROM admin_emails;
+
