@@ -50,7 +50,7 @@ const COMBOS = [
 const ADMIN_WHATSAPP = "+593984280334";
 const AGENTE_1_WHATSAPP = "+593984280334"; // Tu número principal
 const AGENTE_2_WHATSAPP = "+593998799579"; // Tu hermano
-const DEFAULT_ADMIN_EMAILS = ["gualejeremi@gmaill.com", "gualejeremi@gmail.com"];
+const DEFAULT_ADMIN_EMAILS = ["gualejeremi@gmail.com"];
 
 // Métodos de pago
 const PAYMENT_METHODS = [
