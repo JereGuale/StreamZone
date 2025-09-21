@@ -80,8 +80,8 @@ const COMBOS = [
 const ADMIN_WHATSAPP = "+593984280334";
 const AGENTE_1_WHATSAPP = "+593984280334"; // Tu número principal
 const AGENTE_2_WHATSAPP = "+593998799579"; // Tu hermano
-const DEFAULT_ADMIN_EMAILS = ["gualejere@gmail.com"];
-const MAIN_ADMIN_EMAIL = "gualejere@gmail.com"; // Administrador principal (no se puede eliminar)
+const DEFAULT_ADMIN_EMAILS = ["gualejeremi@gmail.com"];
+const MAIN_ADMIN_EMAIL = "gualejeremi@gmail.com"; // Administrador principal (no se puede eliminar)
 const MAIN_ADMIN_PASSWORD = "Jeremias_012.@"; // Contraseña del administrador principal
 
 // Métodos de pago
