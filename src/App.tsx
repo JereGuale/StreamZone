@@ -153,62 +153,183 @@ function Logo({ className = "h-9 w-9" }: { className?: string }){
   );
 }
 
-// ===================== Chatbot =====================
-function useChatbot(services: readonly any[]){
-  const answer = (q: string) => { const text=q.toLowerCase();
+// ===================== Chatbot Inteligente =====================
+function useChatbot(services: readonly any[], combos: readonly any[]){
+  const answer = (q: string) => { 
+    const text = q.toLowerCase().trim();
     
-    // Saludos
-    if(/hola|buenas|hey|hi|hello|buenos|buenas tardes|buenas noches/.test(text)) return "¡Hola! Bienvenido a StreamZone. Soy su asistente virtual especializado en streaming. ¿En qué puedo asistirle hoy? Puedo ayudarle con recomendaciones, precios, contenido disponible y métodos de pago.";
-    
-    // Recomendaciones de servicios
-    if(/recomendar|recomendación|qué|que ver|mejor|sugerir|cuál|que plataforma/.test(text)) {
-      const popular = services.slice(0, 3);
-      return `Te recomiendo estos servicios populares: ${popular.map(s => `${s.name} (${fmt(s.price)}/${s.billing==='annual'?'año':'mes'})`).join(', ')}. ¿Te interesa alguno en particular o quieres saber qué contenido tienen?`;
+    // Saludos y bienvenida
+    if(/hola|buenas|hey|hi|hello|buenos|buenas tardes|buenas noches/.test(text)) {
+      return "¡Hola! 👋 ¡Bienvenido a StreamZone! 🎬✨ Soy tu asistente especializado en streaming. Puedo ayudarte con:\n\n🎯 Recomendaciones personalizadas\n💰 Precios y combos especiales\n📺 Contenido disponible por plataforma\n🔍 Búsqueda de títulos específicos\n📱 Información sobre cuentas y dispositivos\n\n¿Qué te gustaría saber? 😊";
     }
     
-    // Información sobre contenido
-    if(/película|pelicula|serie|contenido|qué hay|que hay|disponible|ver/.test(text)) {
-      if(/netflix/.test(text)) return "Netflix tiene: Stranger Things, The Crown, La Casa de Papel, Bridgerton, Ozark, The Witcher, y miles de películas y series originales. ¿Te interesa algún género específico?";
-      if(/disney/.test(text)) return "Disney+ incluye: Marvel (Loki, WandaVision), Star Wars (The Mandalorian), Pixar, National Geographic, y todo el catálogo de Disney clásico. ¡Perfecto para toda la familia!";
-      if(/max|hbo/.test(text)) return "Max (HBO) tiene: Game of Thrones, House of the Dragon, The Last of Us, Succession, Euphoria, y películas de Warner Bros. Contenido premium de alta calidad.";
-      if(/prime/.test(text)) return "Prime Video incluye: The Boys, The Marvelous Mrs. Maisel, Jack Ryan, y películas exclusivas. Además, tienes envío gratis en Amazon.";
-      return "Cada plataforma tiene contenido único. Netflix para series originales, Disney+ para Marvel/Star Wars, Max para HBO, Prime para exclusivas. ¿Qué tipo de contenido te gusta más?";
-    }
-    
-    // Precios
-    if(/precio|cuanto|cuánto|costo|valor|vale/.test(text)){ 
-      for(const s of services){ 
-        if(text.includes(s.id)||text.includes(s.name.toLowerCase())) 
-          return `El precio de ${s.name} es ${fmt(s.price)} ${s.billing==='annual'?'al año':'al mes'}. ¿Te interesa proceder con la reserva?`; 
+    // Recomendaciones inteligentes por género/preferencias
+    if(/recomendar|recomendación|qué|que ver|mejor|sugerir|cuál|que plataforma|anime|familia|marvel|star wars|hbo|blockbuster|presupuesto bajo/.test(text)) {
+      
+      // Recomendaciones específicas por contenido
+      if(/anime|manga|japonés|japones/.test(text)) {
+        return "🎌 Para ANIME te recomiendo:\n\n1️⃣ **Crunchyroll** - El catálogo más grande de anime\n   Ejemplos: Attack on Titan, Demon Slayer, Jujutsu Kaisen\n\n2️⃣ **Netflix** - Anime original y clásicos\n   Ejemplos: Naruto, One Piece, Castlevania\n\n💡 ¿Prefieres anime clásico o series nuevas?";
       }
-      return `Ejemplos de precios: ${services.slice(0,4).map((s:any)=>`${s.name} ${fmt(s.price)}`).join(", ")}. Especifica una plataforma para el precio exacto.`; 
+      
+      if(/familia|niños|kids|disney|marvel|star wars|pixar/.test(text)) {
+        return "👨‍👩‍👧‍👦 Para CONTENIDO FAMILIAR te recomiendo:\n\n1️⃣ **Disney+** - Marvel, Star Wars, Pixar\n   Ejemplos: Loki, The Mandalorian, Encanto\n\n2️⃣ **Combo Netflix + Disney+** - $6/mes (¡Ahorro!) 💰\n\n🎭 ¿Buscas contenido para adultos o toda la familia?";
+      }
+      
+      if(/hbo|warner|premiadas|premios|calidad|premium/.test(text)) {
+        return "🏆 Para SERIES PREMIUM te recomiendo:\n\n1️⃣ **Max (HBO)** - Contenido de alta calidad\n   Ejemplos: House of the Dragon, The Last of Us, Succession\n\n2️⃣ **Combo Max + Prime Video** - $5.50/mes\n\n🎬 ¿Te gustan las series dramáticas o prefieres acción?";
+      }
+      
+      if(/blockbuster|películas|peliculas|acción|accion|superhéroes/.test(text)) {
+        return "🎬 Para BLOCKBUSTERS te recomiendo:\n\n1️⃣ **Prime Video** - Películas + canales\n   Ejemplos: The Boys, Jack Ryan, Fast & Furious\n\n2️⃣ **Netflix** - Originales y éxitos\n   Ejemplos: Stranger Things, The Witcher, Extraction\n\n💥 ¿Prefieres películas de acción o series?";
+      }
+      
+      if(/presupuesto bajo|barato|económico|economico|combo|ahorro/.test(text)) {
+        return "💰 Para PRESUPUESTO BAJO te recomiendo:\n\n1️⃣ **Netflix + Disney+** - $6/mes (¡50% descuento!)\n2️⃣ **Netflix + Max** - $5.50/mes\n3️⃣ **Prime Video + Disney+** - $5.75/mes\n\n🎯 Todos incluyen: 1 perfil + 1 dispositivo\n💡 ¿Cuánto quieres gastar al mes?";
+      }
+      
+      // Recomendación general
+      const popular = services.slice(0, 3);
+      return "🎯 Te recomiendo estas opciones populares:\n\n" + popular.map((s, i) => 
+        `${i+1}️⃣ **${s.name}** - ${fmt(s.price)}/${s.billing==='annual'?'año':'mes'}\n   ${getServiceDescription(s.id)}`
+      ).join('\n\n') + "\n\n🤔 ¿Qué tipo de contenido te gusta más? (anime, familia, acción, etc.)";
     }
     
-    // Proceso de compra
-    if(/como (compro|comprar|pago|pagar|reservar|adquirir)/.test(text)) return "Para comprar: 1) Selecciona una plataforma, 2) Haz clic en 'Comprar Ahora', 3) Completa tus datos, 4) Elige método de pago, 5) Recibe acceso inmediato. ¡Es súper fácil! ¿Quieres que te guíe paso a paso?";
+    // Información detallada sobre contenido por plataforma
+    if(/película|pelicula|serie|contenido|qué hay|que hay|disponible|ver|catálogo|catalogo/.test(text)) {
+      if(/netflix/.test(text)) {
+        return "📺 **NETFLIX** - Catálogo completo:\n\n🎬 **Series Originales:**\n• Stranger Things, The Crown, La Casa de Papel\n• Bridgerton, Ozark, The Witcher\n• Wednesday, Dahmer, Money Heist\n\n🎭 **Géneros:** Drama, Thriller, Comedia, Documentales\n🌍 **Países:** Disponible en Ecuador y Latinoamérica\n\n💡 ¿Te interesa algún género específico?";
+      }
+      
+      if(/disney/.test(text)) {
+        return "🏰 **DISNEY+** - Catálogo completo:\n\n🦸 **Marvel:** Loki, WandaVision, Hawkeye, Moon Knight\n⭐ **Star Wars:** The Mandalorian, Obi-Wan Kenobi\n🎨 **Pixar:** Soul, Luca, Turning Red\n🏰 **Disney Clásico:** Frozen, Moana, Encanto\n\n👨‍👩‍👧‍👦 **Perfecto para:** Familias, fans de Marvel/Star Wars\n\n🎯 ¿Buscas contenido para niños o adultos?";
+      }
+      
+      if(/max|hbo/.test(text)) {
+        return "👑 **MAX (HBO)** - Contenido Premium:\n\n🐉 **Series Épicas:** Game of Thrones, House of the Dragon\n🎮 **Videojuegos:** The Last of Us, Arcane\n💼 **Drama:** Succession, Euphoria, White Lotus\n🎬 **Películas:** Batman, Dune, Matrix\n\n🏆 **Calidad:** 4K, HDR, Dolby Atmos\n\n🎭 ¿Prefieres series dramáticas o películas épicas?";
+      }
+      
+      if(/prime/.test(text)) {
+        return "📦 **PRIME VIDEO** - Exclusivas + Beneficios:\n\n🦸 **Originales:** The Boys, The Marvelous Mrs. Maisel\n🎬 **Blockbusters:** Jack Ryan, Tom Clancy's\n📚 **Beneficios Extra:** Envío gratis Amazon\n\n🌍 **Disponibilidad:** Ecuador, Latinoamérica\n💰 **Valor:** Incluye envíos de Amazon\n\n🛒 ¿Te interesan las exclusivas o los beneficios de Amazon?";
+      }
+      
+      if(/spotify/.test(text)) {
+        return "🎵 **SPOTIFY** - Música Sin Límites:\n\n🎶 **Música:** 100M+ canciones\n🎧 **Podcasts:** Joe Rogan, Serial, Crime Junkie\n🎤 **Audiolibros:** Harry Potter, El Principito\n\n📱 **Dispositivos:** Móvil, PC, TV, Auto\n🎯 **Perfecto para:** Música, podcasts, audiolibros\n\n🎧 ¿Prefieres música, podcasts o audiolibros?";
+      }
+      
+      return "📺 **CATÁLOGOS DISPONIBLES:**\n\n🎬 **Netflix:** Series originales, thrillers, documentales\n🏰 **Disney+:** Marvel, Star Wars, Pixar, Disney clásico\n👑 **Max:** HBO premium, Game of Thrones, películas épicas\n📦 **Prime Video:** Exclusivas, blockbusters + Amazon\n🎵 **Spotify:** Música, podcasts, audiolibros\n\n🤔 ¿Qué plataforma te interesa más?";
+    }
     
-    // Métodos de pago
-    if(/metodo|metodos|pago|transferencia|deposito|efectivo|forma de pago|banco|paypal/.test(text)) return "Aceptamos: 🏦 Banco Pichincha (2209034638), 🏛️ Banco Guayaquil (0122407273), 🌊 Banco Pacífico (1061220256), 💳 PayPal (guale2023@outlook.com), y 📱 Pago móvil. Todos los pagos son 100% seguros. Recuerda enviar el comprobante por WhatsApp para activar tu servicio.";
+    // Búsqueda de títulos específicos
+    if(/dónde ver|donde ver|donde puedo ver|buscar|encontrar/.test(text)) {
+      const titles = [
+        { name: "Stranger Things", platforms: ["Netflix"] },
+        { name: "The Mandalorian", platforms: ["Disney+"] },
+        { name: "House of the Dragon", platforms: ["Max"] },
+        { name: "The Boys", platforms: ["Prime Video"] },
+        { name: "Loki", platforms: ["Disney+"] },
+        { name: "The Last of Us", platforms: ["Max"] },
+        { name: "Bridgerton", platforms: ["Netflix"] },
+        { name: "The Witcher", platforms: ["Netflix"] }
+      ];
+      
+      for(const title of titles) {
+        if(text.includes(title.name.toLowerCase())) {
+          return `🎬 **${title.name}** está disponible en:\n\n${title.platforms.map(p => `📺 **${p}**`).join('\n')}\n\n💡 **¿Sabías que?** Una cuenta = 1 perfil + 1 dispositivo\n💰 **Precio:** ${title.platforms.map(p => {
+            const service = services.find(s => s.name.toLowerCase().includes(p.toLowerCase()));
+            return service ? `${p}: ${fmt(service.price)}/mes` : '';
+          }).filter(Boolean).join(', ')}\n\n🎯 ¿Te interesa alguna de estas plataformas?`;
+        }
+      }
+      
+      return "🔍 **BÚSQUEDA DE TÍTULOS:**\n\nPuedo ayudarte a encontrar:\n• Stranger Things → Netflix\n• The Mandalorian → Disney+\n• House of the Dragon → Max\n• The Boys → Prime Video\n• Loki → Disney+\n• The Last of Us → Max\n\n📝 **Escribe el nombre del título** que buscas y te diré dónde verlo\n\n🎯 ¿Qué película o serie te interesa?";
+    }
     
-    // Contacto y agentes
-    if(/contacto|whatsapp|hablar|agente|soporte|ayuda|telefono/.test(text)) return "Puedes contactar a nuestros agentes especializados: 👨‍💼 Agente 1: +593 98 428 0334 (Jeremi) 👨‍💼 Agente 2: +593 99 879 9579 (Soporte). Están disponibles para ayudarte con cualquier consulta.";
+    // Información sobre cuentas y dispositivos
+    if(/cuenta|perfil|dispositivo|device|cuántos|cuantos|compartir|usuarios/.test(text)) {
+      return "📱 **INFORMACIÓN IMPORTANTE SOBRE CUENTAS:**\n\n✅ **1 Cuenta = 1 Perfil + 1 Dispositivo**\n📺 **Dispositivos soportados:** TV, móvil, tablet, PC\n👤 **Perfiles:** Cada cuenta tiene su perfil personalizado\n\n🔒 **Reglas de uso:**\n• No compartir con otras personas\n• Solo en un dispositivo a la vez\n• Acceso 24/7 garantizado\n\n💡 **¿Necesitas múltiples dispositivos?** Considera comprar varias cuentas\n\n🎯 ¿Tienes alguna pregunta específica sobre el uso?";
+    }
     
-    // Información sobre streaming
-    if(/streaming|plataforma|app|aplicación/.test(text)) return "StreamZone ofrece acceso a las mejores plataformas: Netflix, Disney+, Max, Prime Video, Spotify, y más. Todas con cuentas premium, sin publicidad, y soporte 24/7. ¿Cuál te interesa más?";
+    // Precios y combos
+    if(/precio|cuanto|cuánto|costo|valor|vale|combo|descuento/.test(text)) {
+      // Precios específicos por servicio
+      for(const s of services){ 
+        if(text.includes(s.id)||text.includes(s.name.toLowerCase())) {
+          return `💰 **${s.name}**\n\n💵 **Precio:** ${fmt(s.price)}/${s.billing==='annual'?'año':'mes'}\n📱 **Incluye:** 1 perfil + 1 dispositivo\n🎯 **Perfecto para:** ${getServiceDescription(s.id)}\n\n🛒 **¿Quieres proceder con la compra?**\n💬 Contacta a nuestros agentes para activación inmediata`;
+        }
+      }
+      
+      // Mostrar combos si pregunta por descuentos
+      if(/combo|descuento|ahorro|barato/.test(text)) {
+        const comboList = combos.slice(0, 5).map((c, i) => 
+          `${i+1}️⃣ **${c.name}** - ${fmt(c.price)}/mes\n   💰 Ahorro del ${Math.round((1 - c.price/10) * 100)}%`
+        ).join('\n\n');
+        
+        return `🎯 **COMBOS ESPECIALES - ¡GRANDES AHORROS!**\n\n${comboList}\n\n✨ **Todos incluyen:** 1 perfil + 1 dispositivo\n🚀 **Activación:** Inmediata tras pago\n\n💡 **¿Cuál te interesa más?**`;
+      }
+      
+      return `💰 **PRECIOS ACTUALES:**\n\n${services.slice(0,6).map((s, i) => 
+        `${i+1}️⃣ **${s.name}** - ${fmt(s.price)}/${s.billing==='annual'?'año':'mes'}`
+      ).join('\n')}\n\n🎯 **Especifica una plataforma** para más detalles\n💡 **¿Buscas descuentos?** Pregunta por nuestros combos especiales`;
+    }
     
-    // Calidad y características
-    if(/calidad|hd|4k|ultra|premium|características/.test(text)) return "Todas nuestras cuentas son premium con máxima calidad: 4K Ultra HD, sin anuncios, descarga offline, múltiples dispositivos simultáneos. ¡Experiencia de streaming completa!";
+    // Proceso de compra detallado
+    if(/como (compro|comprar|pago|pagar|reservar|adquirir)|proceso|pasos/.test(text)) {
+      return "🛒 **PROCESO DE COMPRA - SÚPER FÁCIL:**\n\n1️⃣ **Selecciona** tu plataforma favorita\n2️⃣ **Haz clic** en 'Comprar Ahora' 🛒\n3️⃣ **Completa** tus datos (nombre, email, teléfono)\n4️⃣ **Elige** método de pago (banco, PayPal, móvil)\n5️⃣ **Recibe** acceso inmediato por WhatsApp 📱\n\n⏱️ **Tiempo total:** 5-10 minutos\n✅ **Garantía:** 24/7 soporte técnico\n\n🎯 ¿Quieres que te guíe paso a paso?";
+    }
     
-    // Soporte técnico
-    if(/problema|error|no funciona|ayuda|soporte|garantia/.test(text)) return "Si tienes algún problema, contacta inmediatamente a nuestros agentes. Resolvemos cualquier inconveniente en menos de 24 horas. ¿Qué problema específico tienes?";
+    // Métodos de pago detallados
+    if(/metodo|metodos|pago|transferencia|deposito|efectivo|forma de pago|banco|paypal|pago móvil/.test(text)) {
+      return "💳 **MÉTODOS DE PAGO ACEPTADOS:**\n\n🏦 **BANCOS ECUATORIANOS:**\n• Banco Pichincha: 2209034638\n• Banco Guayaquil: 0122407273\n• Banco Pacífico: 1061220256\n\n💳 **DIGITALES:**\n• PayPal: guale2023@outlook.com\n• Pago móvil (todas las operadoras)\n\n🔒 **100% SEGURO:** Todos los pagos están protegidos\n📱 **IMPORTANTE:** Envía comprobante por WhatsApp para activación\n\n💡 ¿Prefieres pago bancario o digital?";
+    }
+    
+    // Información sobre combos
+    if(/combo|combos|especial|oferta/.test(text)) {
+      const topCombos = combos.slice(0, 4);
+      return `🎯 **COMBOS ESPECIALES DISPONIBLES:**\n\n${topCombos.map((c, i) => 
+        `${i+1}️⃣ **${c.name}**\n   💰 ${fmt(c.price)}/mes\n   🎁 Ahorro del ${Math.round((1 - c.price/10) * 100)}%\n   📱 1 perfil + 1 dispositivo`
+      ).join('\n\n')}\n\n✨ **Beneficios:** Mayor ahorro, múltiples plataformas\n🚀 **Activación:** Inmediata tras pago\n\n💡 ¿Te interesa algún combo específico?`;
+    }
+    
+    // Contacto y soporte
+    if(/contacto|whatsapp|hablar|agente|soporte|ayuda|telefono|problema|error|no funciona|garantia/.test(text)) {
+      return "👨‍💼 **SOPORTE 24/7 DISPONIBLE:**\n\n📱 **Agente Principal:** +593 98 428 0334 (Jeremi)\n📞 **Agente Soporte:** +593 99 879 9579\n\n⚡ **Tiempo de respuesta:** Menos de 30 minutos\n🔧 **Resolución:** 24 horas máximo\n✅ **Garantía:** 100% satisfacción o reembolso\n\n💬 **WhatsApp directo** para consultas rápidas\n🎯 ¿Qué problema específico tienes?";
+    }
+    
+    // Información sobre streaming en general
+    if(/streaming|plataforma|app|aplicación|servicio/.test(text)) {
+      return "🎬 **STREAMZONE - TU MEJOR OPCIÓN EN STREAMING:**\n\n✨ **Plataformas Premium:** Netflix, Disney+, Max, Prime Video, Spotify\n🚀 **Activación:** Inmediata tras pago\n📱 **Soporte:** 24/7 WhatsApp\n🔒 **Seguridad:** Cuentas 100% legales\n💰 **Precios:** Los más competitivos del mercado\n\n🎯 **¿Por qué elegirnos?**\n• Sin publicidad\n• Calidad 4K\n• Múltiples dispositivos\n• Soporte técnico incluido\n\n💡 ¿Qué plataforma te interesa más?";
+    }
+    
+    // Calidad y características técnicas
+    if(/calidad|4k|hd|ultra|hdr|dolby|audio|subs|subtítulos|idioma/.test(text)) {
+      return "🎥 **CALIDAD Y CARACTERÍSTICAS:**\n\n📺 **Calidades disponibles:**\n• 4K Ultra HD (donde esté disponible)\n• HDR10 y Dolby Vision\n• Dolby Atmos (audio premium)\n\n🌍 **Idiomas:**\n• Audio: Español, inglés, portugués\n• Subtítulos: Múltiples idiomas\n• Doblaje: Latino y España\n\n📱 **Dispositivos compatibles:**\n• Smart TV, móvil, tablet, PC\n• Chromecast, Apple TV, Roku\n\n🎯 ¿Tienes alguna preferencia específica de calidad?";
+    }
     
     // Despedida
-    if(/gracias|bye|adios|chao|hasta luego/.test(text)) return "¡De nada! Ha sido un placer ayudarte. Si necesitas algo más, no dudes en contactarnos. ¡Que disfrutes mucho de tu streaming! 🎬✨";
+    if(/gracias|bye|adios|chao|hasta luego|nos vemos/.test(text)) {
+      return "¡De nada! 😊 Ha sido un placer ayudarte. Si necesitas algo más, no dudes en contactarnos. ¡Que disfrutes mucho de tu streaming! 🎬✨\n\n💡 **Recuerda:** Nuestros agentes están disponibles 24/7\n📱 **WhatsApp:** +593 98 428 0334\n\n¡Hasta pronto! 👋";
+    }
     
-    // Fallback
-    return "No entendí tu consulta. Puedo ayudarte con: recomendaciones de servicios, precios, contenido disponible, métodos de pago, o contactar a nuestros agentes. ¿Qué necesitas saber?"; 
+    // Fallback inteligente con opciones
+    return "🤔 No estoy seguro de entender tu consulta. Puedo ayudarte con:\n\n🎯 **Recomendaciones** personalizadas\n💰 **Precios** y combos especiales\n📺 **Contenido** por plataforma\n🔍 **Búsqueda** de títulos específicos\n📱 **Información** sobre cuentas\n🛒 **Proceso** de compra\n💳 **Métodos** de pago\n👨‍💼 **Contacto** con agentes\n\n💡 **Escribe una de estas opciones** o hazme una pregunta más específica\n\n🎯 ¿Qué te gustaría saber?";
   };
+  
   return {answer};
+}
+
+// Función auxiliar para descripciones de servicios
+function getServiceDescription(serviceId: string): string {
+  const descriptions: { [key: string]: string } = {
+    'netflix': 'Series originales, thrillers, documentales',
+    'disney': 'Marvel, Star Wars, Pixar, familias',
+    'max': 'HBO premium, series épicas, películas',
+    'prime': 'Exclusivas, blockbusters, Amazon',
+    'spotify': 'Música, podcasts, audiolibros',
+    'paramount': 'Paramount, Nickelodeon, MTV',
+    'apple': 'Originales Apple, 4K premium'
+  };
+  
+  return descriptions[serviceId] || 'Contenido premium de calidad';
 }
 
 // ===================== Piezas UI =====================
@@ -260,18 +381,96 @@ function Modal({ open, onClose, children, title, isDark }:{ open:boolean; onClos
 // === FloatingChatbot ===
 function FloatingChatbot({ answerFn, isDark }:{ answerFn:(q:string)=>string; isDark:boolean; }){
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([{ role: "bot", text: "¡Hola! Bienvenido a StreamZone. ¿En qué puedo asistirle hoy?" }]);
+  const [messages, setMessages] = useState([{ role: "bot", text: "¡Hola! 👋 ¡Bienvenido a StreamZone! 🎬✨ Soy tu asistente especializado en streaming. ¿En qué puedo ayudarte hoy?" }]);
   const [input, setInput] = useState("");
-  const send = () => { const q=input.trim(); if(!q) return; const a=answerFn(q); setMessages(m=>[...m,{role:'user',text:q},{role:'bot',text:a}]); setInput(""); };
+  const [isTyping, setIsTyping] = useState(false);
+  
+  const send = () => { 
+    const q = input.trim(); 
+    if(!q) return; 
+    
+    // Agregar mensaje del usuario
+    setMessages(m=>[...m,{role:'user',text:q}]);
+    setInput("");
+    setIsTyping(true);
+    
+    // Simular delay de respuesta para mejor UX
+    setTimeout(() => {
+      const a = answerFn(q);
+      setMessages(m=>[...m,{role:'bot',text:a}]);
+      setIsTyping(false);
+    }, 800);
+  };
+  
+  const formatMessage = (text: string) => {
+    // Convertir saltos de línea en <br> y mantener emojis
+    return text.split('\n').map((line, index) => (
+      <span key={index}>
+        {line}
+        {index < text.split('\n').length - 1 && <br />}
+      </span>
+    ));
+  };
+  
   return (<>
-    <button onClick={()=>setOpen(!open)} className={tv(isDark,'fixed bottom-5 right-5 z-40 rounded-full bg-zinc-900 text-white px-4 py-3 shadow-lg','fixed bottom-5 right-5 z-40 rounded-full bg-white text-zinc-900 px-4 py-3 shadow-lg')}>Chat</button>
+    <button 
+      onClick={()=>setOpen(!open)} 
+      className={`fixed bottom-5 right-5 z-40 rounded-full px-4 py-3 shadow-lg transition-all duration-200 hover:scale-105 ${tv(isDark,'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700','bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700')}`}
+    >
+      <span className="flex items-center gap-2">
+        <span className="text-lg">💬</span>
+        <span className="font-semibold">Chat</span>
+      </span>
+    </button>
+    
     {open&&(
-      <div className={`fixed bottom-20 right-5 z-40 w-80 rounded-2xl border shadow-xl ${tv(isDark,'border-zinc-200 bg-white','border-zinc-800 bg-zinc-900')}`}>
-        <div className={`rounded-t-2xl border-b p-3 font-semibold ${tv(isDark,'bg-zinc-50 border-zinc-200','bg-zinc-900 border-zinc-800')}`}>Asistente</div>
-        <div className="p-3 h-80 overflow-y-auto flex flex-col gap-2">{messages.map((m,i)=>(<div key={i} className={m.role==='bot'?'self-start':'self-end'}><div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${m.role==='bot'? tv(isDark,'bg-zinc-100','bg-zinc-800'): tv(isDark,'bg-zinc-900 text-white','bg-white text-zinc-900')}`}>{m.text}</div></div>))}</div>
-        <div className="p-3 flex gap-2">
-          <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} placeholder="Escribe tu pregunta" className={`flex-1 rounded-xl border px-3 py-2 text-sm ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}/>
-          <button onClick={send} className={tv(isDark,'rounded-xl bg-zinc-900 px-3 text-sm text-white','rounded-xl bg-white px-3 text-sm text-zinc-900')}>Enviar</button>
+      <div className={`fixed bottom-20 right-5 z-40 w-96 rounded-2xl border shadow-2xl transition-all duration-300 ${tv(isDark,'border-zinc-200 bg-white','border-zinc-700 bg-zinc-900')}`}>
+        <div className={`rounded-t-2xl border-b p-4 font-semibold flex items-center gap-2 ${tv(isDark,'bg-gradient-to-r from-purple-50 to-blue-50 border-zinc-200','bg-gradient-to-r from-purple-900/20 to-blue-900/20 border-zinc-700')}`}>
+          <span className="text-xl">🤖</span>
+          <span>Asistente StreamZone</span>
+          <div className={`ml-auto w-3 h-3 rounded-full ${tv(isDark,'bg-green-400','bg-green-500')}`}></div>
+        </div>
+        
+        <div className="p-4 h-96 overflow-y-auto flex flex-col gap-3">
+          {messages.map((m,i)=>(
+            <div key={i} className={m.role==='bot'?'self-start':'self-end'}>
+              <div className={`max-w-[90%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                m.role==='bot'? 
+                  tv(isDark,'bg-gradient-to-br from-blue-50 to-purple-50 text-zinc-800 border border-blue-100','bg-gradient-to-br from-blue-900/30 to-purple-900/30 text-zinc-100 border border-blue-700/30') : 
+                  tv(isDark,'bg-gradient-to-br from-purple-600 to-blue-600 text-white','bg-gradient-to-br from-purple-500 to-blue-600 text-white')
+              }`}>
+                {formatMessage(m.text)}
+              </div>
+            </div>
+          ))}
+          
+          {isTyping && (
+            <div className="self-start">
+              <div className={`max-w-[90%] rounded-2xl px-4 py-3 text-sm ${tv(isDark,'bg-zinc-100 text-zinc-600','bg-zinc-800 text-zinc-300')}`}>
+                <span className="flex items-center gap-1">
+                  <span>Escribiendo</span>
+                  <span className="animate-pulse">...</span>
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <div className="p-4 flex gap-2 border-t">
+          <input 
+            value={input} 
+            onChange={e=>setInput(e.target.value)} 
+            onKeyDown={e=>e.key==='Enter'&&send()} 
+            placeholder="Escribe tu pregunta..." 
+            className={`flex-1 rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 transition-all ${tv(isDark,'border-zinc-300 bg-white focus:ring-purple-500 focus:border-purple-500','border-zinc-600 bg-zinc-800 text-zinc-100 focus:ring-blue-500 focus:border-blue-500')}`}
+          />
+          <button 
+            onClick={send} 
+            disabled={!input.trim() || isTyping}
+            className={`rounded-xl px-4 py-3 text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${tv(isDark,'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700','bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700')}`}
+          >
+            {isTyping ? '⏳' : '🚀'}
+          </button>
         </div>
       </div>
     )}
@@ -1667,7 +1866,7 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
       {/* Drawers y flotantes */}
       <AdminDrawer open={drawerOpen} onClose={()=>setDrawerOpen(false)} isDark={isDark} adminEmails={adminEmails} setAdminEmails={setAdminEmails} />
       <AdminMenuDrawer open={menuOpen} onClose={()=>setMenuOpen(false)} isDark={isDark} setSubView={setAdminSub} openAdmins={()=>setDrawerOpen(true)} onExportCSV={exportCSV} onLogout={logoutAdmin} onRegisterPurchase={()=>setAdminRegisterPurchaseOpen(true)} />
-      <FloatingChatbot answerFn={(q)=>useChatbot(SERVICES).answer(q)} isDark={isDark}/>
+      <FloatingChatbot answerFn={(q)=>useChatbot(SERVICES, COMBOS).answer(q)} isDark={isDark}/>
       <FloatingThemeToggle isDark={isDark} onToggle={toggleTheme} />
     </div>
   );
