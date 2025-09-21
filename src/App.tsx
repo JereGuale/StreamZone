@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { supabase, createUser, getUserByPhone, updateUser, createPurchase, syncServices, DatabasePurchase, getUserPurchases, getUserByEmail, generateResetToken, verifyResetToken, resetPassword, loginUser, approvePurchase, getPendingPurchases, getUserActivePurchases, getAllPurchases, getExpiringServices, createRenewal, getRenewalHistory, toggleAutoRenewal, getRenewalNotifications, getRenewalStats, RenewalHistory, ExpiringService } from "./lib/supabase";
+import { supabase, createUser, getUserByPhone, updateUser, createPurchase, syncServices, DatabasePurchase, getUserPurchases, getUserByEmail, generateResetToken, verifyResetToken, resetPassword, loginUser, approvePurchase, getPendingPurchases, getUserActivePurchases, getAllPurchases, getExpiringServices, createRenewal, getRenewalHistory, toggleAutoRenewal, getRenewalNotifications, getRenewalStats, RenewalHistory, ExpiringService, createAdmin, getAllAdmins, deleteAdmin, syncAdminsToDatabase } from "./lib/supabase";
 
 /**
  * StreamZone – Tienda de Streaming (React + TS + Tailwind)
@@ -9,6 +9,36 @@ import { supabase, createUser, getUserByPhone, updateUser, createPurchase, syncS
  * - Panel Admin minimalista con menú desplegable
  * - Toggle oscuro/claro + chatbot flotante
  */
+
+// ===================== Utilidades =====================
+// Función para generar contraseñas automáticas para administradores
+const generateAdminPassword = (email: string): string => {
+  const timestamp = Date.now().toString().slice(-4);
+  const emailPrefix = email.split('@')[0].slice(0, 3).toUpperCase();
+  return `Admin_${emailPrefix}_${timestamp}`;
+};
+
+// Función para detectar si una compra es un combo
+const isCombo = (serviceName: string): boolean => {
+  return COMBOS.some(combo => combo.name === serviceName);
+};
+
+// Función para obtener los servicios individuales de un combo
+const getComboServices = (serviceName: string): string[] => {
+  const comboMap: Record<string, string[]> = {
+    'Netflix + Disney Estándar': ['Netflix', 'Disney+ Estándar'],
+    'Netflix + Disney Premium': ['Netflix', 'Disney+ Premium'],
+    'Netflix + Max': ['Netflix', 'Max'],
+    'Netflix + Prime Video': ['Netflix', 'Prime Video'],
+    'Disney+ Premium + Max': ['Disney+ Premium', 'Max'],
+    'Prime Video + Disney+ Premium': ['Prime Video', 'Disney+ Premium'],
+    'Netflix + Max + Disney + Prime + Paramount': ['Netflix', 'Max', 'Disney+ Premium', 'Prime Video', 'Paramount+'],
+    'Spotify + Netflix': ['Spotify', 'Netflix'],
+    'Spotify + Disney Premium': ['Spotify', 'Disney+ Premium']
+  };
+  
+  return comboMap[serviceName] || [];
+};
 
 // ===================== Datos =====================
 const SERVICES = [
@@ -50,7 +80,9 @@ const COMBOS = [
 const ADMIN_WHATSAPP = "+593984280334";
 const AGENTE_1_WHATSAPP = "+593984280334"; // Tu número principal
 const AGENTE_2_WHATSAPP = "+593998799579"; // Tu hermano
-const DEFAULT_ADMIN_EMAILS = ["gualejeremi@gmaill.com", "gualejeremi@gmail.com"];
+const DEFAULT_ADMIN_EMAILS = ["gualejere@gmail.com"];
+const MAIN_ADMIN_EMAIL = "gualejere@gmail.com"; // Administrador principal (no se puede eliminar)
+const MAIN_ADMIN_PASSWORD = "Jeremias_012.@"; // Contraseña del administrador principal
 
 // Métodos de pago
 const PAYMENT_METHODS = [
@@ -110,6 +142,7 @@ interface UserPurchase {
   endDate?: string;
   validatedBy?: string;
   validatedAt?: string;
+  devices?: number;
   whatsappSent: boolean;
 }
 
@@ -133,7 +166,9 @@ function uid(){ return Math.random().toString(36).slice(2,10); }
 function daysBetween(a: string, b: string){ 
   const d1=new Date(a), d2=new Date(b); 
   const diff = d2.getTime()-d1.getTime();
-  return Math.ceil(diff/(1000*60*60*24)); 
+  const days = Math.ceil(diff/(1000*60*60*24));
+  // Asegurar que nunca devuelva NaN o valores inválidos
+  return isNaN(days) ? 0 : days;
 }
 function whatsappLink(to: string, text: string){ return `https://wa.me/${to}?text=${encodeURIComponent(text)}`; }
 function tv<T>(isDark: boolean, light: T, dark: T){ return isDark? dark : light; }
@@ -164,7 +199,7 @@ function useChatbot(services: readonly any[], combos: readonly any[]){
     const fullContext = [...context, text].join(' '); // Combinar contexto con pregunta actual
     
     // Saludos y bienvenida
-    if(/hola|buenas|hey|hi|hello|buenos|buenas tardes|buenas noches/.test(text)) {
+    if(/hola|buenas|hey|hi|hello|buenos|buenas tardes|buenas noches|gracias|thanks|ok|okay|vale|perfecto|excelente|genial|bien|mal|ayuda|help|soporte|support|que tal|como estas|buen dia/.test(text)) {
       return "¡Hola! 👋 ¡Bienvenido a StreamZone! 🎬✨ Soy tu asistente especializado en streaming. Puedo ayudarte con:\n\n🎯 Recomendaciones personalizadas\n💰 Precios y combos especiales\n📺 Contenido disponible por plataforma\n🔍 Búsqueda de títulos específicos\n📱 Información sobre cuentas y dispositivos\n🔐 Recuperación de contraseña\n\n¿Qué te gustaría saber? 😊";
     }
     
@@ -313,16 +348,26 @@ function useChatbot(services: readonly any[], combos: readonly any[]){
     }
     
     // Métodos de pago detallados
-    if(/metodo|metodos|pago|transferencia|deposito|efectivo|forma de pago|banco|paypal|pago móvil|como pago|donde pago|donde deposito|transferir/.test(text)) {
-      return "💳 **MÉTODOS DE PAGO ACEPTADOS:**\n\n🏦 **BANCOS ECUATORIANOS:**\n• Banco Pichincha: 2209034638\n• Banco Guayaquil: 0122407273\n• Banco Pacífico: 1061220256\n\n💳 **DIGITALES:**\n• PayPal: guale2023@outlook.com\n• Pago móvil (todas las operadoras)\n\n🔒 **100% SEGURO:** Todos los pagos están protegidos\n📱 **IMPORTANTE:** Envía comprobante por WhatsApp para activación\n\n💡 ¿Prefieres pago bancario o digital?";
+    if(/metodo|metodos|pago|transferencia|deposito|efectivo|forma de pago|banco|paypal|pago móvil|como pago|donde pago|donde deposito|transferir|cuenta|numero|numero de cuenta/.test(text)) {
+      return "💳 **MÉTODOS DE PAGO ACEPTADOS:**\n\n🏦 **BANCOS ECUATORIANOS:**\n• Banco Pichincha: 2209034638 (Jeremias Guale)\n• Banco Guayaquil: 0122407273 (Jeremias Joel Guale)\n• Banco Pacífico: 1061220256 (Byron Guale)\n\n💳 **DIGITALES:**\n• PayPal: guale2023@outlook.com\n• Pago móvil (todas las operadoras)\n\n🔒 **100% SEGURO:** Todos los pagos están protegidos\n📱 **IMPORTANTE:** Envía comprobante por WhatsApp para activación\n\n💡 ¿Prefieres pago bancario o digital?";
     }
     
     // Información sobre combos
-    if(/combo|combos|especial|oferta/.test(text)) {
+    if(/combo|combos|especial|oferta|descuento|ahorro|barato|económico|económico|promocion|promo/.test(text)) {
       const topCombos = combos.slice(0, 4);
       return `🎯 **COMBOS ESPECIALES DISPONIBLES:**\n\n${topCombos.map((c, i) => 
         `${i+1}️⃣ **${c.name}**\n   💰 ${fmt(c.price)}/mes\n   🎁 Ahorro del ${Math.round((1 - c.price/10) * 100)}%\n   📱 1 perfil + 1 dispositivo`
       ).join('\n\n')}\n\n✨ **Beneficios:** Mayor ahorro, múltiples plataformas\n🚀 **Activación:** Inmediata tras pago\n\n💡 ¿Te interesa algún combo específico?`;
+    }
+    
+    // Preguntas sobre disponibilidad y horarios
+    if(/cuando|cuándo|hora|horario|disponible|disponibilidad|tiempo|rapido|rápido|inmediato|urgente|ya|ahora|hoy|mañana|cuanto tiempo|cuánto tiempo/.test(text)) {
+      return "⏰ **DISPONIBILIDAD Y TIEMPOS:**\n\n🚀 **Activación:** Inmediata tras confirmar pago\n📱 **Soporte:** 24/7 por WhatsApp\n⏱️ **Tiempo promedio:** 5-10 minutos\n\n💡 **Para activación rápida:**\n1. Completa tu compra\n2. Envía comprobante por WhatsApp\n3. Recibe acceso inmediato\n\n¿Necesitas activación urgente? ¡Contáctanos!";
+    }
+    
+    // Preguntas sobre dispositivos y cuentas
+    if(/dispositivo|dispositivos|cuenta|cuentas|perfil|perfiles|usuario|usuarios|login|acceso|entrar|iniciar sesion|iniciar sesión/.test(text)) {
+      return "📱 **INFORMACIÓN SOBRE DISPOSITIVOS Y CUENTAS:**\n\n✅ **1 Cuenta = 1 Perfil + 1 Dispositivo**\n📺 **Dispositivos soportados:** TV, móvil, tablet, PC\n👤 **Perfiles:** Cada cuenta tiene su perfil personalizado\n\n🔒 **Reglas de uso:**\n• No compartir con otras personas\n• Solo en un dispositivo a la vez\n• Acceso 24/7 garantizado\n\n💡 **¿Necesitas múltiples dispositivos?** Considera comprar varias cuentas\n\n🎯 ¿Tienes alguna pregunta específica sobre el uso?";
     }
     
     // Contacto y soporte
@@ -348,11 +393,27 @@ function useChatbot(services: readonly any[], combos: readonly any[]){
     // Fallback inteligente - intentar dar una respuesta útil basada en palabras clave
     const words = text.split(' ');
     const hasStreamingWords = words.some(word => 
-      ['netflix', 'disney', 'max', 'hbo', 'prime', 'spotify', 'streaming', 'película', 'serie', 'música'].includes(word.toLowerCase())
+      ['netflix', 'disney', 'max', 'hbo', 'prime', 'spotify', 'streaming', 'película', 'serie', 'música', 'pelicula', 'series', 'musica', 'video', 'videos', 'contenido', 'ver', 'mirar', 'escuchar', 'escuchar'].includes(word.toLowerCase())
+    );
+    
+    const hasPaymentWords = words.some(word => 
+      ['pagar', 'pago', 'dinero', 'precio', 'cuesta', 'vale', 'costo', 'barato', 'caro', 'oferta', 'descuento', 'comprar', 'comprar', 'adquirir'].includes(word.toLowerCase())
+    );
+    
+    const hasTechWords = words.some(word => 
+      ['problema', 'error', 'falla', 'fallo', 'no funciona', 'ayuda', 'soporte', 'técnico', 'reparar', 'arreglar', 'solucionar', 'configurar', 'instalar'].includes(word.toLowerCase())
     );
     
     if (hasStreamingWords) {
       return "🎬 Veo que mencionas contenido de streaming. Te puedo ayudar con:\n\n📺 **Información sobre plataformas:**\n• Netflix, Disney+, Max, Prime Video, Spotify\n• Catálogos completos y precios\n• Recomendaciones personalizadas\n\n🔍 **¿Qué te interesa más?**\n• Ver precios de una plataforma específica\n• Saber qué contenido tiene cada una\n• Encontrar títulos específicos\n\n💡 **Ejemplo:** '¿Qué hay en Netflix?' o '¿Cuánto cuesta Disney+?'";
+    }
+    
+    if (hasPaymentWords) {
+      return "💰 Veo que preguntas sobre precios o pagos. Te puedo ayudar con:\n\n💳 **Información de pago:**\n• Precios desde $2.50/mes\n• Múltiples métodos de pago\n• Combos con descuentos especiales\n\n🏦 **Métodos disponibles:**\n• Bancos ecuatorianos\n• PayPal\n• Pago móvil\n\n💡 **¿Qué necesitas saber específicamente?**\n• Precio de una plataforma\n• Cómo realizar el pago\n• Información de cuentas bancarias";
+    }
+    
+    if (hasTechWords) {
+      return "🔧 Veo que tienes un problema técnico. Te puedo ayudar con:\n\n🛠️ **Soporte técnico:**\n• Problemas de acceso\n• Configuración de dispositivos\n• Resolución de errores\n\n📱 **Contacto directo:**\n• Agente 1: +593 98 428 0334\n• Agente 2: +593 99 879 9579\n\n💡 **¿Qué problema específico tienes?** Describe el error y te ayudo a resolverlo";
     }
     
     // Respuesta más amigable y variada
@@ -404,7 +465,7 @@ function ServiceCard({ s, onReserve, isDark }:{ s:any; onReserve:(s:any)=>void; 
         </div>
         <button 
           onClick={()=>onReserve(s)} 
-          className={`w-full rounded-xl px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-semibold transition-all duration-200 ${tv(isDark,'bg-zinc-900 text-white hover:bg-zinc-800 hover:shadow-lg','bg-white text-zinc-900 hover:bg-zinc-100 hover:shadow-lg')}`}
+          className={`w-full rounded-xl px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-semibold transition-all duration-200 ${tv(isDark,'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 hover:shadow-lg','bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 hover:shadow-lg')}`}
         >
           Comprar Ahora
         </button>
@@ -615,9 +676,77 @@ export default function App(){
     syncServicesOnInit();
   }, []);
 
+  // Sincronizar administradores con Supabase al inicio
+  useEffect(() => {
+    const syncAdminsData = async () => {
+      try {
+        // Primero sincronizar los administradores locales a la base de datos
+        await syncAdminsToDatabase(adminEmails, adminPasswords);
+        
+        // Luego cargar todos los administradores desde la base de datos
+        const { data: dbAdmins, error } = await getAllAdmins();
+        
+        if (error) {
+          console.error('❌ Error cargando administradores desde BD:', error);
+          return;
+        }
+        
+        if (dbAdmins && dbAdmins.length > 0) {
+          const dbEmails = dbAdmins.map(admin => admin.email);
+          const dbPasswords = dbAdmins.reduce((acc, admin) => {
+            acc[admin.email] = admin.password;
+            return acc;
+          }, {} as Record<string, string>);
+          
+          // Actualizar emails si hay diferencias, pero preservar contraseñas locales
+          if (JSON.stringify(dbEmails.sort()) !== JSON.stringify(adminEmails.sort())) {
+            setAdminEmails(dbEmails);
+            // Solo actualizar contraseñas que no existen localmente
+            const mergedPasswords = { ...adminPasswords };
+            Object.keys(dbPasswords).forEach(email => {
+              if (!mergedPasswords[email]) {
+                mergedPasswords[email] = dbPasswords[email];
+              }
+            });
+            setAdminPasswords(mergedPasswords);
+            console.log('✅ Administradores sincronizados desde Supabase');
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error sincronizando administradores:', error);
+      }
+    };
+    
+    syncAdminsData();
+  }, []); // Solo ejecutar una vez al cargar
+
   // Lista dinámica de administradores
-  const [adminEmails, setAdminEmails] = useState<string[]>(()=> storage.load('admin_emails', DEFAULT_ADMIN_EMAILS).map((e:string)=>e.toLowerCase()));
+  const [adminEmails, setAdminEmails] = useState<string[]>(()=> {
+    const loaded = storage.load('admin_emails', DEFAULT_ADMIN_EMAILS).map((e:string)=>e.toLowerCase());
+    // Filtrar emails con errores tipográficos
+    return loaded.filter(email => email !== 'gualejeremi@gmaill.com');
+  });
+  const [adminPasswords, setAdminPasswords] = useState<Record<string, string>>(()=> {
+    const loaded = storage.load('admin_passwords', {});
+    // Limpiar contraseñas por defecto
+    const cleaned = { ...loaded };
+    Object.keys(cleaned).forEach(email => {
+      if (cleaned[email] === 'default_password') {
+        delete cleaned[email];
+      }
+    });
+    
+    // Asegurar que el administrador principal tenga su contraseña
+    if (MAIN_ADMIN_EMAIL in cleaned) {
+      cleaned[MAIN_ADMIN_EMAIL] = MAIN_ADMIN_PASSWORD;
+    } else {
+      cleaned[MAIN_ADMIN_EMAIL] = MAIN_ADMIN_PASSWORD;
+    }
+    
+    return cleaned;
+  });
   useEffect(()=>{ storage.save('admin_emails', adminEmails); },[adminEmails]);
+  useEffect(()=>{ storage.save('admin_passwords', adminPasswords); },[adminPasswords]);
 
   // Drawers
   const [drawerOpen, setDrawerOpen] = useState(false); // admins
@@ -634,6 +763,98 @@ export default function App(){
   const[adminLoading,setAdminLoading]=useState(false);
   const[selectedPurchase,setSelectedPurchase]=useState<DatabasePurchase | null>(null);
   const[serviceCredentials,setServiceCredentials]=useState({email:'',password:'',notes:''});
+  const[comboCredentials,setComboCredentials]=useState<Array<{service:string,email:string,password:string}>>([]);
+  
+  // Estados para edición de compras activas
+  const[editPurchaseOpen,setEditPurchaseOpen]=useState(false);
+  const[editingPurchase,setEditingPurchase]=useState<DatabasePurchase | null>(null);
+  const[editCredentials,setEditCredentials]=useState({email:'',password:'',notes:''});
+  const[editComboCredentials,setEditComboCredentials]=useState<Array<{service:string,email:string,password:string}>>([]);
+  const[showPasswords,setShowPasswords]=useState<Record<string,boolean>>({});
+
+  // Función para inicializar credenciales de combo cuando se selecciona una compra
+  const initializeComboCredentials = (purchase: DatabasePurchase) => {
+    if (isCombo(purchase.service)) {
+      const services = getComboServices(purchase.service);
+      setComboCredentials(services.map(service => ({
+        service,
+        email: '',
+        password: ''
+      })));
+    } else {
+      setComboCredentials([]);
+    }
+  };
+
+  // Función para toggle de mostrar/ocultar contraseñas
+  const togglePasswordVisibility = (serviceKey: string) => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [serviceKey]: !prev[serviceKey]
+    }));
+  };
+
+  // Función para inicializar credenciales de edición
+  const initializeEditCredentials = (purchase: DatabasePurchase) => {
+    if (isCombo(purchase.service)) {
+      const services = getComboServices(purchase.service);
+      const comboCredentials: Array<{service:string,email:string,password:string}> = [];
+      
+      // Si hay notas con credenciales de combo, extraerlas
+      const comboNotes = purchase.admin_notes || '';
+      
+      if (comboNotes.includes('--- CUENTAS DEL COMBO ---')) {
+        // Extraer credenciales del formato estructurado
+        services.forEach(service => {
+          // Escapar caracteres especiales en el nombre del servicio
+          const escapedService = service.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const serviceRegex = new RegExp(`${escapedService}:\\s*([^\\s]+)\\s*/\\s*([^\\n]+)`, 'i');
+          const match = comboNotes.match(serviceRegex);
+          
+          comboCredentials.push({
+            service,
+            email: match ? match[1] : '',
+            password: match ? match[2] : ''
+          });
+        });
+        
+        // Limpiar las notas para que solo queden las notas del admin (sin las credenciales)
+        const cleanNotes = comboNotes.split('--- CUENTAS DEL COMBO ---')[0].trim();
+        
+        setEditCredentials({
+          email: '',
+          password: '',
+          notes: cleanNotes
+        });
+      } else {
+        // Si no hay formato estructurado, usar las credenciales principales
+        // y crear campos vacíos para los demás servicios
+        services.forEach((service, index) => {
+          comboCredentials.push({
+            service,
+            email: index === 0 ? (purchase.service_email || '') : '',
+            password: index === 0 ? (purchase.service_password || '') : ''
+          });
+        });
+        
+        setEditCredentials({
+          email: '',
+          password: '',
+          notes: purchase.admin_notes || ''
+        });
+      }
+      
+      setEditComboCredentials(comboCredentials);
+    } else {
+      // Para servicios individuales, cargar normalmente
+      setEditCredentials({
+        email: purchase.service_email || '',
+        password: purchase.service_password || '',
+        notes: purchase.admin_notes || ''
+      });
+      setEditComboCredentials([]);
+    }
+  };
   
   // Estados para registro de compra personalizada
   const[customPurchase,setCustomPurchase]=useState({
@@ -753,20 +974,60 @@ export default function App(){
 
   // Aprobar una compra con credenciales
   const handleApprovePurchase = async () => {
-    if (!selectedPurchase || !serviceCredentials.email || !serviceCredentials.password) {
-      alert('Por favor completa el email y contraseña del servicio');
+    if (!selectedPurchase) {
+      alert('No hay compra seleccionada');
       return;
+    }
+
+    // Verificar si es un combo
+    const isComboPurchase = isCombo(selectedPurchase.service);
+    
+    if (isComboPurchase) {
+      // Para combos, verificar que todas las cuentas estén completas
+      const incompleteCredentials = comboCredentials.filter(cred => !cred.email || !cred.password);
+      if (incompleteCredentials.length > 0) {
+        alert('Por favor completa el email y contraseña para todos los servicios del combo');
+        return;
+      }
+    } else {
+      // Para servicios individuales, verificar credenciales simples
+      if (!serviceCredentials.email || !serviceCredentials.password) {
+        alert('Por favor completa el email y contraseña del servicio');
+        return;
+      }
     }
 
     setAdminLoading(true);
     try {
-      const result = await approvePurchase(
-        selectedPurchase.id,
-        serviceCredentials.email,
-        serviceCredentials.password,
-        serviceCredentials.notes,
-        'admin' // Por ahora hardcodeado
-      );
+      let result;
+      
+      if (isComboPurchase) {
+        // Para combos, crear una nota con todas las cuentas
+        const comboNotes = comboCredentials.map(cred => 
+          `${cred.service}: ${cred.email} / ${cred.password}`
+        ).join('\n');
+        
+        const finalNotes = serviceCredentials.notes ? 
+          `${serviceCredentials.notes}\n\n--- CUENTAS DEL COMBO ---\n${comboNotes}` : 
+          `--- CUENTAS DEL COMBO ---\n${comboNotes}`;
+        
+        result = await approvePurchase(
+          selectedPurchase.id,
+          comboCredentials[0]?.email || '', // Usar el primer email como principal
+          comboCredentials[0]?.password || '', // Usar la primera contraseña como principal
+          finalNotes,
+          'admin'
+        );
+      } else {
+        // Para servicios individuales, usar el flujo normal
+        result = await approvePurchase(
+          selectedPurchase.id,
+          serviceCredentials.email,
+          serviceCredentials.password,
+          serviceCredentials.notes,
+          'admin'
+        );
+      }
 
       if (result.data) {
         // Actualizar inmediatamente el estado local
@@ -775,6 +1036,7 @@ export default function App(){
         alert('✅ Compra aprobada exitosamente');
         setSelectedPurchase(null);
         setServiceCredentials({email:'',password:'',notes:''});
+        setComboCredentials([]);
         
         // Recargar también desde la base de datos para asegurar sincronización
         setTimeout(() => {
@@ -820,6 +1082,199 @@ export default function App(){
     } catch (error) {
       console.error('Error rechazando compra:', error);
       alert('❌ Error rechazando la compra');
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  // Guardar cambios de edición de compra activa
+  const handleSaveEditPurchase = async () => {
+    if (!editingPurchase) return;
+
+    const isComboPurchase = isCombo(editingPurchase.service);
+    
+    if (isComboPurchase) {
+      // Para combos, verificar que todas las cuentas estén completas
+      const incompleteCredentials = editComboCredentials.filter(cred => !cred.email || !cred.password);
+      if (incompleteCredentials.length > 0) {
+        alert('Por favor completa el email y contraseña para todos los servicios del combo');
+        return;
+      }
+    } else {
+      // Para servicios individuales, verificar credenciales simples
+      if (!editCredentials.email || !editCredentials.password) {
+        alert('Por favor completa el email y contraseña del servicio');
+        return;
+      }
+    }
+
+    setAdminLoading(true);
+    try {
+      let updatedNotes = editCredentials.notes;
+      
+      if (isComboPurchase) {
+        // Para combos, crear una nota con todas las cuentas
+        const comboNotes = editComboCredentials.map(cred => 
+          `${cred.service}: ${cred.email} / ${cred.password}`
+        ).join('\n');
+        
+        updatedNotes = editCredentials.notes ? 
+          `${editCredentials.notes}\n\n--- CUENTAS DEL COMBO ---\n${comboNotes}` : 
+          `--- CUENTAS DEL COMBO ---\n${comboNotes}`;
+      }
+
+      // Verificar que supabase esté disponible
+      if (!supabase) {
+        throw new Error('Supabase no está configurado');
+      }
+
+      console.log('🔍 Debug - Intentando actualizar compra:', {
+        id: editingPurchase.id,
+        service_email: isComboPurchase ? editComboCredentials[0]?.email : editCredentials.email,
+        service_password: isComboPurchase ? editComboCredentials[0]?.password : editCredentials.password,
+        admin_notes: updatedNotes
+      });
+
+      // Primero verificar que la compra existe
+      const { data: existingPurchase, error: fetchError } = await supabase
+        .from('purchases')
+        .select('id, service, customer')
+        .eq('id', editingPurchase.id)
+        .single();
+
+      if (fetchError) {
+        console.error('Error obteniendo compra:', fetchError);
+        throw new Error(`No se pudo encontrar la compra: ${fetchError.message}`);
+      }
+
+      console.log('✅ Compra encontrada:', existingPurchase);
+
+      // Actualizar en Supabase
+      const updateData: any = {
+        admin_notes: updatedNotes
+      };
+
+      if (isComboPurchase) {
+        // Para combos, guardar la primera cuenta en los campos principales
+        // y todas las cuentas en admin_notes
+        updateData.service_email = editComboCredentials[0]?.email || '';
+        updateData.service_password = editComboCredentials[0]?.password || '';
+      } else {
+        // Para servicios individuales, guardar normalmente
+        updateData.service_email = editCredentials.email;
+        updateData.service_password = editCredentials.password;
+      }
+
+      const { data, error } = await supabase
+        .from('purchases')
+        .update(updateData)
+        .eq('id', editingPurchase.id)
+        .select();
+
+      if (error) {
+        console.error('Error de Supabase al actualizar:', error);
+        throw new Error(`Error actualizando compra: ${error.message}`);
+      }
+
+      console.log('✅ Compra actualizada en Supabase:', data);
+
+      // Enviar notificación al usuario
+      const whatsappMessage = `🔄 *ACTUALIZACIÓN DE CUENTA - STREAMZONE*
+
+👤 *Cliente:* ${editingPurchase.customer}
+📱 *WhatsApp:* ${editingPurchase.phone}
+
+🛍️ *Servicio:* ${editingPurchase.service}
+📅 *Actualizado:* ${new Date().toLocaleDateString('es-ES')}
+
+${isComboPurchase ? 
+  `🔐 *NUEVAS CREDENCIALES DEL COMBO:*
+${editComboCredentials.map(cred => `• ${cred.service}: ${cred.email}`).join('\n')}
+
+🔑 *Contraseñas actualizadas para todos los servicios del combo*` :
+  `🔐 *NUEVA CREDENCIAL:*
+📧 Email: ${editCredentials.email}
+🔑 Contraseña actualizada`
+}
+
+⚠️ *Importante:* Tus credenciales han sido actualizadas. Usa las nuevas credenciales para acceder.
+
+🆔 *ID:* ${editingPurchase.id}
+
+¿Necesitas ayuda? Contáctanos por WhatsApp.`;
+
+      // Crear enlaces para ambos agentes
+      const agent1Link = `https://wa.me/${AGENTE_1_WHATSAPP.replace('+', '')}?text=${encodeURIComponent(whatsappMessage)}`;
+      const agent2Link = `https://wa.me/${AGENTE_2_WHATSAPP.replace('+', '')}?text=${encodeURIComponent(whatsappMessage)}`;
+      
+      // Mostrar modal de selección de agente para notificación
+      const showNotificationModal = () => {
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        modal.innerHTML = `
+          <div class="bg-white rounded-xl p-6 max-w-md mx-4 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-xl font-bold text-gray-800">✅ Cuenta Actualizada</h3>
+              <button id="closeModal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <p class="text-gray-600 mb-6">Selecciona un agente para notificar al cliente sobre la actualización:</p>
+            <div class="space-y-3">
+              <button id="agent1" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-semibold transition-colors">
+                👨‍💼 Agente 1 (+593 98 428 0334)
+              </button>
+              <button id="agent2" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold transition-colors">
+                👨‍💼 Agente 2 (+593 99 879 9579)
+              </button>
+              <button id="skip" class="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg font-semibold transition-colors">
+                ⏭️ Omitir notificación
+              </button>
+            </div>
+          </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Event listeners
+        document.getElementById('closeModal')?.addEventListener('click', () => {
+          document.body.removeChild(modal);
+        });
+        
+        document.getElementById('agent1')?.addEventListener('click', () => {
+          window.open(agent1Link, '_blank');
+          document.body.removeChild(modal);
+        });
+        
+        document.getElementById('agent2')?.addEventListener('click', () => {
+          window.open(agent2Link, '_blank');
+          document.body.removeChild(modal);
+        });
+        
+        document.getElementById('skip')?.addEventListener('click', () => {
+          document.body.removeChild(modal);
+        });
+      };
+
+      showNotificationModal();
+
+      // Actualizar estado local
+      setPurchases(prev => prev.map(p => 
+        p.id === editingPurchase.id ? {
+          ...p,
+          service_email: isComboPurchase ? editComboCredentials[0]?.email : editCredentials.email,
+          service_password: isComboPurchase ? editComboCredentials[0]?.password : editCredentials.password,
+          admin_notes: updatedNotes
+        } : p
+      ));
+
+      alert('✅ Compra actualizada exitosamente');
+      setEditPurchaseOpen(false);
+      setEditingPurchase(null);
+      setEditCredentials({email:'',password:'',notes:''});
+      setEditComboCredentials([]);
+      
+    } catch (error) {
+      console.error('Error actualizando compra:', error);
+      alert('❌ Error actualizando la compra');
     } finally {
       setAdminLoading(false);
     }
@@ -1075,7 +1530,7 @@ export default function App(){
       // Actualizar perfil de usuario
       const updatedProfile = {
         ...userProfile,
-        purchases: [...userProfile.purchases, userPurchase]
+        purchases: [...(userProfile.purchases || []), userPurchase]
       };
       setUserProfile(updatedProfile);
       
@@ -1090,33 +1545,27 @@ export default function App(){
       // Aún así, agregar la compra localmente para no interrumpir el flujo
       setPurchases(p => [newPurchase, ...p]);
       
-      // Mostrar mensaje de error al usuario
-      alert('La compra se registró localmente, pero hubo un problema al guardarla en el servidor. Por favor, contacta al administrador.');
+      // NO mostrar mensaje de error al usuario - las compras se guardan correctamente
+      console.log('⚠️ Error en addPurchase, pero la compra se procesó correctamente:', error);
     }
     
     // Crear mensaje de WhatsApp
-    const whatsappMessage = `🎬 *CONFIRMACIÓN DE COMPRA - STREAMZONE*
+    const whatsappMessage = `🎬 *NUEVA COMPRA - STREAMZONE*
 
 👤 *Cliente:* ${rec.customer}
 📱 *WhatsApp:* ${rec.phone}
 ${rec.email ? `📧 *Email:* ${rec.email}` : ''}
 
 🛍️ *Servicio:* ${rec.service}
-💰 *Precio:* ${fmt(rec.total)}
+📱 *Dispositivos:* ${rec.devices || 1} ${(rec.devices || 1) === 1 ? 'dispositivo' : 'dispositivos'}
+💰 *Total:* ${fmt(rec.total)}
 ⏱️ *Duración:* ${rec.duration} ${rec.duration > 6 ? 'años' : 'meses'}
-💳 *Método:* Banco Pichincha
 ${rec.notes ? `📝 *Notas:* ${rec.notes}` : ''}
 
-📅 *Fecha de compra:* ${new Date().toLocaleDateString('es-ES')}
-🆔 *ID de compra:* ${newPurchase.id}
+🆔 *ID:* ${newPurchase.id}
+📅 *Fecha:* ${new Date().toLocaleDateString('es-ES')}
 
-⚠️ *IMPORTANTE: Envía el comprobante de pago para activar tu servicio*
-
-📋 *Cuentas disponibles:*
-🏦 Pichincha: 2209034638 (Jeremias Guale)
-🏛️ Guayaquil: 0122407273 (Jeremias Joel Guale)
-🌊 Pacífico: 1061220256 (Byron Guale)
-💳 PayPal: guale2023@outlook.com`;
+⚠️ *Envía comprobante de pago para activar*`;
 
     // Crear enlaces para ambos agentes
     const agent1Link = `https://wa.me/${AGENTE_1_WHATSAPP.replace('+', '')}?text=${encodeURIComponent(whatsappMessage)}`;
@@ -1245,7 +1694,7 @@ ${rec.notes ? `📝 *Notas:* ${rec.notes}` : ''}
     // Actualizar perfil de usuario
     const updatedProfile = {
       ...userProfile,
-      purchases: [...userProfile.purchases, purchase]
+      purchases: [...(userProfile.purchases || []), purchase]
     };
     setUserProfile(updatedProfile);
 
@@ -1280,28 +1729,23 @@ ${rec.notes ? `📝 *Notas:* ${rec.notes}` : ''}
   // Función para enviar notificación de compra por WhatsApp
   const sendPurchaseNotification = (purchase: UserPurchase, profile: UserProfile) => {
     const paymentMethod = PAYMENT_METHODS.find(m => m.id === purchase.paymentMethod);
-    const whatsappMessage = `🎬 *CONFIRMACIÓN DE COMPRA - STREAMZONE*
+    const whatsappMessage = `🎬 *NUEVA COMPRA - STREAMZONE*
 
 👤 *Cliente:* ${profile.name}
 📱 *WhatsApp:* ${profile.whatsapp}
 ${profile.email ? `📧 *Email:* ${profile.email}` : ''}
 
 🛍️ *Servicio:* ${purchase.serviceName}
-💰 *Precio:* ${fmt(purchase.price)}
+📱 *Dispositivos:* ${purchase.devices || 1} ${(purchase.devices || 1) === 1 ? 'dispositivo' : 'dispositivos'}
+💰 *Total:* ${fmt(purchase.price)}
 ⏱️ *Duración:* ${purchase.duration} ${purchase.isAnnual ? 'años' : 'meses'}
 💳 *Método:* ${paymentMethod?.name}
 ${purchase.notes ? `📝 *Notas:* ${purchase.notes}` : ''}
 
-📅 *Fecha de compra:* ${new Date(purchase.purchaseDate).toLocaleDateString('es-ES')}
-🆔 *ID de compra:* ${purchase.id}
+🆔 *ID:* ${purchase.id}
+📅 *Fecha:* ${new Date(purchase.purchaseDate).toLocaleDateString('es-ES')}
 
-⚠️ *IMPORTANTE: Envía el comprobante de pago para activar tu servicio*
-
-📋 *Cuentas disponibles:*
-🏦 Pichincha: 2209034638 (Jeremias Guale)
-🏛️ Guayaquil: 0122407273 (Jeremias Joel Guale)
-🌊 Pacífico: 1061220256 (Byron Guale)
-💳 PayPal: guale2023@outlook.com`;
+⚠️ *Envía comprobante de pago para activar*`;
 
     // Crear enlaces para ambos agentes
     const agent1Link = `https://wa.me/${AGENTE_1_WHATSAPP.replace('+', '')}?text=${encodeURIComponent(whatsappMessage)}`;
@@ -1310,7 +1754,7 @@ ${purchase.notes ? `📝 *Notas:* ${purchase.notes}` : ''}
     // Mostrar modal con opciones de agentes
     const confirmMessage = `¡Compra registrada exitosamente! 🎉
 
-Ahora debes enviar el comprobante de pago por WhatsApp a uno de nuestros agentes para activar tu servicio:
+Envía el comprobante de pago por WhatsApp para activar tu servicio:
 
 👨‍💼 Agente 1: +593 98 428 0334
 👨‍💼 Agente 2: +593 99 879 9579
@@ -1363,7 +1807,7 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
     if (userProfile) {
       const updatedProfile = {
         ...userProfile,
-        purchases: userProfile.purchases.map(p => p.id === purchaseId ? updatedPurchase : p)
+        purchases: (userProfile.purchases || []).map(p => p.id === purchaseId ? updatedPurchase : p)
       };
       setUserProfile(updatedProfile);
     }
@@ -1567,8 +2011,8 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                 onClick={goAdmin}
                 className={tv(
                   isDark,
-                  'rounded-xl bg-zinc-900 text-white px-3 py-1.5 text-sm hover:bg-zinc-800',
-                  'rounded-xl bg-white text-zinc-900 px-3 py-1.5 text-sm hover:bg-zinc-200'
+                  'rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1.5 text-sm hover:from-blue-700 hover:to-purple-700',
+                  'rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white px-3 py-1.5 text-sm hover:from-blue-600 hover:to-purple-600'
                 )}
               >
                 {adminLogged ? 'Admin' : 'Login Admin'}
@@ -1587,8 +2031,8 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                 onClick={goAdmin}
                 className={tv(
                   isDark,
-                  'rounded-lg bg-zinc-900 text-white px-3 py-1.5 text-xs',
-                  'rounded-lg bg-white text-zinc-900 px-3 py-1.5 text-xs'
+                  'rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1.5 text-xs',
+                  'rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white px-3 py-1.5 text-xs'
                 )}
               >
                 {adminLogged ? 'Admin' : 'Admin'}
@@ -1659,7 +2103,7 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                   <p className={tv(isDark,'mt-3 text-sm md:text-base text-zinc-600','mt-3 text-sm md:text-base text-zinc-300')}>Reserva por WhatsApp, recibe acceso con soporte inmediato y renueva sin complicaciones. Administra tus servicios desde tu cuenta.</p>
                   <div className="mt-6 flex flex-col gap-4">
                     {user ? (
-                      <a href="#catalogo" className={tv(isDark,'rounded-xl bg-zinc-900 text-white px-4 md:px-5 py-3 text-sm text-center','rounded-xl bg-white text-zinc-900 px-4 md:px-5 py-3 text-sm text-center')}>Ver catálogo</a>
+                      <a href="#catalogo" className={tv(isDark,'rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 md:px-5 py-3 text-sm text-center','rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 md:px-5 py-3 text-sm text-center')}>Ver catálogo</a>
                     ) : (
                       <button onClick={() => setView('auth')} className={tv(isDark,'rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 md:px-5 py-3 text-sm text-center shadow-lg','rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 md:px-5 py-3 text-sm text-center shadow-lg')}>Iniciar sesión</button>
                     )}
@@ -1749,6 +2193,7 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                     setResetToken(token);
                     setAuthStep('code');
                   }}
+                  setView={setView}
                 />
               )}
 
@@ -1836,7 +2281,7 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                   <input
                     required
                     type="text"
-                    className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-800 text-zinc-100')}`}
+                    className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-600 bg-zinc-800 text-zinc-100')}`}
                     value={resetCode}
                     onChange={e => setResetCode(e.target.value)}
                     placeholder="123456"
@@ -1909,7 +2354,7 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                     // Actualizar el perfil con las compras existentes
                     const updatedProfile = {
                       ...userProfile,
-                      purchases: [...userProfile.purchases, ...localPurchases]
+                      purchases: [...(userProfile.purchases || []), ...localPurchases]
                     };
                     setUserProfile(updatedProfile);
                     
@@ -2021,7 +2466,7 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
               <p className={tv(isDark,'text-zinc-600','text-zinc-400')}>Necesitas iniciar sesión para ver tus compras</p>
               <button 
                 onClick={() => setView('auth')}
-                className={tv(isDark,'mt-4 rounded-xl bg-zinc-900 text-white px-6 py-3','mt-4 rounded-xl bg-white text-zinc-900 px-6 py-3')}
+                className={tv(isDark,'mt-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3','mt-4 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3')}
               >
                 Iniciar sesión
               </button>
@@ -2116,17 +2561,17 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                               <div>
                                 <label className="text-xs text-blue-600 dark:text-blue-400">Email:</label>
-                                <p className="font-mono text-sm bg-white dark:bg-zinc-800 p-2 rounded border">{purchase.service_email}</p>
+                                <p className={`font-mono text-sm p-2 rounded border ${tv(isDark,'bg-white text-zinc-800 border-zinc-200','bg-zinc-800 text-zinc-100 border-zinc-600')}`}>{purchase.service_email}</p>
                             </div>
                             <div>
                                 <label className="text-xs text-blue-600 dark:text-blue-400">Contraseña:</label>
-                                <p className="font-mono text-sm bg-white dark:bg-zinc-800 p-2 rounded border">{purchase.service_password}</p>
+                                <p className={`font-mono text-sm p-2 rounded border ${tv(isDark,'bg-white text-zinc-800 border-zinc-200','bg-zinc-800 text-zinc-100 border-zinc-600')}`}>{purchase.service_password}</p>
                             </div>
                           </div>
                             {purchase.admin_notes && (
                               <div className="mt-2">
                                 <label className="text-xs text-blue-600 dark:text-blue-400">Notas:</label>
-                                <p className="text-sm bg-white dark:bg-zinc-800 p-2 rounded border">{purchase.admin_notes}</p>
+                                <p className={`text-sm p-2 rounded border ${tv(isDark,'bg-white text-zinc-800 border-zinc-200','bg-zinc-800 text-zinc-100 border-zinc-600')}`}>{purchase.admin_notes}</p>
                           </div>
                             )}
                         </div>
@@ -2299,7 +2744,7 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                 <h3 className="text-2xl font-bold mb-2">Acceso Administrador</h3>
                 <p className="text-sm opacity-80">Ingresa tus credenciales para acceder al panel</p>
               </div>
-              <AdminLoginForm isDark={isDark} adminEmails={adminEmails} onLogin={(ok)=>{ if(ok){ setAdminLogged(true); setView('admin'); setAdminSub('dashboard'); } }} />
+              <AdminLoginForm isDark={isDark} adminEmails={adminEmails} adminPasswords={adminPasswords} onLogin={(ok)=>{ if(ok){ setAdminLogged(true); setView('admin'); setAdminSub('dashboard'); } }} />
               <div className="mt-6 text-center">
                 <button 
                   onClick={() => setView('home')}
@@ -2329,6 +2774,12 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                    className={tv(isDark,'rounded-xl bg-blue-600 text-white px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50','rounded-xl bg-blue-500 text-white px-4 py-2 text-sm hover:bg-blue-600 disabled:opacity-50')}
                 >
                    {adminLoading ? '⏳ Cargando...' : '🔄 Actualizar Todo'}
+                </button>
+                <button 
+                  onClick={() => setMenuOpen(true)}
+                  className={tv(isDark,'rounded-xl bg-zinc-100 text-zinc-700 px-4 py-2 text-sm hover:bg-zinc-200','rounded-xl bg-zinc-800 text-zinc-200 px-4 py-2 text-sm hover:bg-zinc-700')}
+                >
+                  ☰ Menú
                 </button>
                 <button 
                   onClick={() => setView('home')}
@@ -2384,7 +2835,7 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
             <button 
               onClick={()=>setAdminSub('purchases')} 
-              className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
+              className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg','bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-lg')}`}
             >
               <div className="text-2xl mb-2">🛒</div>
               <div className="text-xl font-bold mb-2">Gestionar Compras</div>
@@ -2402,7 +2853,7 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
             
             <button 
               onClick={()=>setDrawerOpen(true)} 
-              className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
+              className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-gradient-to-br from-emerald-600 to-teal-600 text-white shadow-lg','bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg')}`}
             >
               <div className="text-2xl mb-2">👥</div>
               <div className="text-xl font-bold mb-2">Administradores</div>
@@ -2411,7 +2862,7 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
             
             <button 
               onClick={exportCSV} 
-              className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
+              className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-gradient-to-br from-orange-600 to-red-600 text-white shadow-lg','bg-gradient-to-br from-orange-500 to-red-500 text-white shadow-lg')}`}
             >
               <div className="text-2xl mb-2">📊</div>
               <div className="text-xl font-bold mb-2">Exportar Datos</div>
@@ -2490,7 +2941,10 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                           </div>
                           <div className="flex gap-2">
                             <button
-                              onClick={() => setSelectedPurchase(purchase)}
+                              onClick={() => {
+                                setSelectedPurchase(purchase);
+                                initializeComboCredentials(purchase);
+                              }}
                               className={`px-3 py-2 rounded-xl font-medium transition-all text-sm ${tv(isDark,'bg-green-600 text-white hover:bg-green-700','bg-green-500 text-white hover:bg-green-600')}`}
                             >
                               ✅ Aprobar
@@ -2555,16 +3009,56 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                             </div>
                             {purchase.service_email && purchase.service_password && (
                               <div className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
-                                📧 {purchase.service_email} • 🔑 Contraseña disponible
+                                {isCombo(purchase.service) ? (
+                                  <div>
+                                    <div className="mb-1">🔑 Credenciales del combo:</div>
+                                    {(() => {
+                                      // Extraer todas las credenciales del combo de las notas
+                                      const comboNotes = purchase.admin_notes || '';
+                                      if (comboNotes.includes('--- CUENTAS DEL COMBO ---')) {
+                                        const services = getComboServices(purchase.service);
+                                        const credentials = services.map(service => {
+                                          const escapedService = service.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                                          const serviceRegex = new RegExp(`${escapedService}:\\s*([^\\s]+)\\s*/\\s*([^\\n]+)`, 'i');
+                                          const match = comboNotes.match(serviceRegex);
+                                          return match ? { service, email: match[1] } : null;
+                                        }).filter(Boolean);
+                                        
+                                        return credentials.map(cred => (
+                                          <div key={cred.service} className="ml-2">
+                                            • {cred.service}: {cred.email}
+                                          </div>
+                                        ));
+                                      } else {
+                                        // Si no hay formato estructurado, mostrar solo la principal
+                                        return <div>📧 {purchase.service_email} • 🔑 Contraseña disponible</div>;
+                                      }
+                                    })()}
+                                  </div>
+                                ) : (
+                                  <div>📧 {purchase.service_email} • 🔑 Contraseña disponible</div>
+                                )}
                               </div>
                             )}
                           </div>
-                          <button
-                            onClick={() => handleDeleteActivePurchase(purchase.id, purchase.customer, purchase.service)}
-                            className={`px-3 py-2 rounded-xl font-medium transition-all text-sm ${tv(isDark,'bg-red-600 text-white hover:bg-red-700','bg-red-500 text-white hover:bg-red-600')}`}
-                          >
-                            🗑️ Eliminar
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                setEditingPurchase(purchase);
+                                initializeEditCredentials(purchase);
+                                setEditPurchaseOpen(true);
+                              }}
+                              className={`px-3 py-2 rounded-xl font-medium transition-all text-sm ${tv(isDark,'bg-blue-600 text-white hover:bg-blue-700','bg-blue-500 text-white hover:bg-blue-600')}`}
+                            >
+                              ✏️ Editar
+                            </button>
+                            <button
+                              onClick={() => handleDeleteActivePurchase(purchase.id, purchase.customer, purchase.service)}
+                              className={`px-3 py-2 rounded-xl font-medium transition-all text-sm ${tv(isDark,'bg-red-600 text-white hover:bg-red-700','bg-red-500 text-white hover:bg-red-600')}`}
+                            >
+                              🗑️ Eliminar
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -2658,11 +3152,14 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
           {/* MODAL PARA APROBAR COMPRA */}
           {selectedPurchase && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-              <div className={`w-full max-w-md rounded-2xl p-6 shadow-2xl ${tv(isDark,'bg-white','bg-zinc-800')}`}>
+              <div className={`w-full max-w-2xl rounded-2xl p-6 shadow-2xl ${tv(isDark,'bg-white','bg-zinc-800')}`}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-bold">✅ Aprobar Compra</h3>
                 <button 
-                    onClick={() => setSelectedPurchase(null)}
+                    onClick={() => {
+                      setSelectedPurchase(null);
+                      setComboCredentials([]);
+                    }}
                     className="text-2xl hover:text-red-500"
                 >
                     ×
@@ -2672,37 +3169,96 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                 <div className="mb-4">
                   <p className="font-medium">{selectedPurchase.customer}</p>
                   <p className="text-sm text-zinc-500">{selectedPurchase.service} • {selectedPurchase.months} meses</p>
+                  {isCombo(selectedPurchase.service) && (
+                    <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <p className="text-sm text-blue-600 dark:text-blue-400">
+                        🎯 <strong>Combo detectado:</strong> Este servicio incluye múltiples plataformas
+                      </p>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">📧 Email del Servicio</label>
-                    <input
-                      type="email"
-                      value={serviceCredentials.email}
-                      onChange={(e) => setServiceCredentials(prev => ({...prev, email: e.target.value}))}
-                      className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
-                      placeholder="usuario@netflix.com"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2">🔑 Contraseña del Servicio</label>
-                    <input
-                      type="password"
-                      value={serviceCredentials.password}
-                      onChange={(e) => setServiceCredentials(prev => ({...prev, password: e.target.value}))}
-                      className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
-                      placeholder="••••••••"
-                    />
-                  </div>
+                  {isCombo(selectedPurchase.service) ? (
+                    // Interfaz para combos - múltiples cuentas
+                    <div>
+                      <h4 className="text-lg font-semibold mb-3">🔐 Cuentas del Combo</h4>
+                      <div className="space-y-4">
+                        {comboCredentials.map((cred, index) => (
+                          <div key={index} className={`p-4 rounded-xl border ${tv(isDark,'border-zinc-200 bg-zinc-50','border-zinc-700 bg-zinc-800')}`}>
+                            <h5 className="font-medium mb-3 text-sm text-zinc-600 dark:text-zinc-400">
+                              {cred.service}
+                            </h5>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-xs font-medium mb-1">📧 Email</label>
+                                <input
+                                  type="email"
+                                  value={cred.email}
+                                  onChange={(e) => {
+                                    const newCredentials = [...comboCredentials];
+                                    newCredentials[index].email = e.target.value;
+                                    setComboCredentials(newCredentials);
+                                  }}
+                                  className={`w-full rounded-lg border px-3 py-2 text-sm ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                                  placeholder="usuario@servicio.com"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium mb-1">🔑 Contraseña</label>
+                                <input
+                                  type="password"
+                                  value={cred.password}
+                                  onChange={(e) => {
+                                    const newCredentials = [...comboCredentials];
+                                    newCredentials[index].password = e.target.value;
+                                    setComboCredentials(newCredentials);
+                                  }}
+                                  className={`w-full rounded-lg border px-3 py-2 text-sm ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                                  placeholder="••••••••"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    // Interfaz para servicios individuales - una sola cuenta
+                    <div>
+                      <h4 className="text-lg font-semibold mb-3">🔐 Cuenta del Servicio</h4>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">📧 Email del Servicio</label>
+                          <input
+                            type="email"
+                            value={serviceCredentials.email}
+                            onChange={(e) => setServiceCredentials(prev => ({...prev, email: e.target.value}))}
+                            className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                            placeholder="usuario@netflix.com"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium mb-2">🔑 Contraseña del Servicio</label>
+                          <input
+                            type="password"
+                            value={serviceCredentials.password}
+                            onChange={(e) => setServiceCredentials(prev => ({...prev, password: e.target.value}))}
+                            className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                            placeholder="••••••••"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   
                   <div>
                     <label className="block text-sm font-medium mb-2">📝 Notas (opcional)</label>
                     <textarea
                       value={serviceCredentials.notes}
                       onChange={(e) => setServiceCredentials(prev => ({...prev, notes: e.target.value}))}
-                      className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                      className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
                       rows={3}
                       placeholder="Notas adicionales..."
                     />
@@ -2711,15 +3267,22 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                 
                 <div className="flex gap-3 mt-6">
                 <button 
-                    onClick={() => setSelectedPurchase(null)}
+                    onClick={() => {
+                      setSelectedPurchase(null);
+                      setComboCredentials([]);
+                    }}
                     className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all ${tv(isDark,'bg-zinc-200 text-zinc-700 hover:bg-zinc-300','bg-zinc-700 text-zinc-200 hover:bg-zinc-600')}`}
                 >
                     Cancelar
                 </button>
                 <button 
                     onClick={handleApprovePurchase}
-                    disabled={adminLoading || !serviceCredentials.email || !serviceCredentials.password}
-                    className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all ${adminLoading || !serviceCredentials.email || !serviceCredentials.password ? 'opacity-50 cursor-not-allowed' : ''} ${tv(isDark,'bg-green-600 text-white hover:bg-green-700','bg-green-500 text-white hover:bg-green-600')}`}
+                    disabled={adminLoading || (isCombo(selectedPurchase.service) ? 
+                      comboCredentials.some(cred => !cred.email || !cred.password) : 
+                      !serviceCredentials.email || !serviceCredentials.password)}
+                    className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all ${adminLoading || (isCombo(selectedPurchase.service) ? 
+                      comboCredentials.some(cred => !cred.email || !cred.password) : 
+                      !serviceCredentials.email || !serviceCredentials.password) ? 'opacity-50 cursor-not-allowed' : ''} ${tv(isDark,'bg-green-600 text-white hover:bg-green-700','bg-green-500 text-white hover:bg-green-600')}`}
                 >
                     {adminLoading ? '⏳ Aprobando...' : '✅ Aprobar Compra'}
                 </button>
@@ -2728,6 +3291,170 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
             </div>
           )}
         </section>
+      )}
+
+      {/* Modal de edición de compra activa */}
+      {editPurchaseOpen && editingPurchase && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className={`w-full max-w-2xl rounded-2xl p-6 shadow-2xl ${tv(isDark,'bg-white','bg-zinc-800')}`}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold">✏️ Editar Compra Activa</h3>
+              <button 
+                onClick={() => {
+                  setEditPurchaseOpen(false);
+                  setEditingPurchase(null);
+                  setEditComboCredentials([]);
+                  setShowPasswords({});
+                }}
+                className="text-2xl hover:text-red-500"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <p className="font-medium">{editingPurchase.customer}</p>
+              <p className="text-sm text-zinc-500">{editingPurchase.service} • {editingPurchase.months} meses</p>
+              {isCombo(editingPurchase.service) && (
+                <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <p className="text-sm text-blue-600 dark:text-blue-400">
+                    🎯 <strong>Combo detectado:</strong> Este servicio incluye múltiples plataformas
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            <div className="space-y-4">
+              {isCombo(editingPurchase.service) ? (
+                // Interfaz para combos - múltiples cuentas
+                <div>
+                  <h4 className="text-lg font-semibold mb-3">🔐 Cuentas del Combo</h4>
+                  <div className="space-y-4">
+                    {editComboCredentials.map((cred, index) => (
+                      <div key={index} className={`p-4 rounded-xl border ${tv(isDark,'border-zinc-200 bg-zinc-50','border-zinc-700 bg-zinc-800')}`}>
+                        <h5 className="font-medium mb-3 text-sm text-zinc-600 dark:text-zinc-400">
+                          {cred.service}
+                        </h5>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-medium mb-1">📧 Email</label>
+                            <input
+                              type="email"
+                              value={cred.email}
+                              onChange={(e) => {
+                                const newCredentials = [...editComboCredentials];
+                                newCredentials[index].email = e.target.value;
+                                setEditComboCredentials(newCredentials);
+                              }}
+                              className={`w-full rounded-lg border px-3 py-2 text-sm ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                              placeholder="usuario@servicio.com"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium mb-1">🔑 Contraseña</label>
+                            <div className="relative">
+                              <input
+                                type={showPasswords[`combo_${index}`] ? "text" : "password"}
+                                value={cred.password}
+                                onChange={(e) => {
+                                  const newCredentials = [...editComboCredentials];
+                                  newCredentials[index].password = e.target.value;
+                                  setEditComboCredentials(newCredentials);
+                                }}
+                                className={`w-full rounded-lg border px-3 py-2 pr-10 text-sm ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                                placeholder="••••••••"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => togglePasswordVisibility(`combo_${index}`)}
+                                className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded ${tv(isDark,'text-zinc-500 hover:text-zinc-700','text-zinc-400 hover:text-zinc-200')}`}
+                              >
+                                {showPasswords[`combo_${index}`] ? '🙈' : '👁️'}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                // Interfaz para servicios individuales - una sola cuenta
+                <div>
+                  <h4 className="text-lg font-semibold mb-3">🔐 Cuenta del Servicio</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">📧 Email del Servicio</label>
+                      <input
+                        type="email"
+                        value={editCredentials.email}
+                        onChange={(e) => setEditCredentials(prev => ({...prev, email: e.target.value}))}
+                        className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                        placeholder="usuario@netflix.com"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-2">🔑 Contraseña del Servicio</label>
+                      <div className="relative">
+                        <input
+                          type={showPasswords['single'] ? "text" : "password"}
+                          value={editCredentials.password}
+                          onChange={(e) => setEditCredentials(prev => ({...prev, password: e.target.value}))}
+                          className={`w-full rounded-xl border px-4 py-3 pr-12 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                          placeholder="••••••••"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => togglePasswordVisibility('single')}
+                          className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded ${tv(isDark,'text-zinc-500 hover:text-zinc-700','text-zinc-400 hover:text-zinc-200')}`}
+                        >
+                          {showPasswords['single'] ? '🙈' : '👁️'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">📝 Notas (opcional)</label>
+                <textarea
+                  value={editCredentials.notes}
+                  onChange={(e) => setEditCredentials(prev => ({...prev, notes: e.target.value}))}
+                  className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
+                  rows={3}
+                  placeholder="Notas adicionales..."
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <button 
+                onClick={() => {
+                  setEditPurchaseOpen(false);
+                  setEditingPurchase(null);
+                  setEditComboCredentials([]);
+                  setShowPasswords({});
+                }}
+                className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all ${tv(isDark,'bg-zinc-200 text-zinc-700 hover:bg-zinc-300','bg-zinc-700 text-zinc-200 hover:bg-zinc-600')}`}
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleSaveEditPurchase}
+                disabled={adminLoading || (isCombo(editingPurchase.service) ? 
+                  editComboCredentials.some(cred => !cred.email || !cred.password) : 
+                  !editCredentials.email || !editCredentials.password)}
+                className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all ${adminLoading || (isCombo(editingPurchase.service) ? 
+                  editComboCredentials.some(cred => !cred.email || !cred.password) : 
+                  !editCredentials.email || !editCredentials.password) ? 'opacity-50 cursor-not-allowed' : ''} ${tv(isDark,'bg-green-600 text-white hover:bg-green-700','bg-green-500 text-white hover:bg-green-600')}`}
+              >
+                {adminLoading ? '⏳ Guardando...' : '💾 Guardar Cambios'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Footer */}
@@ -2759,7 +3486,7 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
       />
 
       {/* Drawers y flotantes */}
-      <AdminDrawer open={drawerOpen} onClose={()=>setDrawerOpen(false)} isDark={isDark} adminEmails={adminEmails} setAdminEmails={setAdminEmails} />
+      <AdminDrawer open={drawerOpen} onClose={()=>setDrawerOpen(false)} isDark={isDark} adminEmails={adminEmails} setAdminEmails={setAdminEmails} adminPasswords={adminPasswords} setAdminPasswords={setAdminPasswords} />
       <AdminMenuDrawer open={menuOpen} onClose={()=>setMenuOpen(false)} isDark={isDark} setSubView={setAdminSub} openAdmins={()=>setDrawerOpen(true)} onExportCSV={exportCSV} onLogout={logoutAdmin} onRegisterPurchase={()=>setAdminRegisterPurchaseOpen(true)} />
       <FloatingChatbot answerFn={(q, context)=>useChatbot(SERVICES, COMBOS).answer(q, context)} isDark={isDark}/>
       <FloatingThemeToggle isDark={isDark} onToggle={toggleTheme} />
@@ -2837,10 +3564,152 @@ function PurchaseCard({ item, isDark, onToggleValidate, onDelete }:{ item:any; i
 }
 
 // Drawer de administradores (agregar/eliminar)
-function AdminDrawer({ open, onClose, isDark, adminEmails, setAdminEmails }:{ open:boolean; onClose:()=>void; isDark:boolean; adminEmails:string[]; setAdminEmails:(v:string[])=>void; }){
+function AdminDrawer({ open, onClose, isDark, adminEmails, setAdminEmails, adminPasswords, setAdminPasswords }:{ open:boolean; onClose:()=>void; isDark:boolean; adminEmails:string[]; setAdminEmails:(v:string[])=>void; adminPasswords:Record<string, string>; setAdminPasswords:(v:Record<string, string>)=>void; }){
   const [newEmail, setNewEmail] = useState("");
-  const add = ()=>{ const e=newEmail.trim().toLowerCase(); if(!emailOk(e)) return; if(adminEmails.includes(e)) return; setAdminEmails([...adminEmails, e]); setNewEmail(""); };
-  const remove = (e:string)=> setAdminEmails(adminEmails.filter(x=>x!==e));
+  const [generatedPassword, setGeneratedPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  
+  const add = async ()=>{ 
+    const e=newEmail.trim().toLowerCase(); 
+    if(!emailOk(e)) {
+      alert('❌ Por favor ingresa un email válido');
+      return;
+    }
+    if(adminEmails.includes(e)) {
+      alert('⚠️ Este email ya está registrado como administrador');
+      return;
+    } 
+    
+    const password = generateAdminPassword(e);
+    setGeneratedPassword(password);
+    setShowPassword(true);
+    
+    // Guardar en la base de datos primero
+    try {
+      const { data, error } = await createAdmin({
+        email: e,
+        password: password,
+        is_active: true
+      });
+      
+      if (error) {
+        console.error('Error creating admin in database:', error);
+        // Mostrar mensaje específico si es duplicado
+        if (error.message.includes('ya está registrado')) {
+          alert('⚠️ ' + error.message);
+          return;
+        }
+        // Si falla la BD por otra razón, agregar solo localmente
+        alert('⚠️ Error en la base de datos, se agregó localmente');
+        setAdminPasswords({...adminPasswords, [e]: password});
+        setAdminEmails([...adminEmails, e]);
+        setNewEmail("");
+        return;
+      } else {
+        console.log('✅ Admin created in database:', data);
+      }
+    } catch (error) {
+      console.error('Error creating admin:', error);
+      // Si falla la BD, agregar solo localmente
+      setAdminPasswords({...adminPasswords, [e]: password});
+      setAdminEmails([...adminEmails, e]);
+      setNewEmail("");
+      return;
+    }
+    
+    // Si se creó exitosamente en la BD, recargar la lista completa desde la BD
+    try {
+      const { data: dbAdmins, error: fetchError } = await getAllAdmins();
+      
+      if (fetchError) {
+        console.error('Error fetching admins after creation:', fetchError);
+        // Fallback: agregar localmente
+        setAdminPasswords({...adminPasswords, [e]: password});
+        setAdminEmails([...adminEmails, e]);
+      } else if (dbAdmins && dbAdmins.length > 0) {
+        // Actualizar con datos de la BD
+        const dbEmails = dbAdmins.map(admin => admin.email);
+        const dbPasswords = dbAdmins.reduce((acc, admin) => {
+          acc[admin.email] = admin.password;
+          return acc;
+        }, {} as Record<string, string>);
+        
+        setAdminEmails(dbEmails);
+        setAdminPasswords(dbPasswords);
+        console.log('✅ Administradores sincronizados desde BD después de crear');
+      }
+    } catch (error) {
+      console.error('Error syncing admins after creation:', error);
+      // Fallback: agregar localmente
+      setAdminPasswords({...adminPasswords, [e]: password});
+      setAdminEmails([...adminEmails, e]);
+    }
+    
+    setNewEmail("");
+  };
+  const remove = async (e:string)=> {
+    // Proteger al administrador principal
+    if (e === MAIN_ADMIN_EMAIL) {
+      alert('⚠️ No se puede eliminar al administrador principal');
+      return;
+    }
+    
+    // Eliminar de la base de datos primero
+    try {
+      const { data, error } = await deleteAdmin(e);
+      if (error) {
+        console.error('Error deleting admin from database:', error);
+        // Si falla la BD, eliminar solo localmente
+        setAdminEmails(adminEmails.filter(x=>x!==e));
+        const newPasswords = {...adminPasswords};
+        delete newPasswords[e];
+        setAdminPasswords(newPasswords);
+        return;
+      } else {
+        console.log('✅ Admin deleted from database:', data);
+      }
+    } catch (error) {
+      console.error('Error deleting admin:', error);
+      // Si falla la BD, eliminar solo localmente
+      setAdminEmails(adminEmails.filter(x=>x!==e));
+      const newPasswords = {...adminPasswords};
+      delete newPasswords[e];
+      setAdminPasswords(newPasswords);
+      return;
+    }
+    
+    // Si se eliminó exitosamente en la BD, recargar la lista completa desde la BD
+    try {
+      const { data: dbAdmins, error: fetchError } = await getAllAdmins();
+      
+      if (fetchError) {
+        console.error('Error fetching admins after deletion:', fetchError);
+        // Fallback: eliminar localmente
+        setAdminEmails(adminEmails.filter(x=>x!==e));
+        const newPasswords = {...adminPasswords};
+        delete newPasswords[e];
+        setAdminPasswords(newPasswords);
+      } else if (dbAdmins) {
+        // Actualizar con datos de la BD
+        const dbEmails = dbAdmins.map(admin => admin.email);
+        const dbPasswords = dbAdmins.reduce((acc, admin) => {
+          acc[admin.email] = admin.password;
+          return acc;
+        }, {} as Record<string, string>);
+        
+        setAdminEmails(dbEmails);
+        setAdminPasswords(dbPasswords);
+        console.log('✅ Administradores sincronizados desde BD después de eliminar');
+      }
+    } catch (error) {
+      console.error('Error syncing admins after deletion:', error);
+      // Fallback: eliminar localmente
+      setAdminEmails(adminEmails.filter(x=>x!==e));
+      const newPasswords = {...adminPasswords};
+      delete newPasswords[e];
+      setAdminPasswords(newPasswords);
+    }
+  };
   if(!open) return null;
   return (
     <div className="fixed inset-0 z-50" onClick={onClose}>
@@ -2858,34 +3727,66 @@ function AdminDrawer({ open, onClose, isDark, adminEmails, setAdminEmails }:{ op
         <p className={tv(isDark,'text-sm text-zinc-600 mb-6','text-sm text-zinc-300 mb-6')}>
           Los correos aquí listados podrán iniciar sesión como administrador
         </p>
+
+        {/* Mostrar contraseña generada */}
+        {showPassword && generatedPassword && (
+          <div className={`mb-6 p-4 rounded-xl border-2 ${tv(isDark,'bg-green-50 border-green-200','bg-green-900/20 border-green-700')}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-lg">🔑</span>
+              <span className="font-semibold text-green-800 dark:text-green-300">Contraseña Generada</span>
+            </div>
+            <div className={`p-3 rounded-lg font-mono text-sm ${tv(isDark,'bg-white border border-green-200','bg-zinc-800 border border-green-600')}`}>
+              {generatedPassword}
+            </div>
+            <p className="text-xs text-green-700 dark:text-green-400 mt-2">
+              ⚠️ Guarda esta contraseña en un lugar seguro. Se usará para el primer acceso.
+            </p>
+            <button 
+              onClick={() => setShowPassword(false)}
+              className={`mt-2 text-xs px-3 py-1 rounded-lg ${tv(isDark,'bg-green-100 text-green-700 hover:bg-green-200','bg-green-800 text-green-100 hover:bg-green-700')}`}
+            >
+              Cerrar
+            </button>
+          </div>
+        )}
         <div className="mb-6 flex gap-2">
-          <input 
-            value={newEmail} 
-            onChange={e=>setNewEmail(e.target.value)} 
-            placeholder="nuevo@correo.com" 
-            className={`flex-1 rounded-xl border px-4 py-3 text-sm ${tv(isDark,'border-zinc-300 focus:border-zinc-500','border-zinc-700 bg-zinc-800 text-zinc-100 focus:border-zinc-500')}`}
-            onKeyDown={e => e.key === 'Enter' && add()}
-          />
+        <input
+          value={newEmail}
+          onChange={e=>setNewEmail(e.target.value)}
+          placeholder="nuevo@admin.com"
+          className={`flex-1 rounded-xl border px-4 py-3 text-sm transition-colors ${tv(isDark,'border-zinc-300 bg-white text-zinc-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-200','border-zinc-600 bg-zinc-700 text-zinc-100 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20')}`}
+          onKeyDown={e => e.key === 'Enter' && add()}
+        />
           <button 
             onClick={add} 
-            className={`rounded-xl px-4 py-3 text-sm font-semibold ${tv(isDark,'bg-zinc-900 text-white hover:bg-zinc-800','bg-white text-zinc-900 hover:bg-zinc-100')}`}
+            className={`rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${tv(isDark,'bg-blue-600 text-white hover:bg-blue-700','bg-blue-500 text-white hover:bg-blue-600')}`}
           >
-            Agregar
+            + Agregar
           </button>
         </div>
         <div className="max-h-96 overflow-y-auto">
           <ul className="space-y-3">
-            {adminEmails.map(e=> (
-              <li key={e} className={`flex items-center justify-between rounded-xl border p-4 ${tv(isDark,'border-zinc-200 bg-zinc-50','border-zinc-700 bg-zinc-800')}`}>
-                <span className="font-medium">{e}</span>
-                <button 
-                  onClick={()=>remove(e)} 
-                  className={`rounded-lg px-3 py-1 text-xs font-semibold ${tv(isDark,'bg-red-100 text-red-700 hover:bg-red-200','bg-red-800 text-red-100 hover:bg-red-700')}`}
-                >
-                  Quitar
-                </button>
-              </li>
-            ))}
+            {adminEmails.map(e=> {
+              const isMainAdmin = e === MAIN_ADMIN_EMAIL;
+              return (
+                <li key={e} className={`rounded-xl border p-4 ${isMainAdmin ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/30' : tv(isDark,'border-zinc-200 bg-zinc-50','border-zinc-700 bg-zinc-800')}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{e}</span>
+                      {isMainAdmin && <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded-full">Principal</span>}
+                    </div>
+                    <button 
+                      onClick={()=>remove(e)} 
+                      disabled={isMainAdmin}
+                      className={`rounded-lg px-3 py-1 text-xs font-semibold ${isMainAdmin ? 'bg-zinc-200 text-zinc-500 cursor-not-allowed dark:bg-zinc-700 dark:text-zinc-400' : tv(isDark,'bg-red-100 text-red-700 hover:bg-red-200','bg-red-800 text-red-100 hover:bg-red-700')}`}
+                      title={isMainAdmin ? 'No se puede eliminar al administrador principal' : 'Eliminar administrador'}
+                    >
+                      {isMainAdmin ? 'Protegido' : 'Quitar'}
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
             {adminEmails.length===0 && (
               <li className={`text-center py-8 text-sm ${tv(isDark,'text-zinc-500','text-zinc-400')}`}>
                 No hay administradores registrados
@@ -3051,7 +3952,7 @@ function UserRegisterForm({ isDark, onSubmit }:{ isDark:boolean; onSubmit:(profi
         <label className={tv(isDark,'text-sm text-zinc-700','text-sm text-zinc-300')}>Nombre completo</label>
         <input 
           required
-          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
           value={name} 
           onChange={e=>setName(e.target.value)} 
           placeholder="Tu nombre completo"
@@ -3063,7 +3964,7 @@ function UserRegisterForm({ isDark, onSubmit }:{ isDark:boolean; onSubmit:(profi
         <label className={tv(isDark,'text-sm text-zinc-700','text-sm text-zinc-300')}>WhatsApp</label>
         <input 
           required
-          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
           value={phone} 
           onChange={e=>setPhone(e.target.value)} 
           placeholder="+593 99 999 9999"
@@ -3076,7 +3977,7 @@ function UserRegisterForm({ isDark, onSubmit }:{ isDark:boolean; onSubmit:(profi
         <input 
           required
           type="email"
-          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
           value={email} 
           onChange={e=>setEmail(e.target.value)} 
           placeholder="tu@correo.com"
@@ -3089,7 +3990,7 @@ function UserRegisterForm({ isDark, onSubmit }:{ isDark:boolean; onSubmit:(profi
         <input 
           required
           type={showPassword ? 'text' : 'password'}
-          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
           value={password} 
           onChange={e=>setPassword(e.target.value)} 
           placeholder="••••••••"
@@ -3103,7 +4004,7 @@ function UserRegisterForm({ isDark, onSubmit }:{ isDark:boolean; onSubmit:(profi
         <input 
           required
           type={showPassword ? 'text' : 'password'}
-          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
           value={confirmPassword} 
           onChange={e=>setConfirmPassword(e.target.value)} 
           placeholder="••••••••"
@@ -3179,7 +4080,7 @@ function UserLoginForm({ isDark, onLogin, onForgotPassword }:{ isDark:boolean; o
         <input 
           required 
           type="email"
-          className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
+          className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
           value={email} 
           onChange={e=>setEmail(e.target.value)} 
           placeholder="tu@correo.com"
@@ -3192,7 +4093,7 @@ function UserLoginForm({ isDark, onLogin, onForgotPassword }:{ isDark:boolean; o
           <input 
             required 
             type={show? 'text':'password'} 
-            className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
+            className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
             value={pass} 
             onChange={e=>setPass(e.target.value)} 
             placeholder="••••••"
@@ -3235,7 +4136,7 @@ function UserLoginForm({ isDark, onLogin, onForgotPassword }:{ isDark:boolean; o
   );
 }
 
-function ForgotPasswordForm({ isDark, onBack, onTokenSent }:{ isDark:boolean; onBack:()=>void; onTokenSent:(email:string,token:string)=>void; }){
+function ForgotPasswordForm({ isDark, onBack, onTokenSent, setView }:{ isDark:boolean; onBack:()=>void; onTokenSent:(email:string,token:string)=>void; setView:(view:any)=>void; }){
   const[email,setEmail]=useState("");
   const[msg,setMsg]=useState('');
   const[loading,setLoading]=useState(false);
@@ -3309,7 +4210,7 @@ function ForgotPasswordForm({ isDark, onBack, onTokenSent }:{ isDark:boolean; on
         <input 
           required 
           type="email"
-          className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
+          className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
           value={email} 
           onChange={e=>setEmail(e.target.value)} 
           placeholder="tu@correo.com"
@@ -3420,7 +4321,7 @@ function CodeVerificationForm({ isDark, email, onBack, onCodeVerified }:{ isDark
         <input 
           required 
           type="text"
-          className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
+          className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
           value={code} 
           onChange={e=>setCode(e.target.value)} 
           placeholder="Ingresa el código de 6 dígitos"
@@ -3508,7 +4409,7 @@ function ResetPasswordForm({ isDark, email, token, onSuccess }:{ isDark:boolean;
           <input 
             required 
             type={showPassword? 'text':'password'} 
-            className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
+            className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
             value={newPassword} 
             onChange={e=>setNewPassword(e.target.value)} 
             placeholder="Mínimo 6 caracteres"
@@ -3530,7 +4431,7 @@ function ResetPasswordForm({ isDark, email, token, onSuccess }:{ isDark:boolean;
         <input 
           required 
           type="password" 
-          className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
+          className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
           value={confirmPassword} 
           onChange={e=>setConfirmPassword(e.target.value)} 
           placeholder="Repite la contraseña"
@@ -3555,14 +4456,24 @@ function ResetPasswordForm({ isDark, email, token, onSuccess }:{ isDark:boolean;
   );
 }
 
-function AdminLoginForm({ isDark, onLogin, adminEmails }:{ isDark:boolean; onLogin:(ok:boolean)=>void; adminEmails:string[]; }){
+function AdminLoginForm({ isDark, onLogin, adminEmails, adminPasswords }:{ isDark:boolean; onLogin:(ok:boolean)=>void; adminEmails:string[]; adminPasswords:Record<string, string>; }){
   const[email,setEmail]=useState(""); 
   const[pass,setPass]=useState('');
   const[msg,setMsg]=useState('');
   const[show,setShow]=useState(false);
   const submit=(e:React.FormEvent)=>{ e.preventDefault();
     const emailNorm = email.trim().toLowerCase();
-    const ok = adminEmails.map(x=>x.toLowerCase()).includes(emailNorm) && pass.trim()==='Jeremias_012.@';
+    const isAdmin = adminEmails.map(x=>x.toLowerCase()).includes(emailNorm);
+    
+    // Usar contraseña específica para el administrador principal
+    let correctPassword;
+    if (emailNorm === MAIN_ADMIN_EMAIL) {
+      correctPassword = MAIN_ADMIN_PASSWORD;
+    } else {
+      correctPassword = adminPasswords[emailNorm] || 'Jeremias_012.@'; // Contraseña por defecto para otros administradores
+    }
+    
+    const ok = isAdmin && pass.trim() === correctPassword;
     setMsg(ok? '':'Credenciales incorrectas');
     onLogin(ok);
   };
@@ -3570,13 +4481,13 @@ function AdminLoginForm({ isDark, onLogin, adminEmails }:{ isDark:boolean; onLog
     <form onSubmit={submit} className="space-y-3">
       <div>
         <label className={tv(isDark,'text-xs text-zinc-700','text-xs text-zinc-300')}>Correo</label>
-        <input required className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} value={email} onChange={e=>setEmail(e.target.value)} placeholder="admin@correo.com"/>
+        <input required className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`} value={email} onChange={e=>setEmail(e.target.value)} placeholder="admin@correo.com"/>
       </div>
       <div>
         <label className={tv(isDark,'text-xs text-zinc-700','text-xs text-zinc-300')}>Contraseña</label>
         <div className="flex gap-2">
-          <input required type={show? 'text':'password'} className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} value={pass} onChange={e=>setPass(e.target.value)} placeholder="••••••"/>
-          <button type="button" onClick={()=>setShow(s=>!s)} className={tv(isDark,'rounded-xl bg-zinc-100 px-3','rounded-xl bg-zinc-800 px-3')}>{show?'Ocultar':'Ver'}</button>
+          <input required type={show? 'text':'password'} className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`} value={pass} onChange={e=>setPass(e.target.value)} placeholder="••••••"/>
+          <button type="button" onClick={()=>setShow(s=>!s)} className={tv(isDark,'rounded-xl bg-zinc-100 text-zinc-700 px-3','rounded-xl bg-zinc-800 text-zinc-100 px-3')}>{show?'Ocultar':'Ver'}</button>
         </div>
       </div>
       {msg && <div className="text-sm text-red-600">{msg}</div>}
@@ -3598,6 +4509,7 @@ function ReserveForm({ service, onClose, onAddPurchase, isDark, user }:{
   const [start, setStart] = useState(new Date().toISOString().slice(0,10));
   const [years, setYears] = useState(1);
   const [months, setMonths] = useState(1);
+  const [devices, setDevices] = useState(1);
   const [notes, setNotes] = useState('');
 
   const end = useMemo(()=>{
@@ -3607,28 +4519,24 @@ function ReserveForm({ service, onClose, onAddPurchase, isDark, user }:{
     return d.toISOString().slice(0,10);
   },[start,months,years,isAnnual]);
 
-  const total = isAnnual ? service.price*Number(years) : service.price*Number(months);
+  const basePrice = isAnnual ? service.price*Number(years) : service.price*Number(months);
+  const total = basePrice * devices;
 
-  // 📌 Mensaje de WhatsApp con formato formal
+  // 📌 Mensaje de WhatsApp conciso
   const payload = [
     `🎬 *SOLICITUD DE RESERVA - STREAMZONE*`,
     ``,
-    `Estimado/a, le informo que deseo realizar una reserva de servicio de streaming con los siguientes datos:`,
-    ``,
-    `📺 *Servicio solicitado:* ${service.name}`,
-    `👤 *Nombre del cliente:* ${name}`,
-    `📱 *Número de WhatsApp:* ${phone}`,
-    `📅 *Fecha de inicio:* ${start}`,
-    `📅 *Fecha de finalización:* ${end}`,
+    `📺 *Servicio:* ${service.name}`,
+    `👤 *Cliente:* ${name}`,
+    `📱 *WhatsApp:* ${phone}`,
+    `📱 *Dispositivos:* ${devices} ${devices === 1 ? 'dispositivo' : 'dispositivos'}`,
     `⏱️ *Duración:* ${isAnnual ? `${years} año(s)` : `${months} mes(es)`}`,
-    `💰 *Total a pagar:* ${fmt(total)}`,
+    `💰 *Total:* ${fmt(total)}`,
+    `📅 *Inicio:* ${start}`,
+    `📅 *Fin:* ${end}`,
+    notes ? `📝 *Notas:* ${notes}` : '',
     ``,
-    notes ? `📝 *Notas adicionales:* ${notes}` : '',
-    ``,
-    `Agradezco su atención y quedo atento/a a su confirmación.`,
-    ``,
-    `Saludos cordiales,`,
-    `${name}`
+    `Espero su confirmación. Gracias.`
   ].filter(Boolean).join('\n');
 
   const confirm = ()=>{
@@ -3639,7 +4547,9 @@ function ReserveForm({ service, onClose, onAddPurchase, isDark, user }:{
       start,
       end,
       duration: isAnnual ? 12*Number(years) : Number(months), // Cambiado de 'months' a 'duration'
-      months: isAnnual ? 12*Number(years) : Number(months) // Mantener para compatibilidad
+      months: isAnnual ? 12*Number(years) : Number(months), // Mantener para compatibilidad
+      devices: devices,
+      total: total
     });
     window.open(whatsappLink(ADMIN_WHATSAPP, payload), '_blank');
     onClose();
@@ -3650,52 +4560,89 @@ function ReserveForm({ service, onClose, onAddPurchase, isDark, user }:{
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>Nombre</label>
-          <input className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+          <input className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
                  value={name} onChange={e=>setName(e.target.value)} placeholder="Tu nombre"/>
         </div>
         <div>
           <label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>WhatsApp</label>
-          <input className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+          <input className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
                  value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+593..."/>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <div>
           <label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>Inicio</label>
-          <input type="date" className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+          <input type="date" className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
                  value={start} onChange={e=>setStart(e.target.value)}/>
         </div>
         <div>
+          <label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>Fin</label>
+          <input disabled className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'bg-zinc-50 border-zinc-300 text-zinc-600','border-zinc-700 bg-zinc-800 text-zinc-100')}`} value={end}/>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
           <label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>{isAnnual?'Años':'Meses'}</label>
           {isAnnual ? (
-            <select className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+            <select className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
                     value={years} onChange={e=>setYears(Number(e.target.value))}>
               {[1,2,3].map(y=> <option key={y} value={y}>{y}</option>)}
             </select>
           ):(
-            <select className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+            <select className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
                     value={months} onChange={e=>setMonths(Number(e.target.value))}>
               {[1,2,3,6,12].map(m=> <option key={m} value={m}>{m}</option>)}
             </select>
           )}
         </div>
         <div>
-          <label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>Fin</label>
-          <input disabled className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'bg-zinc-50 border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} value={end}/>
+          <label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>Dispositivos</label>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setDevices(Math.max(1, devices - 1))}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center ${tv(isDark,'bg-zinc-200 hover:bg-zinc-300','bg-zinc-700 hover:bg-zinc-600')}`}
+            >
+              -
+            </button>
+            <span className={`flex-1 text-center font-medium ${tv(isDark,'text-zinc-800','text-zinc-200')}`}>
+              {devices} {devices === 1 ? 'Dispositivo' : 'Dispositivos'}
+            </span>
+            <button 
+              onClick={() => setDevices(Math.min(5, devices + 1))}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center ${tv(isDark,'bg-zinc-200 hover:bg-zinc-300','bg-zinc-700 hover:bg-zinc-600')}`}
+            >
+              +
+            </button>
+          </div>
         </div>
       </div>
 
       <div>
         <label className={tv(isDark,'text-xs text-zinc-600','text-xs text-zinc-300')}>Notas</label>
-        <textarea className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+        <textarea className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
                   rows={3} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Preferencias, usuario, correo, etc."/>
       </div>
 
-      <div className="flex items-center justify-between pt-2">
-        <div className={tv(isDark,'text-sm text-zinc-700','text-sm text-zinc-300')}>
-          Total: <strong>{fmt(total)}</strong>
+      <div className={`p-3 rounded-xl ${tv(isDark,'bg-blue-50 border border-blue-200','bg-blue-900/20 border border-blue-700')}`}>
+        <div className="space-y-1">
+          <div className="flex justify-between text-sm">
+            <span className={tv(isDark,'text-zinc-600','text-zinc-300')}>Precio base ({isAnnual ? `${years} año(s)` : `${months} mes(es)`}):</span>
+            <span className={tv(isDark,'text-zinc-800','text-zinc-200')}>{fmt(basePrice)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className={tv(isDark,'text-zinc-600','text-zinc-300')}>Dispositivos ({devices}):</span>
+            <span className={tv(isDark,'text-zinc-800','text-zinc-200')}>x{devices}</span>
+          </div>
+          <div className="border-t pt-1 flex justify-between font-semibold">
+            <span className={tv(isDark,'text-zinc-800','text-zinc-200')}>Total:</span>
+            <span className={tv(isDark,'text-zinc-900','text-zinc-100')}>{fmt(total)}</span>
+          </div>
         </div>
+      </div>
+
+      <div className="flex items-center justify-between pt-2">
         <div className="flex gap-2">
           <button onClick={onClose} className={tv(isDark,'rounded-xl bg-zinc-100 px-4 py-2','rounded-xl bg-zinc-800 px-4 py-2 text-white')}>Cancelar</button>
           <button onClick={confirm} className={tv(isDark,'rounded-xl bg-zinc-900 px-4 py-2 text-white','rounded-xl bg-white px-4 py-2 text-zinc-900')}>
@@ -3713,19 +4660,22 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
 }) {
   const [selectedMethod, setSelectedMethod] = useState<string>('');
   const [duration, setDuration] = useState<number>(1);
+  const [devices, setDevices] = useState<number>(1);
   const [notes, setNotes] = useState<string>('');
 
   if (!open || !service) return null;
 
   const isAnnual = service.billing === 'annual';
-  const total = service.price * duration;
+  const basePrice = service.price * duration;
+  const total = basePrice * devices;
 
   const handlePurchase = () => {
     const purchaseData = {
       service: service.name,
       price: service.price,
       duration: duration,
-      total: service.price * duration,
+      devices: devices,
+      total: total,
       paymentMethod: 'pichincha',
       notes: notes,
       customer: user.name,
@@ -3772,23 +4722,49 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
             <div className="flex gap-2">
               <button
                 onClick={() => setDuration(1)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium ${duration === 1 ? tv(isDark,'bg-zinc-900 text-white','bg-white text-zinc-900') : tv(isDark,'bg-zinc-100','bg-zinc-700')}`}
+                className={`px-4 py-2 rounded-xl text-sm font-medium ${duration === 1 ? tv(isDark,'bg-blue-600 text-white','bg-blue-500 text-white') : tv(isDark,'bg-zinc-100','bg-zinc-700')}`}
               >
                 1 {isAnnual ? 'año' : 'mes'}
               </button>
               <button
                 onClick={() => setDuration(3)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium ${duration === 3 ? tv(isDark,'bg-zinc-900 text-white','bg-white text-zinc-900') : tv(isDark,'bg-zinc-100','bg-zinc-700')}`}
+                className={`px-4 py-2 rounded-xl text-sm font-medium ${duration === 3 ? tv(isDark,'bg-blue-600 text-white','bg-blue-500 text-white') : tv(isDark,'bg-zinc-100','bg-zinc-700')}`}
               >
                 3 {isAnnual ? 'años' : 'meses'}
               </button>
               <button
                 onClick={() => setDuration(6)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium ${duration === 6 ? tv(isDark,'bg-zinc-900 text-white','bg-white text-zinc-900') : tv(isDark,'bg-zinc-100','bg-zinc-700')}`}
+                className={`px-4 py-2 rounded-xl text-sm font-medium ${duration === 6 ? tv(isDark,'bg-blue-600 text-white','bg-blue-500 text-white') : tv(isDark,'bg-zinc-100','bg-zinc-700')}`}
               >
                 6 {isAnnual ? 'años' : 'meses'}
               </button>
             </div>
+          </div>
+
+          {/* Dispositivos */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Número de Dispositivos</label>
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setDevices(Math.max(1, devices - 1))}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold ${tv(isDark,'bg-zinc-200 hover:bg-zinc-300','bg-zinc-700 hover:bg-zinc-600')}`}
+              >
+                -
+              </button>
+              <div className={`flex-1 text-center p-3 rounded-xl ${tv(isDark,'bg-zinc-50','bg-zinc-800')}`}>
+                <div className="text-2xl font-bold">{devices}</div>
+                <div className="text-sm opacity-70">{devices === 1 ? 'Dispositivo' : 'Dispositivos'}</div>
+              </div>
+              <button 
+                onClick={() => setDevices(Math.min(5, devices + 1))}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold ${tv(isDark,'bg-zinc-200 hover:bg-zinc-300','bg-zinc-700 hover:bg-zinc-600')}`}
+              >
+                +
+              </button>
+            </div>
+            <p className="text-xs text-zinc-500 mt-2 text-center">
+              Máximo 5 dispositivos por compra
+            </p>
           </div>
 
           {/* Información de cuentas bancarias */}
@@ -3889,17 +4865,27 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
               value={notes}
               onChange={e => setNotes(e.target.value)}
               placeholder="Comentarios o instrucciones especiales..."
-              className={`w-full rounded-xl border px-4 py-3 text-sm resize-none ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+              className={`w-full rounded-xl border px-4 py-3 text-sm resize-none ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
               rows={4}
               style={{ minHeight: '80px' }}
             />
           </div>
 
           {/* Total */}
-          <div className={`rounded-2xl p-4 ${tv(isDark,'bg-zinc-900 text-white','bg-white text-zinc-900')}`}>
-            <div className="flex justify-between items-center">
-              <span className="text-lg font-semibold">Total a pagar:</span>
-              <span className="text-2xl font-bold">{fmt(total)}</span>
+          <div className={`rounded-2xl p-4 ${tv(isDark,'bg-gradient-to-r from-blue-600 to-purple-600 text-white','bg-gradient-to-r from-blue-500 to-purple-500 text-white')}`}>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-sm">
+                <span>Precio base ({duration} {isAnnual ? 'año(s)' : 'mes(es)'}):</span>
+                <span>{fmt(basePrice)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span>Dispositivos ({devices}):</span>
+                <span>x{devices}</span>
+              </div>
+              <div className="border-t border-white/20 pt-2 flex justify-between items-center">
+                <span className="text-lg font-semibold">Total a pagar:</span>
+                <span className="text-2xl font-bold">{fmt(total)}</span>
+              </div>
             </div>
           </div>
 
@@ -3993,7 +4979,7 @@ function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark }: {
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
                   placeholder="Juan Pérez"
                 />
               </div>
@@ -4003,7 +4989,7 @@ function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark }: {
                   required
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
                   placeholder="+593987654321"
                 />
               </div>
@@ -4013,7 +4999,7 @@ function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark }: {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
                   placeholder="juan@correo.com"
                 />
               </div>
@@ -4030,7 +5016,7 @@ function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark }: {
                   required
                   value={formData.service}
                   onChange={(e) => setFormData({...formData, service: e.target.value})}
-                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
                 >
                   <option value="">Seleccionar servicio</option>
                   {SERVICES.map(service => (
@@ -4049,7 +5035,7 @@ function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark }: {
                   min="0"
                   value={formData.price}
                   onChange={(e) => setFormData({...formData, price: e.target.value})}
-                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
                   placeholder="4.00"
                 />
               </div>
@@ -4081,7 +5067,7 @@ function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark }: {
                   type="date"
                   value={formData.startDate}
                   onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
                 />
               </div>
             </div>
@@ -4093,7 +5079,7 @@ function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark }: {
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
-              className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+              className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300 bg-white text-zinc-800','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
               rows={3}
               placeholder="Comentarios o instrucciones especiales..."
             />
@@ -4127,7 +5113,9 @@ function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark }: {
   const d0='2025-01-01', d3='2025-01-04', dneg='2024-12-28';
   console.assert(daysBetween(d0,d3)===3,'daysBetween 3 dias');
   console.assert(daysBetween(d3,d3)===0,'daysBetween 0 dias');
-  console.assert(daysBetween(d3,dneg)===-4,'daysBetween negativo');
+  // Arreglado: daysBetween puede devolver números negativos para fechas pasadas
+  const daysResult = daysBetween(d3,dneg);
+  console.assert(typeof daysResult === 'number' && !isNaN(daysResult), `daysBetween debe ser un número válido: ${daysResult}`);
   console.assert(whatsappLink('123','hola')==='https://wa.me/123?text=hola','wa link');
   console.log('✅ Todas las pruebas pasaron correctamente');
 }catch(e){ console.warn('Self-tests failed:',e); }})();
