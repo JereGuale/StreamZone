@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { supabase, createUser, getUserByPhone, updateUser, createPurchase, syncServices, DatabasePurchase, getUserPurchases, getUserByEmail, generateResetToken, verifyResetToken, resetPassword, loginUser, approvePurchase, getPendingPurchases, getUserActivePurchases, getAllPurchases, getExpiringServices, createRenewal, getRenewalHistory, toggleAutoRenewal, getRenewalNotifications, getRenewalStats, RenewalHistory, ExpiringService } from "./lib/supabase";
+import { supabase, createUser, getUserByPhone, updateUser, createPurchase, syncServices, DatabasePurchase, getUserPurchases, getUserByEmail, generateResetToken, verifyResetToken, resetPassword, loginUser, approvePurchase, getPendingPurchases, getUserActivePurchases, getAllPurchases, getAdminEmails, addAdminEmail, removeAdminEmail, getExpiringServices, createRenewal, getRenewalHistory, toggleAutoRenewal, getRenewalNotifications, getRenewalStats, RenewalHistory, ExpiringService } from "./lib/supabase";
 
 /**
  * StreamZone – Tienda de Streaming (React + TS + Tailwind)
@@ -615,9 +615,37 @@ export default function App(){
     syncServicesOnInit();
   }, []);
 
-  // Lista dinámica de administradores
-  const [adminEmails, setAdminEmails] = useState<string[]>(()=> storage.load('admin_emails', DEFAULT_ADMIN_EMAILS).map((e:string)=>e.toLowerCase()));
-  useEffect(()=>{ storage.save('admin_emails', adminEmails); },[adminEmails]);
+  // Lista dinámica de administradores (sincronizada con Supabase)
+  const [adminEmails, setAdminEmails] = useState<string[]>(DEFAULT_ADMIN_EMAILS.map((e:string)=>e.toLowerCase()));
+  const [adminEmailsLoading, setAdminEmailsLoading] = useState(false);
+
+  // Cargar administradores desde Supabase al iniciar
+  useEffect(() => {
+    loadAdminEmails();
+  }, []);
+
+  // Función para cargar administradores desde Supabase
+  const loadAdminEmails = async () => {
+    setAdminEmailsLoading(true);
+    try {
+      const result = await getAdminEmails();
+      if (result.data && result.data.length > 0) {
+        const emails = result.data.map(admin => admin.email);
+        setAdminEmails(emails);
+        console.log('✅ Administradores cargados desde Supabase:', emails.length);
+      } else {
+        // Si no hay administradores en Supabase, usar los por defecto
+        console.log('⚠️ No hay administradores en Supabase, usando por defecto');
+        setAdminEmails(DEFAULT_ADMIN_EMAILS.map((e:string)=>e.toLowerCase()));
+      }
+    } catch (error) {
+      console.error('❌ Error cargando administradores:', error);
+      // En caso de error, usar los por defecto
+      setAdminEmails(DEFAULT_ADMIN_EMAILS.map((e:string)=>e.toLowerCase()));
+    } finally {
+      setAdminEmailsLoading(false);
+    }
+  };
 
   // Drawers
   const [drawerOpen, setDrawerOpen] = useState(false); // admins
@@ -2845,8 +2873,48 @@ function PurchaseCard({ item, isDark, onToggleValidate, onDelete }:{ item:any; i
 // Drawer de administradores (agregar/eliminar)
 function AdminDrawer({ open, onClose, isDark, adminEmails, setAdminEmails }:{ open:boolean; onClose:()=>void; isDark:boolean; adminEmails:string[]; setAdminEmails:(v:string[])=>void; }){
   const [newEmail, setNewEmail] = useState("");
-  const add = ()=>{ const e=newEmail.trim().toLowerCase(); if(!emailOk(e)) return; if(adminEmails.includes(e)) return; setAdminEmails([...adminEmails, e]); setNewEmail(""); };
-  const remove = (e:string)=> setAdminEmails(adminEmails.filter(x=>x!==e));
+  const [loading, setLoading] = useState(false);
+
+  const add = async () => { 
+    const e = newEmail.trim().toLowerCase(); 
+    if(!emailOk(e)) return; 
+    if(adminEmails.includes(e)) return; 
+    
+    setLoading(true);
+    try {
+      const result = await addAdminEmail(e);
+      if (result.data) {
+        setAdminEmails([...adminEmails, e]);
+        setNewEmail("");
+        console.log('✅ Administrador agregado a Supabase:', e);
+      } else {
+        alert('❌ Error agregando administrador');
+      }
+    } catch (error) {
+      console.error('Error agregando administrador:', error);
+      alert('❌ Error agregando administrador');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const remove = async (e: string) => {
+    setLoading(true);
+    try {
+      const result = await removeAdminEmail(e);
+      if (result.data || result.error === null) {
+        setAdminEmails(adminEmails.filter(x => x !== e));
+        console.log('✅ Administrador eliminado de Supabase:', e);
+      } else {
+        alert('❌ Error eliminando administrador');
+      }
+    } catch (error) {
+      console.error('Error eliminando administrador:', error);
+      alert('❌ Error eliminando administrador');
+    } finally {
+      setLoading(false);
+    }
+  };
   if(!open) return null;
   return (
     <div className="fixed inset-0 z-50" onClick={onClose}>
@@ -2869,14 +2937,16 @@ function AdminDrawer({ open, onClose, isDark, adminEmails, setAdminEmails }:{ op
             value={newEmail} 
             onChange={e=>setNewEmail(e.target.value)} 
             placeholder="nuevo@correo.com" 
-            className={`flex-1 rounded-xl border px-4 py-3 text-sm ${tv(isDark,'border-zinc-300 focus:border-zinc-500','border-zinc-700 bg-zinc-800 text-zinc-100 focus:border-zinc-500')}`}
-            onKeyDown={e => e.key === 'Enter' && add()}
+            disabled={loading}
+            className={`flex-1 rounded-xl border px-4 py-3 text-sm ${tv(isDark,'border-zinc-300 focus:border-zinc-500','border-zinc-700 bg-zinc-800 text-zinc-100 focus:border-zinc-500')} ${loading ? 'opacity-50' : ''}`}
+            onKeyDown={e => e.key === 'Enter' && !loading && add()}
           />
           <button 
-            onClick={add} 
-            className={`rounded-xl px-4 py-3 text-sm font-semibold ${tv(isDark,'bg-zinc-900 text-white hover:bg-zinc-800','bg-white text-zinc-900 hover:bg-zinc-100')}`}
+            onClick={add}
+            disabled={loading} 
+            className={`rounded-xl px-4 py-3 text-sm font-semibold ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${tv(isDark,'bg-zinc-900 text-white hover:bg-zinc-800','bg-white text-zinc-900 hover:bg-zinc-100')}`}
           >
-            Agregar
+            {loading ? '⏳' : '➕ Agregar'}
           </button>
         </div>
         <div className="max-h-96 overflow-y-auto">
@@ -2886,9 +2956,10 @@ function AdminDrawer({ open, onClose, isDark, adminEmails, setAdminEmails }:{ op
                 <span className="font-medium">{e}</span>
                 <button 
                   onClick={()=>remove(e)} 
-                  className={`rounded-lg px-3 py-1 text-xs font-semibold ${tv(isDark,'bg-red-100 text-red-700 hover:bg-red-200','bg-red-800 text-red-100 hover:bg-red-700')}`}
+                  disabled={loading}
+                  className={`rounded-lg px-3 py-1 text-xs font-semibold ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${tv(isDark,'bg-red-100 text-red-700 hover:bg-red-200','bg-red-800 text-red-100 hover:bg-red-700')}`}
                 >
-                  Quitar
+                  {loading ? '⏳' : '❌ Quitar'}
                 </button>
               </li>
             ))}
