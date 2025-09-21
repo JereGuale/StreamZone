@@ -871,6 +871,9 @@ export default function App(){
   // Estados para perfil de usuario
   const[userActivePurchases,setUserActivePurchases]=useState<DatabasePurchase[]>([]);
   
+  // Estado para menú móvil
+  const[isMobileMenuOpen,setIsMobileMenuOpen]=useState(false);
+  
   // Estados para renovaciones
   const[expiringServices,setExpiringServices]=useState<ExpiringService[]>([]);
   const[renewalHistory,setRenewalHistory]=useState<RenewalHistory[]>([]);
@@ -2059,6 +2062,18 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
               >
                 🎯 Combos
               </button>
+              {user && (
+                <button
+                  onClick={() => setView('profile')}
+                  className={tv(
+                    isDark,
+                    'rounded-lg px-3 py-1.5 text-xs whitespace-nowrap hover:bg-zinc-100',
+                    'rounded-lg px-3 py-1.5 text-xs whitespace-nowrap hover:bg-zinc-800'
+                  )}
+                >
+                  👤 Mi Perfil
+                </button>
+              )}
               {user ? (
                 <button
                   onClick={logoutUser}
