@@ -559,6 +559,77 @@ export const getUserActivePurchases = async (phone: string) => {
 };
 
 
+// ============ FUNCIONES DE ADMINISTRADORES ============
+
+// Función para obtener todos los administradores
+export const getAdminEmails = async () => {
+  if (!supabase) {
+    console.warn('Supabase no configurado, no se puede obtener administradores');
+    return { data: null, error: new Error('Supabase no configurado') };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('admin_emails')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error getting admin emails:', error);
+    return { data: null, error };
+  }
+};
+
+// Función para agregar un nuevo administrador
+export const addAdminEmail = async (email: string) => {
+  if (!supabase) {
+    console.warn('Supabase no configurado, no se puede agregar administrador');
+    return { data: null, error: new Error('Supabase no configurado') };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('admin_emails')
+      .insert([{ 
+        email: email.toLowerCase().trim(),
+        is_active: true,
+        created_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error adding admin email:', error);
+    return { data: null, error };
+  }
+};
+
+// Función para eliminar un administrador
+export const removeAdminEmail = async (email: string) => {
+  if (!supabase) {
+    console.warn('Supabase no configurado, no se puede eliminar administrador');
+    return { data: null, error: new Error('Supabase no configurado') };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('admin_emails')
+      .delete()
+      .eq('email', email.toLowerCase().trim())
+      .select();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error removing admin email:', error);
+    return { data: null, error };
+  }
+};
+
 // ============ FUNCIONES DE RENOVACIÓN ============
 
 // Función para obtener servicios próximos a vencer
