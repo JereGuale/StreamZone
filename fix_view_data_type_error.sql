@@ -84,3 +84,4 @@ SELECT 'renewal_stats view' as item,
     THEN 'exists' ELSE 'missing' END as status;
 
 
+

@@ -17,3 +17,4 @@ ORDER BY created_at DESC;
 -- Mostrar mensaje de confirmación
 SELECT '✅ Todos los administradores han sido activados' as status;
 
+

@@ -90,14 +90,6 @@ export interface DatabaseUser {
   created_at: string;
 }
 
-export interface DatabaseAdmin {
-  id: string;
-  email: string;
-  password: string;
-  is_active: boolean;
-  created_at: string;
-}
-
 export interface DatabaseService {
   id: string;
   name: string;
@@ -172,146 +164,6 @@ export const updateUser = async (id: string, userData: Partial<DatabaseUser>) =>
   }
 };
 
-// ============ FUNCIONES DE ADMINISTRADORES ============
-
-// Función para crear un administrador
-export const createAdmin = async (adminData: Omit<DatabaseAdmin, 'id' | 'created_at'>) => {
-  if (!supabase) {
-    console.warn('Supabase no configurado, no se puede crear administrador');
-    return { data: null, error: new Error('Supabase no configurado') };
-  }
-
-  try {
-    // Primero verificar si el email ya existe
-    const { data: existingAdmin, error: checkError } = await supabase
-      .from('admin_emails')
-      .select('email')
-      .eq('email', adminData.email)
-      .single();
-
-    if (existingAdmin) {
-      return { data: null, error: new Error('Este email ya está registrado como administrador') };
-    }
-
-    const { data, error } = await supabase
-      .from('admin_emails')
-      .insert([adminData])
-      .select()
-      .single();
-
-    if (error) {
-      // Si es error de duplicado, devolver mensaje específico
-      if (error.code === '23505' || error.message.includes('duplicate')) {
-        return { data: null, error: new Error('Este email ya está registrado como administrador') };
-      }
-      throw error;
-    }
-    return { data, error: null };
-  } catch (error) {
-    console.error('Error creating admin:', error);
-    return { data: null, error };
-  }
-};
-
-// Función para obtener todos los administradores
-export const getAllAdmins = async () => {
-  if (!supabase) {
-    console.warn('Supabase no configurado, no se puede obtener administradores');
-    return { data: null, error: new Error('Supabase no configurado') };
-  }
-
-  try {
-    // Obtener TODOS los administradores, no solo los activos
-    const { data, error } = await supabase
-      .from('admin_emails')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return { data, error: null };
-  } catch (error) {
-    console.error('Error getting admins:', error);
-    return { data: null, error };
-  }
-};
-
-// Función para eliminar un administrador
-export const deleteAdmin = async (email: string) => {
-  if (!supabase) {
-    console.warn('Supabase no configurado, no se puede eliminar administrador');
-    return { data: null, error: new Error('Supabase no configurado') };
-  }
-
-  try {
-    // Eliminar directamente el administrador de la base de datos
-    const { data, error } = await supabase
-      .from('admin_emails')
-      .delete()
-      .eq('email', email)
-      .select();
-
-    if (error) throw error;
-    return { data, error: null };
-  } catch (error) {
-    console.error('Error deleting admin:', error);
-    return { data: null, error };
-  }
-};
-
-// Función auxiliar para generar contraseñas de admin (copiada desde App.tsx)
-const generateAdminPassword = (email: string): string => {
-  const timestamp = Date.now().toString().slice(-4);
-  const emailPrefix = email.split('@')[0].slice(0, 3).toUpperCase();
-  return `Admin_${emailPrefix}_${timestamp}`;
-};
-
-// Función para sincronizar administradores desde localStorage a Supabase
-export const syncAdminsToDatabase = async (adminEmails: string[], adminPasswords: Record<string, string>) => {
-  if (!supabase) {
-    console.warn('Supabase no configurado, no se puede sincronizar administradores');
-    return { data: null, error: new Error('Supabase no configurado') };
-  }
-
-  try {
-    // Obtener TODOS los administradores existentes en la base de datos (no solo los activos)
-    const { data: existingAdmins, error: fetchError } = await supabase
-      .from('admin_emails')
-      .select('email');
-
-    if (fetchError) {
-      console.warn('Error obteniendo admins existentes, saltando sincronización:', fetchError);
-      return { data: { created: 0 }, error: null };
-    }
-
-    const existingEmails = existingAdmins?.map(admin => admin.email) || [];
-
-    // Crear administradores que no existen en la base de datos
-    const adminsToCreate = adminEmails.filter(email => !existingEmails.includes(email));
-    
-    if (adminsToCreate.length > 0) {
-      const adminData = adminsToCreate.map(email => ({
-        email: email,
-        password: adminPasswords[email] || generateAdminPassword(email), // Generar contraseña si no existe
-        is_active: true
-      }));
-
-      const { data, error } = await supabase
-        .from('admin_emails')
-        .insert(adminData);
-
-      if (error) {
-        console.warn('Error creando algunos admins, continuando:', error);
-        return { data: { created: 0 }, error: null };
-      }
-    }
-
-    return { data: { created: adminsToCreate.length }, error: null };
-  } catch (error) {
-    console.warn('Error syncing admins to database, continuando:', error);
-    return { data: { created: 0 }, error: null };
-  }
-};
-
 // Funciones para manejar compras
 export const createPurchase = async (purchaseData: Omit<DatabasePurchase, 'id' | 'created_at'>) => {
   if (!supabase) {
@@ -368,6 +220,23 @@ export const updatePurchaseValidation = async (id: string, validated: boolean) =
     return { data, error: null };
   } catch (error) {
     console.error('Error updating purchase validation:', error);
+    return { data: null, error };
+  }
+};
+
+export const updatePurchase = async (id: string, updateData: Partial<DatabasePurchase>) => {
+  try {
+    const { data, error } = await supabase
+      .from('purchases')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error updating purchase:', error);
     return { data: null, error };
   }
 };
@@ -558,77 +427,6 @@ export const getUserActivePurchases = async (phone: string) => {
   }
 };
 
-
-// ============ FUNCIONES DE ADMINISTRADORES ============
-
-// Función para obtener todos los administradores
-export const getAdminEmails = async () => {
-  if (!supabase) {
-    console.warn('Supabase no configurado, no se puede obtener administradores');
-    return { data: null, error: new Error('Supabase no configurado') };
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from('admin_emails')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return { data, error: null };
-  } catch (error) {
-    console.error('Error getting admin emails:', error);
-    return { data: null, error };
-  }
-};
-
-// Función para agregar un nuevo administrador
-export const addAdminEmail = async (email: string) => {
-  if (!supabase) {
-    console.warn('Supabase no configurado, no se puede agregar administrador');
-    return { data: null, error: new Error('Supabase no configurado') };
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from('admin_emails')
-      .insert([{ 
-        email: email.toLowerCase().trim(),
-        is_active: true,
-        created_at: new Date().toISOString()
-      }])
-      .select()
-      .single();
-
-    if (error) throw error;
-    return { data, error: null };
-  } catch (error) {
-    console.error('Error adding admin email:', error);
-    return { data: null, error };
-  }
-};
-
-// Función para eliminar un administrador
-export const removeAdminEmail = async (email: string) => {
-  if (!supabase) {
-    console.warn('Supabase no configurado, no se puede eliminar administrador');
-    return { data: null, error: new Error('Supabase no configurado') };
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from('admin_emails')
-      .delete()
-      .eq('email', email.toLowerCase().trim())
-      .select();
-
-    if (error) throw error;
-    return { data, error: null };
-  } catch (error) {
-    console.error('Error removing admin email:', error);
-    return { data: null, error };
-  }
-};
 
 // ============ FUNCIONES DE RENOVACIÓN ============
 
