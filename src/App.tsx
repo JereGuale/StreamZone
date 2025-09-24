@@ -1176,6 +1176,7 @@ function App(){
       setPurchaseData(s);
       setPurchaseModalOpen(true);
     } else {
+      // Mostrar aviso de que debe registrarse
       setSelected(s); 
       setReserveOpen(true); 
     }
@@ -2136,22 +2137,48 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
 
       {/* AUTENTICACIÓN */}
       {view==='auth' && (
-        <section className="min-h-[80vh] relative">
-          <div className="absolute inset-0 -z-10" style={{backgroundImage:"url(/img/bg-cinema.jpg)", backgroundSize:'cover', backgroundPosition:'center'}} />
-          <div className="absolute inset-0 -z-0 bg-black/60" />
-          <div className="relative z-10 mx-auto max-w-md px-4 py-16">
-            <div className={tv(isDark,'rounded-3xl bg-white/95 p-8 shadow-2xl','rounded-3xl bg-white/95 p-8 shadow-2xl text-zinc-900')}>
+        <section className="min-h-screen relative flex items-center justify-center">
+          {/* Fondo mejorado */}
+          <div className="absolute inset-0 -z-10">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900"></div>
+            <div className="absolute inset-0 bg-[url('/img/bg-cinema.jpg')] bg-cover bg-center opacity-20"></div>
+            <div className="absolute inset-0 bg-black/50"></div>
+          </div>
+          
+          {/* Efectos decorativos */}
+          <div className="absolute top-20 left-20 w-32 h-32 bg-purple-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-20 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl animate-pulse animation-delay-1000"></div>
+          <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-pink-500/20 rounded-full blur-2xl animate-pulse animation-delay-2000"></div>
+          
+          <div className="relative z-10 mx-auto max-w-md px-4 py-8">
+            <div className={`rounded-3xl p-8 shadow-2xl backdrop-blur-md border ${tv(isDark,'bg-white/95 border-gray-200','bg-gray-900/95 border-gray-700')}`}>
               <div className="text-center mb-8">
                 {authStep === 'login' && (
                   <>
-                    <h3 className="text-3xl font-bold mb-2">🔐 Iniciar Sesión</h3>
-                    <p className="text-sm opacity-80">Accede a tu cuenta de StreamZone</p>
+                    <div className="relative mb-6">
+                      <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center text-3xl shadow-xl">
+                        🔐
+                      </div>
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-green-400 to-blue-500 rounded-full animate-pulse"></div>
+                    </div>
+                    <h3 className="text-4xl font-bold mb-3 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                      Iniciar Sesión
+                    </h3>
+                    <p className="text-lg text-gray-600 dark:text-gray-300">Accede a tu cuenta de StreamZone</p>
                   </>
                 )}
                 {authStep === 'email' && (
                   <>
-                    <h3 className="text-3xl font-bold mb-2">📧 Recuperar Contraseña</h3>
-                    <p className="text-sm opacity-80">Paso 1: Ingresa tu email para recibir el código</p>
+                    <div className="relative mb-6">
+                      <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-r from-blue-600 to-cyan-600 flex items-center justify-center text-3xl shadow-xl">
+                        📧
+                      </div>
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-orange-400 to-red-500 rounded-full animate-pulse"></div>
+                    </div>
+                    <h3 className="text-4xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                      Recuperar Contraseña
+                    </h3>
+                    <p className="text-lg text-gray-600 dark:text-gray-300">Paso 1: Ingresa tu email para recibir el código</p>
                   </>
                 )}
               </div>
@@ -2209,26 +2236,35 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
 
               {authStep === 'login' && (
                 <>
-                  <div className="mt-6 text-center space-y-3">
-                    <div className="text-sm opacity-70">¿No tienes cuenta?</div>
-                <button
-                  onClick={() => setView('register')}
-                      className={`w-full rounded-xl px-4 py-2 font-medium transition-all ${tv(
-                    isDark,
-                        'bg-gradient-to-r from-green-500 to-blue-500 text-white hover:from-green-600 hover:to-blue-600',
-                        'bg-gradient-to-r from-blue-500 to-green-600 text-white hover:from-blue-600 hover:to-green-700'
-                  )}`}
-                >
-                      ✨ Crear cuenta nueva
-                </button>
+                  <div className="mt-8 text-center space-y-4">
+                    <div className={`text-sm font-medium ${tv(isDark,'text-gray-600','text-gray-400')}`}>¿No tienes cuenta?</div>
+                    <button
+                      onClick={() => setView('register')}
+                      className={`w-full rounded-2xl px-6 py-4 font-bold text-lg transition-all duration-300 hover:scale-105 shadow-xl ${tv(
+                        isDark,
+                        'bg-gradient-to-r from-green-500 via-blue-500 to-purple-600 text-white hover:from-green-600 hover:via-blue-600 hover:to-purple-700',
+                        'bg-gradient-to-r from-green-600 via-blue-600 to-purple-700 text-white hover:from-green-700 hover:via-blue-700 hover:to-purple-800'
+                      )}`}
+                    >
+                      <span className="flex items-center justify-center gap-3">
+                        <span className="text-xl">✨</span>
+                        <span>Crear cuenta nueva</span>
+                        <span className="text-xl">🚀</span>
+                      </span>
+                    </button>
                   </div>
 
                   <div className="mt-6 text-center">
                     <button 
                       onClick={() => setView('home')}
-                      className={tv(isDark,'text-zinc-600 hover:text-zinc-800 text-sm','text-zinc-400 hover:text-zinc-200 text-sm')}
+                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all duration-200 hover:scale-105 ${tv(
+                        isDark,
+                        'text-gray-600 hover:text-gray-800 hover:bg-gray-100',
+                        'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
+                      )}`}
                     >
-                      ← Volver al inicio
+                      <span>←</span>
+                      <span>Volver al inicio</span>
                     </button>
                   </div>
                 </>
@@ -2266,7 +2302,7 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                   <input
                     required
                     type="text"
-                    className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300 bg-white text-zinc-900','border-zinc-600 bg-zinc-800 text-zinc-100')}`}
+                    className={`w-full rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`}
                     value={resetCode}
                     onChange={e => setResetCode(e.target.value)}
                     placeholder="123456"
@@ -3155,11 +3191,11 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
       <footer className={`border-t py-8 text-center text-sm ${tv(isDark,'text-zinc-500 border-zinc-200','text-zinc-400 border-zinc-800')}`}>© {new Date().getFullYear()} StreamZone</footer>
 
       {/* Reserva */}
-      <Modal open={reserveOpen} onClose={()=>setReserveOpen(false)} title={`Comprar ${selected?.name||''}`} isDark={isDark}>
-        {selected && (
-          <ReserveForm service={selected} onClose={()=>setReserveOpen(false)} onAddPurchase={addPurchase} isDark={isDark} user={user} />
-        )}
-      </Modal>
+        <Modal open={reserveOpen} onClose={()=>setReserveOpen(false)} title={`🔐 Registro Requerido - ${selected?.name||''}`} isDark={isDark} className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          {selected && (
+            <RegistrationRequiredForm service={selected} onClose={()=>setReserveOpen(false)} isDark={isDark} onGoToAuth={() => { setReserveOpen(false); setView('auth'); }} />
+          )}
+        </Modal>
 
       {/* Compra con métodos de pago */}
       <PurchaseModal 
@@ -3867,7 +3903,7 @@ function UserRegisterForm({ isDark, onSubmit }:{ isDark:boolean; onSubmit:(profi
         <label className={tv(isDark,'text-sm text-zinc-800','text-sm text-zinc-300')}>Nombre completo</label>
         <input 
           required
-          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+          className={`w-full rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`} 
           value={name} 
           onChange={e=>setName(e.target.value)} 
           placeholder="Tu nombre completo"
@@ -3879,7 +3915,7 @@ function UserRegisterForm({ isDark, onSubmit }:{ isDark:boolean; onSubmit:(profi
         <label className={tv(isDark,'text-sm text-zinc-800','text-sm text-zinc-300')}>WhatsApp</label>
         <input 
           required
-          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+          className={`w-full rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`} 
           value={phone} 
           onChange={e=>setPhone(e.target.value)} 
           placeholder="+593 99 999 9999"
@@ -3892,7 +3928,7 @@ function UserRegisterForm({ isDark, onSubmit }:{ isDark:boolean; onSubmit:(profi
         <input 
           required
           type="email"
-          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+          className={`w-full rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`} 
           value={email} 
           onChange={e=>setEmail(e.target.value)} 
           placeholder="tu@correo.com"
@@ -3905,7 +3941,7 @@ function UserRegisterForm({ isDark, onSubmit }:{ isDark:boolean; onSubmit:(profi
         <input 
           required
           type={showPassword ? 'text' : 'password'}
-          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+          className={`w-full rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`} 
           value={password} 
           onChange={e=>setPassword(e.target.value)} 
           placeholder="••••••••"
@@ -3919,7 +3955,7 @@ function UserRegisterForm({ isDark, onSubmit }:{ isDark:boolean; onSubmit:(profi
         <input 
           required
           type={showPassword ? 'text' : 'password'}
-          className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`} 
+          className={`w-full rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`} 
           value={confirmPassword} 
           onChange={e=>setConfirmPassword(e.target.value)} 
           placeholder="••••••••"
@@ -3995,7 +4031,7 @@ function UserLoginForm({ isDark, onLogin, onForgotPassword }:{ isDark:boolean; o
         <input 
           required 
           type="email"
-          className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300 bg-white text-zinc-900','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
+          className={`w-full rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`} 
           value={email} 
           onChange={e=>setEmail(e.target.value)} 
           placeholder="tu@correo.com"
@@ -4008,7 +4044,7 @@ function UserLoginForm({ isDark, onLogin, onForgotPassword }:{ isDark:boolean; o
           <input 
             required 
             type={show? 'text':'password'} 
-            className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300 bg-white text-zinc-900','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
+            className={`w-full rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`} 
             value={pass} 
             onChange={e=>setPass(e.target.value)} 
             placeholder="••••••"
@@ -4125,7 +4161,7 @@ function ForgotPasswordForm({ isDark, onBack, onTokenSent, onRegister }:{ isDark
         <input 
           required 
           type="email"
-          className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300 bg-white text-zinc-900','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
+          className={`w-full rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`} 
           value={email} 
           onChange={e=>setEmail(e.target.value)} 
           placeholder="tu@correo.com"
@@ -4236,7 +4272,7 @@ function CodeVerificationForm({ isDark, email, onBack, onCodeVerified }:{ isDark
         <input 
           required 
           type="text"
-          className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300 bg-white text-zinc-900','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
+          className={`w-full rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`} 
           value={code} 
           onChange={e=>setCode(e.target.value)} 
           placeholder="Ingresa el código de 6 dígitos"
@@ -4324,7 +4360,7 @@ function ResetPasswordForm({ isDark, email, token, onSuccess }:{ isDark:boolean;
           <input 
             required 
             type={showPassword? 'text':'password'} 
-            className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300 bg-white text-zinc-900','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
+            className={`w-full rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`} 
             value={newPassword} 
             onChange={e=>setNewPassword(e.target.value)} 
             placeholder="Mínimo 6 caracteres"
@@ -4346,7 +4382,7 @@ function ResetPasswordForm({ isDark, email, token, onSuccess }:{ isDark:boolean;
         <input 
           required 
           type="password" 
-          className={`w-full rounded-xl border px-4 py-3 ${tv(isDark,'border-zinc-300 bg-white text-zinc-900','border-zinc-600 bg-zinc-800 text-zinc-100')}`} 
+          className={`w-full rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`} 
           value={confirmPassword} 
           onChange={e=>setConfirmPassword(e.target.value)} 
           placeholder="Repite la contraseña"
@@ -4573,6 +4609,120 @@ function ReserveForm({ service, onClose, onAddPurchase, isDark, user }:{
           <button onClick={onClose} className={tv(isDark,'rounded-xl bg-zinc-200 px-4 py-2 text-zinc-800','rounded-xl bg-zinc-600 px-4 py-2 text-zinc-100')}>Cancelar</button>
           <button onClick={confirm} className={tv(isDark,'rounded-xl bg-zinc-900 px-4 py-2 text-white','rounded-xl bg-blue-600 px-4 py-2 text-white')}>
             Confirmar por WhatsApp
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Formulario para usuarios no registrados
+function RegistrationRequiredForm({ service, onClose, isDark, onGoToAuth }:{
+  service:any;
+  onClose:()=>void;
+  isDark:boolean;
+  onGoToAuth:()=>void;
+}){
+  return (
+    <div className="space-y-6 p-4">
+      {/* Icono y mensaje principal - Mejorado */}
+      <div className="text-center">
+        <div className="relative mb-6">
+          <div className="text-6xl mb-3 animate-bounce">🔐</div>
+          <div className="absolute -top-2 -right-2 w-4 h-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse"></div>
+        </div>
+        <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          Registro Requerido
+        </h3>
+        <p className={`text-base mb-6 ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+          Para comprar <span className="font-bold text-blue-600">{service.name}</span> necesitas crear una cuenta en <span className="font-bold text-purple-600">StreamZone</span>
+        </p>
+      </div>
+
+      {/* Beneficios del registro - Compacto */}
+      <div className={`rounded-xl p-4 border ${tv(isDark,'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200','bg-gradient-to-br from-blue-900/20 to-purple-900/20 border-blue-600')}`}>
+        <h4 className={`text-lg font-bold mb-4 text-center ${tv(isDark,'text-blue-900','text-blue-100')}`}>
+          ✨ Beneficios de registrarte:
+        </h4>
+        <div className="grid grid-cols-2 gap-3">
+          <div className={`p-2 rounded-lg ${tv(isDark,'bg-white/70','bg-blue-800/20')}`}>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🎯</span>
+              <span className={`font-medium text-sm ${tv(isDark,'text-blue-800','text-blue-200')}`}>Acceso rápido</span>
+            </div>
+          </div>
+          <div className={`p-2 rounded-lg ${tv(isDark,'bg-white/70','bg-blue-800/20')}`}>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">📱</span>
+              <span className={`font-medium text-sm ${tv(isDark,'text-blue-800','text-blue-200')}`}>Notificaciones</span>
+            </div>
+          </div>
+          <div className={`p-2 rounded-lg ${tv(isDark,'bg-white/70','bg-blue-800/20')}`}>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">💳</span>
+              <span className={`font-medium text-sm ${tv(isDark,'text-blue-800','text-blue-200')}`}>Pago seguro</span>
+            </div>
+          </div>
+          <div className={`p-2 rounded-lg ${tv(isDark,'bg-white/70','bg-blue-800/20')}`}>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">⚡</span>
+              <span className={`font-medium text-sm ${tv(isDark,'text-blue-800','text-blue-200')}`}>Activación</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Información del servicio - Compacto */}
+      <div className={`rounded-xl p-4 border ${tv(isDark,'bg-gradient-to-r from-gray-50 to-blue-50 border-gray-200','bg-gradient-to-r from-gray-800 to-blue-900/20 border-gray-600')}`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`h-12 w-12 ${service.color} rounded-xl text-white flex items-center justify-center text-xl font-bold shadow-md`}>
+              {service.logo}
+            </div>
+            <div>
+              <h5 className={`text-lg font-bold ${tv(isDark,'text-gray-900','text-white')}`}>{service.name}</h5>
+              <p className={`text-base ${tv(isDark,'text-gray-600','text-gray-300')}`}>Precio: <span className="font-bold text-green-600">{fmt(service.price)}</span>/mes</p>
+            </div>
+          </div>
+          <div className={`px-3 py-1 rounded-full ${tv(isDark,'bg-green-100 text-green-800','bg-green-800/30 text-green-200')}`}>
+            <span className="text-xs font-semibold">Premium</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Botones de acción - Compactos */}
+      <div className="flex flex-col gap-3">
+        <button 
+          onClick={onGoToAuth}
+          className={`w-full rounded-xl px-6 py-4 font-bold text-lg transition-all duration-300 hover:scale-105 shadow-xl ${tv(isDark,'bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 text-white hover:from-purple-700 hover:via-blue-700 hover:to-pink-700','bg-gradient-to-r from-purple-700 via-blue-700 to-pink-700 text-white hover:from-purple-800 hover:via-blue-800 hover:to-pink-800')}`}
+        >
+          <span className="flex items-center justify-center gap-3">
+            <span className="text-xl">🚀</span>
+            <span>Crear Cuenta y Comprar</span>
+            <span className="text-xl">✨</span>
+          </span>
+        </button>
+        
+        <button 
+          onClick={onClose}
+          className={`w-full rounded-xl px-4 py-3 font-semibold transition-all duration-300 hover:scale-105 border ${tv(isDark,'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400','bg-gray-800 text-gray-300 border-gray-600 hover:bg-gray-700 hover:border-gray-500')}`}
+        >
+          <span className="flex items-center justify-center gap-2">
+            <span>←</span>
+            <span>Volver al Catálogo</span>
+          </span>
+        </button>
+      </div>
+
+      {/* Mensaje de ayuda - Mejorado */}
+      <div className="text-center pt-4">
+        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${tv(isDark,'bg-gray-100','bg-gray-800')}`}>
+          <span className={`text-sm ${tv(isDark,'text-gray-600','text-gray-400')}`}>¿Ya tienes cuenta?</span>
+          <button 
+            onClick={onGoToAuth}
+            className={`font-semibold text-sm px-3 py-1 rounded-full transition-all ${tv(isDark,'text-blue-600 hover:text-blue-700 hover:bg-blue-50','text-blue-400 hover:text-blue-300 hover:bg-blue-900/20')}`}
+          >
+            Iniciar sesión
           </button>
         </div>
       </div>
@@ -4883,22 +5033,14 @@ function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, systemP
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className={`w-full max-w-3xl rounded-3xl shadow-2xl max-h-[90vh] overflow-y-auto border-2 ${tv(isDark,'bg-white border-gray-200','bg-zinc-900 border-zinc-700')}`} onClick={e=>e.stopPropagation()}>
-        {/* Header con gradiente */}
-        <div className={`relative rounded-t-3xl p-6 border-b-2 ${tv(isDark,'bg-gradient-to-r from-blue-600 to-purple-600 border-gray-200','bg-gradient-to-r from-blue-700 to-purple-700 border-zinc-700')}`}>
+      <div className={`w-full max-w-3xl rounded-lg shadow-xl max-h-[90vh] overflow-y-auto ${tv(isDark,'bg-white','bg-gray-900')}`} onClick={e=>e.stopPropagation()}>
+        {/* Header minimalista */}
+        <div className={`relative p-6 border-b ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-700')}`}>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${tv(isDark,'bg-white/20','bg-white/10')}`}>
-                <span className="text-2xl">🛒</span>
-              </div>
-              <div>
-                <h3 className={`text-2xl font-bold ${tv(isDark,'text-white','text-white')}`}>Registrar Compra Manual</h3>
-                <p className={`text-sm opacity-90 ${tv(isDark,'text-white/80','text-white/80')}`}>Crear nueva compra para un cliente</p>
-              </div>
-            </div>
+            <h3 className={`text-xl font-semibold ${tv(isDark,'text-gray-900','text-white')}`}>Registrar Compra Manual</h3>
           <button 
             onClick={onClose} 
-              className={`w-10 h-10 rounded-full flex items-center justify-center text-xl font-bold transition-all hover:scale-110 ${tv(isDark,'text-white hover:bg-white/20','text-white hover:bg-white/10')}`}
+              className={`w-6 h-6 rounded flex items-center justify-center text-lg font-bold ${tv(isDark,'text-gray-500 hover:bg-gray-100','text-gray-400 hover:bg-gray-700')}`}
           >
             ×
           </button>
@@ -4908,13 +5050,8 @@ function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, systemP
         <div className="p-6">
           <form onSubmit={handleSubmit} className="space-y-8">
           {/* Información del cliente */}
-            <div className={`p-6 rounded-2xl border-2 ${tv(isDark,'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200','bg-gradient-to-br from-blue-900/20 to-purple-900/20 border-blue-700/30')}`}>
-              <div className="flex items-center gap-3 mb-6">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tv(isDark,'bg-blue-100','bg-blue-800/30')}`}>
-                  <span className="text-xl">👤</span>
-                </div>
-                <h4 className={`text-xl font-bold ${tv(isDark,'text-blue-900','text-blue-100')}`}>Información del Cliente</h4>
-              </div>
+            <div className={`p-4 rounded-lg ${tv(isDark,'bg-gray-50','bg-gray-800')}`}>
+              <h4 className={`text-lg font-semibold mb-4 ${tv(isDark,'text-gray-900','text-white')}`}>Información del Cliente</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
@@ -4924,7 +5061,7 @@ function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, systemP
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-blue-400 focus:ring-blue-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-600 focus:ring-blue-300')}`}
+                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100','border-gray-600 bg-gray-700 text-white focus:border-blue-400 focus:ring-2 focus:ring-blue-800/30','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200')}`}
                   placeholder="Juan Pérez"
                 />
               </div>
@@ -4936,7 +5073,7 @@ function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, systemP
                   required
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-blue-400 focus:ring-blue-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-600 focus:ring-blue-300')}`}
+                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100','border-gray-600 bg-gray-700 text-white focus:border-blue-400 focus:ring-2 focus:ring-blue-800/30','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200')}`}
                   placeholder="+593987654321"
                 />
               </div>
@@ -4948,7 +5085,7 @@ function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, systemP
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-blue-400 focus:ring-blue-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-600 focus:ring-blue-300')}`}
+                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100','border-gray-600 bg-gray-700 text-white focus:border-blue-400 focus:ring-2 focus:ring-blue-800/30','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200')}`}
                   placeholder="juan@correo.com"
                 />
               </div>
@@ -4956,13 +5093,8 @@ function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, systemP
           </div>
 
           {/* Información del servicio */}
-            <div className={`p-6 rounded-2xl border-2 ${tv(isDark,'bg-gradient-to-br from-green-50 to-blue-50 border-green-200','bg-gradient-to-br from-green-900/20 to-blue-900/20 border-green-700/30')}`}>
-              <div className="flex items-center gap-3 mb-6">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tv(isDark,'bg-green-100','bg-green-800/30')}`}>
-                  <span className="text-xl">🛍️</span>
-                </div>
-                <h4 className={`text-xl font-bold ${tv(isDark,'text-green-900','text-green-100')}`}>Información del Servicio</h4>
-              </div>
+            <div className={`p-4 rounded-lg ${tv(isDark,'bg-gray-50','bg-gray-800')}`}>
+              <h4 className={`text-lg font-semibold mb-4 ${tv(isDark,'text-gray-900','text-white')}`}>Información del Servicio</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
@@ -5378,22 +5510,14 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPr
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className={`w-full max-w-4xl rounded-3xl shadow-2xl max-h-[90vh] overflow-y-auto border-2 ${tv(isDark,'bg-white border-gray-200','bg-zinc-900 border-zinc-700')}`} onClick={e=>e.stopPropagation()}>
-        {/* Header con gradiente */}
-        <div className={`relative rounded-t-3xl p-6 border-b-2 ${tv(isDark,'bg-gradient-to-r from-orange-500 to-red-500 border-gray-200','bg-gradient-to-r from-orange-600 to-red-600 border-zinc-700')}`}>
+        <div className={`w-full max-w-4xl mx-4 rounded-lg shadow-xl max-h-[95vh] overflow-y-auto ${tv(isDark,'bg-white','bg-gray-900')}`} onClick={e=>e.stopPropagation()}>
+        {/* Header minimalista */}
+        <div className={`relative p-4 border-b ${tv(isDark,'bg-white border-gray-200','bg-gray-900 border-gray-700')}`}>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${tv(isDark,'bg-white/20','bg-white/10')}`}>
-                <span className="text-2xl">✏️</span>
-              </div>
-              <div>
-                <h3 className={`text-2xl font-bold ${tv(isDark,'text-white','text-white')}`}>Editar Compra</h3>
-                <p className={`text-sm opacity-90 ${tv(isDark,'text-white/80','text-white/80')}`}>Modificar información de la compra</p>
-              </div>
-          </div>
+            <h3 className={`text-xl font-semibold ${tv(isDark,'text-gray-900','text-white')}`}>Editar Compra</h3>
           <button
             onClick={onClose}
-              className={`w-10 h-10 rounded-full flex items-center justify-center text-xl font-bold transition-all hover:scale-110 ${tv(isDark,'text-white hover:bg-white/20','text-white hover:bg-white/10')}`}
+              className={`w-6 h-6 rounded flex items-center justify-center text-lg font-bold ${tv(isDark,'text-gray-500 hover:bg-gray-100','text-gray-400 hover:bg-gray-800')}`}
           >
             ×
           </button>
@@ -5401,57 +5525,32 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPr
         </div>
         
         <div className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Información del cliente - Tarjeta compacta */}
-            <div className={`p-4 rounded-xl border-2 ${tv(isDark,'bg-blue-50 border-blue-200','bg-blue-900/20 border-blue-700/30')}`}>
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tv(isDark,'bg-blue-100','bg-blue-800/30')}`}>
-                  <span className={`text-sm font-bold ${tv(isDark,'text-blue-700','text-blue-200')}`}>
-                    {(() => {
-                      const customerName = formData.customer || '';
-                      if (!customerName || customerName.trim() === '') {
-                        return '👤';
-                      }
-                      
-                      const words = customerName.trim().split(' ').filter(word => word.length > 0);
-                      const initials = words.map(word => word[0]).join('').toUpperCase().slice(0, 2);
-                      
-                      return initials || '👤';
-                    })()}
-                  </span>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Información del cliente - Ultra Minimalista */}
+            <div className={`p-4 rounded-lg ${tv(isDark,'bg-gray-50','bg-gray-800')}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className={`font-semibold ${tv(isDark,'text-gray-900','text-white')}`}>{formData.customer}</h4>
+                  <p className={`text-sm ${tv(isDark,'text-gray-600','text-gray-400')}`}>{formData.service} • {formData.months} {formData.months === 1 ? 'mes' : 'meses'}</p>
                 </div>
-                <div className="flex-1">
-                  <h4 className={`font-semibold text-base ${tv(isDark,'text-gray-900','text-white')}`}>{formData.customer}</h4>
-                  <p className={`text-sm ${tv(isDark,'text-gray-700','text-gray-300')}`}>{formData.service} • {formData.months} {formData.months === 1 ? 'mes' : 'meses'}</p>
-                  <p className={`text-xs ${tv(isDark,'text-gray-600','text-gray-400')}`}>📱 {formData.phone}</p>
+                <p className={`text-sm ${tv(isDark,'text-gray-500','text-gray-500')}`}>📱 {formData.phone}</p>
+              </div>
             </div>
-          </div>
-        </div>
         
           
           {/* Detectar si es un combo */}
             {formData.service && isRealCombo(formData.service) ? (
-              <div className={`p-6 rounded-2xl border-2 ${tv(isDark,'bg-gradient-to-br from-green-50 to-blue-50 border-green-200','bg-gradient-to-br from-green-900/20 to-blue-900/20 border-green-700/30')}`}>
-                {/* Banner de detección de combo */}
-                <div className={`p-4 rounded-xl mb-6 ${tv(isDark,'bg-green-100 border-2 border-green-200','bg-green-800/30 border-2 border-green-700/30')}`}>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tv(isDark,'bg-green-200','bg-green-700/30')}`}>
-                      <span className="text-xl">🎯</span>
-                    </div>
-            <div>
-                      <h4 className={`font-bold text-lg ${tv(isDark,'text-green-800','text-green-100')}`}>Combo Detectado</h4>
-                      <p className={`text-sm ${tv(isDark,'text-green-600','text-green-200')}`}>Múltiples plataformas en una sola compra</p>
+              <div className={`p-4 rounded-lg ${tv(isDark,'bg-gray-50','bg-gray-800')}`}>
+                {/* Banner de detección de combo - Ultra Minimalista */}
+                <div className={`p-2 rounded mb-4 ${tv(isDark,'bg-green-100','bg-green-800/20')}`}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">🎯</span>
+                    <span className={`text-sm font-medium ${tv(isDark,'text-green-800','text-green-100')}`}>Combo Detectado</span>
                   </div>
                 </div>
-              </div>
               
                 <div className="space-y-4">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tv(isDark,'bg-blue-100','bg-blue-800/30')}`}>
-                      <span className="text-lg">🔑</span>
-                    </div>
-                    <h3 className={`text-lg font-bold ${tv(isDark,'text-green-900','text-green-100')}`}>Cuentas del Combo</h3>
-                  </div>
+                  <h3 className={`text-sm font-medium mb-3 ${tv(isDark,'text-gray-700','text-gray-300')}`}>Credenciales del Combo</h3>
                 
                 {formData.service.split(' + ').map((service, index) => {
                   const serviceName = service.trim();
@@ -5479,19 +5578,19 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPr
                   };
                   
                   return (
-                    <div key={index} className={`p-4 rounded-xl border-2 ${tv(isDark,'bg-white border-gray-200 shadow-sm','bg-zinc-800 border-zinc-600 shadow-lg')}`}>
-                      <h4 className={`font-bold text-base mb-4 ${tv(isDark,'text-gray-900','text-white')}`}>
+                    <div key={index} className={`p-3 rounded-md ${tv(isDark,'bg-white','bg-gray-700')}`}>
+                      <h4 className={`font-medium text-sm mb-3 ${tv(isDark,'text-gray-800','text-white')}`}>
                       {serviceName}
                     </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="space-y-2">
-                          <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
-                            📧 Email *
+                          <label className={`block text-xs font-medium ${tv(isDark,'text-gray-600','text-gray-400')}`}>
+                            Email *
                         </label>
                         <input
                           type="email"
                             placeholder="usuario@email.com"
-                            className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-blue-400 focus:ring-blue-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-600 focus:ring-blue-300')}`}
+                            className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100','border-gray-600 bg-gray-700 text-white focus:border-blue-400 focus:ring-2 focus:ring-blue-800/30','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200')}`}
                           onChange={(e) => {
                             // Actualizar las credenciales en admin_notes
                             const credentials = JSON.parse(formData.admin_notes || '{}');
@@ -5518,13 +5617,13 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPr
                         />
                       </div>
                         <div className="space-y-2">
-                          <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
-                            🔑 Contraseña *
+                          <label className={`block text-xs font-medium ${tv(isDark,'text-gray-600','text-gray-400')}`}>
+                            Contraseña *
                         </label>
                           <input
                             type="text"
                             placeholder="contraseña123"
-                            className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-blue-400 focus:ring-blue-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-600 focus:ring-blue-300')}`}
+                            className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100','border-gray-600 bg-gray-700 text-white focus:border-blue-400 focus:ring-2 focus:ring-blue-800/30','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200')}`}
                             onChange={(e) => {
                               // Actualizar las credenciales en admin_notes
                               const credentials = JSON.parse(formData.admin_notes || '{}');
