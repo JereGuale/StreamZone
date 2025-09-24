@@ -2984,8 +2984,8 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                         key={purchase.id}
                         item={purchase}
                         isDark={isDark}
-                        onToggleValidate={() => { handleToggleValidate(purchase.id); }}
-                        onDelete={() => { handleDeleteActivePurchase(purchase.id, purchase.customer, purchase.service); }}
+                        onToggleValidate={() => { void handleToggleValidate(purchase.id); }}
+                        onDelete={() => { void handleDeleteActivePurchase(purchase.id, purchase.customer, purchase.service); }}
                         onEdit={() => handleEditPurchase(purchase)}
                       />
                     ))}
