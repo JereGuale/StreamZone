@@ -3630,9 +3630,9 @@ function AdminDrawer({ open, onClose, isDark, adminUsers, setAdminUsers }:{
   return (
     <div className="fixed inset-0 z-50" onClick={onClose}>
       <div className="absolute inset-0 bg-black/50"/>
-      <aside className={`absolute right-0 top-0 h-full w-[450px] p-6 shadow-2xl ${tv(isDark,'bg-white','bg-zinc-900 text-zinc-100')}`} onClick={e=>e.stopPropagation()}>
-        <div className="mb-6 flex items-center justify-between">
-          <h4 className="text-xl font-bold">👥 Gestión de Administradores</h4>
+      <aside className={`absolute right-0 top-0 h-full w-full sm:w-[450px] p-3 sm:p-6 shadow-2xl ${tv(isDark,'bg-white','bg-zinc-900 text-zinc-100')}`} onClick={e=>e.stopPropagation()}>
+        <div className="mb-4 sm:mb-6 flex items-center justify-between">
+          <h4 className="text-lg sm:text-xl font-bold">👥 Gestión de Administradores</h4>
           <button 
             onClick={onClose} 
             className={`w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold transition-colors ${tv(isDark,'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100','text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800')}`}
@@ -3642,11 +3642,11 @@ function AdminDrawer({ open, onClose, isDark, adminUsers, setAdminUsers }:{
         </div>
         
         {/* Información del sistema */}
-        <div className={`p-4 rounded-xl mb-6 ${tv(isDark,'bg-blue-50 border border-blue-200','bg-blue-900/20 border border-blue-700')}`}>
-          <div className="flex items-start gap-3">
-            <div className="text-2xl">🔒</div>
+        <div className={`p-3 sm:p-4 rounded-xl mb-4 sm:mb-6 ${tv(isDark,'bg-blue-50 border border-blue-200','bg-blue-900/20 border border-blue-700')}`}>
+          <div className="flex items-start gap-2 sm:gap-3">
+            <div className="text-xl sm:text-2xl">🔒</div>
             <div>
-              <h5 className={`font-semibold text-sm mb-1 ${tv(isDark,'text-blue-800','text-blue-200')}`}>Sistema de Roles</h5>
+              <h5 className={`font-semibold text-xs sm:text-sm mb-1 ${tv(isDark,'text-blue-800','text-blue-200')}`}>Sistema de Roles</h5>
               <p className={`text-xs ${tv(isDark,'text-blue-600','text-blue-300')}`}>
                 <strong>Principal:</strong> Acceso completo, protegido. <strong>Secundarios:</strong> Pueden generar claves, limitados.
               </p>
@@ -3656,16 +3656,16 @@ function AdminDrawer({ open, onClose, isDark, adminUsers, setAdminUsers }:{
         
         {/* Administrador Principal */}
         {principalAdmin && (
-          <div className="mb-6">
-            <h5 className={`text-sm font-semibold mb-3 ${tv(isDark,'text-zinc-700','text-zinc-300')}`}>
+          <div className="mb-4 sm:mb-6">
+            <h5 className={`text-xs sm:text-sm font-semibold mb-2 sm:mb-3 ${tv(isDark,'text-zinc-700','text-zinc-300')}`}>
               👑 Administrador Principal
             </h5>
-            <div className={`rounded-xl border-2 p-4 ${tv(isDark,'border-yellow-200 bg-yellow-50','border-yellow-700 bg-yellow-900/20')}`}>
+            <div className={`rounded-xl border-2 p-3 sm:p-4 ${tv(isDark,'border-yellow-200 bg-yellow-50','border-yellow-700 bg-yellow-900/20')}`}>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="text-2xl">👑</div>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="text-xl sm:text-2xl">👑</div>
                   <div>
-                    <div className="font-medium">{principalAdmin.email}</div>
+                    <div className="font-medium text-sm sm:text-base">{principalAdmin.email}</div>
                     <div className={`text-xs ${tv(isDark,'text-yellow-600','text-yellow-300')}`}>
                       Acceso completo • Protegido
                     </div>
@@ -3680,35 +3680,35 @@ function AdminDrawer({ open, onClose, isDark, adminUsers, setAdminUsers }:{
         )}
         
         {/* Administradores Secundarios */}
-        <div className="mb-6">
-          <h5 className={`text-sm font-semibold mb-3 ${tv(isDark,'text-zinc-700','text-zinc-300')}`}>
+        <div className="mb-4 sm:mb-6">
+          <h5 className={`text-xs sm:text-sm font-semibold mb-2 sm:mb-3 ${tv(isDark,'text-zinc-700','text-zinc-300')}`}>
             👥 Administradores Secundarios ({secondaryAdmins.length})
           </h5>
           
           {/* Formulario para agregar */}
-          <div className="mb-4 flex gap-2">
+          <div className="mb-3 sm:mb-4 flex flex-col sm:flex-row gap-2">
             <input 
               value={newEmail} 
               onChange={e=>setNewEmail(e.target.value)} 
               placeholder="nuevo@correo.com" 
-              className={`flex-1 rounded-xl border px-4 py-3 text-sm ${tv(isDark,'border-zinc-300 focus:border-zinc-500','border-zinc-700 bg-zinc-800 text-zinc-100 focus:border-zinc-500')}`}
+              className={`flex-1 rounded-xl border px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm ${tv(isDark,'border-zinc-300 focus:border-zinc-500','border-zinc-700 bg-zinc-800 text-zinc-100 focus:border-zinc-500')}`}
               onKeyDown={e => e.key === 'Enter' && addSecondaryAdmin()}
             />
             <button 
               onClick={addSecondaryAdmin} 
-              className={`rounded-xl px-4 py-3 text-sm font-semibold ${tv(isDark,'bg-green-600 text-white hover:bg-green-700','bg-green-700 text-white hover:bg-green-600')}`}
+              className={`rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold ${tv(isDark,'bg-green-600 text-white hover:bg-green-700','bg-green-700 text-white hover:bg-green-600')}`}
             >
               + Agregar
             </button>
           </div>
           
           {/* Lista de secundarios */}
-          <div className="max-h-64 overflow-y-auto space-y-2">
+          <div className="max-h-48 sm:max-h-64 overflow-y-auto space-y-2">
             {secondaryAdmins.map(user => (
-              <div key={user.email} className={`rounded-xl border p-4 ${tv(isDark,'border-zinc-200 bg-zinc-50','border-zinc-700 bg-zinc-800')}`}>
-                <div className="flex items-center justify-between mb-2">
+              <div key={user.email} className={`rounded-xl border p-3 sm:p-4 ${tv(isDark,'border-zinc-200 bg-zinc-50','border-zinc-700 bg-zinc-800')}`}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{user.email}</span>
+                    <span className="font-medium text-sm sm:text-base">{user.email}</span>
                     <span className={`text-xs px-2 py-1 rounded-full ${tv(isDark,'bg-blue-100 text-blue-800','bg-blue-800 text-blue-100')}`}>
                       Secundario
                     </span>
@@ -3738,7 +3738,7 @@ function AdminDrawer({ open, onClose, isDark, adminUsers, setAdminUsers }:{
         </div>
         
         {/* Información sobre claves */}
-        <div className={`mt-6 p-3 rounded-lg ${tv(isDark,'bg-gray-50','bg-zinc-800')}`}>
+        <div className={`mt-4 sm:mt-6 p-3 rounded-lg ${tv(isDark,'bg-gray-50','bg-zinc-800')}`}>
           <p className={`text-xs ${tv(isDark,'text-gray-600','text-gray-400')}`}>
             💡 <strong>Nota:</strong> Solo los administradores secundarios pueden generar claves. 
             El administrador principal tiene acceso directo sin clave.
