@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase, createUser, getUserByPhone, updateUser, createPurchase, syncServices, DatabasePurchase, getUserPurchases, getUserByEmail, generateResetToken, verifyResetToken, resetPassword, loginUser, approvePurchase, getPendingPurchases, getUserActivePurchases, getAllPurchases, getExpiringServices, createRenewal, getRenewalHistory, toggleAutoRenewal, getRenewalNotifications, getRenewalStats, updatePurchase, updatePurchaseValidation, RenewalHistory, ExpiringService } from "./lib/supabase";
+import './animations.css';
+import './styles.css';
 
 /**
  * StreamZone – Tienda de Streaming (React + TS + Tailwind)
@@ -157,8 +159,8 @@ function daysBetween(a: string, b: string){
   const diff = d2.getTime()-d1.getTime();
   return Math.round(diff/(1000*60*60*24)); 
 }
-  function whatsappLink(to: string, text: string){ return `https://wa.me/${to}?text=${encodeURIComponent(text)}`; }
-  function tv<T>(isDark: boolean, light: T, dark: T){ return isDark? dark : light; }
+function whatsappLink(to: string, text: string){ return `https://wa.me/${to}?text=${encodeURIComponent(text)}`; }
+function tv<T>(isDark: boolean, light: T, dark: T){ return isDark? dark : light; }
   
   // Función mejorada para contraste que considera el modo del sistema
   function tvContrast<T>(isDark: boolean, systemPrefersDark: boolean, light: T, dark: T, lightHighContrast?: T){ 
@@ -507,19 +509,41 @@ function Badge({ children, isDark }: { children: React.ReactNode; isDark: boolea
 
 function ServiceCard({ s, onReserve, isDark }:{ s:any; onReserve:(s:any)=>void; isDark:boolean; }){
   return (
-    <div className={`group rounded-2xl border p-4 md:p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 ${tv(isDark,'border-zinc-200 bg-white','border-zinc-700 bg-zinc-800')}`}> 
-      <div className="text-center">
-        <div className={`h-12 w-12 md:h-16 md:w-16 ${s.color} rounded-2xl text-white grid place-content-center text-xl md:text-2xl font-bold mx-auto mb-3 md:mb-4 shadow-lg`}>{s.logo}</div>
-        <div className="mb-3 md:mb-4">
-          <div className={tv(isDark,'text-zinc-900 font-bold text-base md:text-lg mb-1 md:mb-2','text-white font-bold text-base md:text-lg mb-1 md:mb-2')}>{s.name}</div>
-          <div className={tv(isDark,'text-xl md:text-2xl font-bold text-zinc-700','text-xl md:text-2xl font-bold text-zinc-200')}>{fmt(s.price)}</div>
-          <div className={tv(isDark,'text-xs md:text-sm text-zinc-500','text-xs md:text-sm text-zinc-400')}>por {s.billing==='annual'? 'año':'mes'}</div>
+    <div className={`group relative overflow-hidden rounded-3xl border-2 p-6 shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:-translate-y-2 ${tv(isDark,'border-gray-200 bg-gradient-to-br from-white to-gray-50','border-gray-700 bg-gradient-to-br from-zinc-800 to-zinc-900')}`}> 
+      {/* Background Effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      
+      <div className="relative text-center">
+        <div className="relative mb-6">
+          <div className={`h-16 w-16 md:h-20 md:w-20 ${s.color} rounded-3xl text-white grid place-content-center text-2xl md:text-3xl font-bold mx-auto mb-4 shadow-2xl group-hover:scale-110 transition-transform duration-300`}>
+            {s.logo}
+          </div>
+          <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full ${tv(isDark,'bg-green-500','bg-green-400')} flex items-center justify-center text-white text-xs font-bold animate-pulse`}>
+            ✓
+          </div>
         </div>
+        
+        <div className="mb-6 space-y-2">
+          <div className={tv(isDark,'text-gray-900 font-bold text-lg md:text-xl mb-2','text-white font-bold text-lg md:text-xl mb-2')}>{s.name}</div>
+          <div className="flex items-center justify-center gap-2">
+            <span className={tv(isDark,'text-3xl md:text-4xl font-bold text-gray-700','text-3xl md:text-4xl font-bold text-gray-200')}>{fmt(s.price)}</span>
+            <span className={tv(isDark,'text-sm text-gray-500','text-sm text-gray-400')}>/{s.billing==='annual'? 'año':'mes'}</span>
+          </div>
+          <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${tv(isDark,'bg-green-100 text-green-700','bg-green-900/30 text-green-300')}`}>
+            <span>⚡</span>
+            Acceso inmediato
+          </div>
+        </div>
+        
         <button 
           onClick={()=>onReserve(s)} 
-          className={`w-full rounded-xl px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-semibold transition-all duration-200 ${tv(isDark,'bg-zinc-900 text-white hover:bg-zinc-800 hover:shadow-lg','bg-white text-zinc-900 hover:bg-zinc-100 hover:shadow-lg')}`}
+          className={`w-full rounded-2xl px-6 py-4 text-sm font-bold transition-all duration-200 shadow-lg hover:shadow-xl ${tv(isDark,'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700','bg-gradient-to-r from-blue-700 to-purple-700 text-white hover:from-blue-800 hover:to-purple-800')}`}
         >
-          Comprar Ahora
+          <span className="flex items-center justify-center gap-2">
+            <span>🚀</span>
+            Comprar Ahora
+            <span>✨</span>
+          </span>
         </button>
       </div>
     </div>
@@ -592,11 +616,14 @@ function FloatingChatbot({ answerFn, isDark }:{ answerFn:(q:string, context?:str
     <button 
       data-chat-button
       onClick={()=>setOpen(!open)} 
-      className={`fixed bottom-5 right-5 z-40 rounded-full px-4 py-3 shadow-lg transition-all duration-200 hover:scale-105 ${tv(isDark,'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700','bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700')}`}
+      className={`fixed bottom-5 right-5 z-40 rounded-full px-6 py-4 shadow-2xl transition-all duration-300 hover:scale-110 animate-pulse ${tv(isDark,'bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-white hover:from-purple-700 hover:via-pink-700 hover:to-blue-700','bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white hover:from-blue-600 hover:via-purple-600 hover:to-pink-600')}`}
     >
-      <span className="flex items-center gap-2">
-        <span className="text-lg">💬</span>
-        <span className="font-semibold">Chat</span>
+      <span className="flex items-center gap-3">
+        <span className="text-2xl animate-bounce">💬</span>
+        <div className="text-left">
+          <div className="font-bold text-sm">¿Necesitas ayuda?</div>
+          <div className="text-xs opacity-90">Chat en vivo</div>
+        </div>
       </span>
     </button>
     
@@ -1708,37 +1735,43 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
   };
 
   return (
-    <div className={`min-h-screen ${tv(isDark,'bg-zinc-50 text-zinc-900','bg-zinc-950 text-zinc-100')}`}>
-      {/* Navbar */}
-      <header className={`sticky top-0 z-30 border-b backdrop-blur ${tv(isDark,'bg-white/80 border-zinc-200','bg-zinc-950/70 border-zinc-800')}`}>
-        <div className="mx-auto max-w-6xl px-4 py-3">
+    <div className={`min-h-screen ${tv(isDark,'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 text-zinc-900','bg-gradient-to-br from-zinc-950 via-blue-950 to-purple-950 text-zinc-100')}`}>
+      {/* Navbar moderno */}
+      <header className={`sticky top-0 z-30 border-b backdrop-blur-md shadow-lg ${tv(isDark,'bg-white/90 border-zinc-200/50','bg-zinc-950/90 border-zinc-800/50')}`}>
+        <div className="mx-auto max-w-7xl px-4 py-4">
           {/* Desktop Layout */}
           <div className="hidden md:flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Logo className="h-9 w-9" />
-              <div className="font-semibold">StreamZone</div>
-              <Badge isDark={isDark}>Seguridad y confianza</Badge>
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <Logo className="h-12 w-12" />
+                <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full ${tv(isDark,'bg-green-500','bg-green-400')} animate-pulse`}></div>
+              </div>
+              <div>
+                <div className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">StreamZone</div>
+                <div className={`text-xs ${tv(isDark,'text-gray-500','text-gray-400')}`}>Tu entretenimiento digital</div>
+              </div>
+              <Badge isDark={isDark}>✨ Seguridad garantizada</Badge>
             </div>
             <nav className="flex items-center gap-2">
               <button
                 onClick={() => setView('home')}
-                className={tv(
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-105 ${tv(
                   isDark,
-                  'rounded-xl bg-zinc-100 px-3 py-1.5 text-sm hover:bg-zinc-200',
-                  'rounded-xl bg-zinc-800 px-3 py-1.5 text-sm hover:bg-zinc-700'
-                )}
+                  'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg hover:from-blue-600 hover:to-blue-700',
+                  'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg hover:from-blue-700 hover:to-blue-800'
+                )}`}
               >
-                Inicio
+                🏠 Inicio
               </button>
               <button
                 onClick={() => setView('combos')}
-                className={tv(
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-105 ${tv(
                   isDark,
-                  'rounded-xl px-3 py-1.5 text-sm hover:bg-zinc-100',
-                  'rounded-xl px-3 py-1.5 text-sm hover:bg-zinc-800'
-                )}
+                  'text-purple-600 hover:text-purple-700 hover:bg-purple-50',
+                  'text-purple-400 hover:text-purple-300 hover:bg-purple-900/20'
+                )}`}
               >
-                🎯 Combos
+                📦 Combos
               </button>
               {user && (
               <button
@@ -1862,35 +1895,122 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
       {/* HOME */}
       {view==='home' && (
         <>
-          <section className="relative">
-            <div className="relative mx-auto max-w-6xl px-4 py-12 md:py-16 lg:py-24">
-              <div className="grid items-center gap-6 md:gap-8 md:grid-cols-2">
-                <div className="relative z-10">
-                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight">StreamZone</h1>
-                  <p className={tv(isDark,'mt-2 text-base md:text-lg text-zinc-700','mt-2 text-base md:text-lg text-zinc-200')}>Tus plataformas favoritas, al mejor precio.</p>
-                  <p className={tv(isDark,'mt-3 text-sm md:text-base text-zinc-600','mt-3 text-sm md:text-base text-zinc-300')}>Reserva por WhatsApp, recibe acceso con soporte inmediato y renueva sin complicaciones. Administra tus servicios desde tu cuenta.</p>
-                  <div className="mt-6 flex flex-col gap-4">
+          {/* Hero Section */}
+          <section className="relative overflow-hidden">
+            {/* Background Effects */}
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-pink-600/10"></div>
+            <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
+            <div className="absolute top-0 right-1/4 w-72 h-72 bg-purple-500/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse animation-delay-2000"></div>
+            
+            <div className="relative mx-auto max-w-7xl px-4 py-16 md:py-24 lg:py-32">
+              <div className="grid items-center gap-8 md:gap-12 lg:grid-cols-2">
+                <div className="relative z-10 space-y-8">
+                  <div className="space-y-4">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20">
+                      <span className="text-2xl">🎬</span>
+                      <span className={`text-sm font-semibold ${tv(isDark,'text-blue-600','text-blue-400')}`}>Entretenimiento Premium</span>
+                    </div>
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight">
+                      <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">StreamZone</span>
+                    </h1>
+                    <p className={`text-xl md:text-2xl font-semibold ${tv(isDark,'text-gray-700','text-gray-200')}`}>
+                      Tus plataformas favoritas, al mejor precio
+                    </p>
+                    <p className={`text-base md:text-lg ${tv(isDark,'text-gray-600','text-gray-300')}`}>
+                      Reserva por WhatsApp, recibe acceso con soporte inmediato y renueva sin complicaciones. 
+                      <span className="font-semibold text-blue-600"> Administra tus servicios desde tu cuenta.</span>
+                    </p>
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row gap-4">
                     {user ? (
-                      <a href="#catalogo" className={tv(isDark,'rounded-xl bg-zinc-900 text-white px-4 md:px-5 py-3 text-sm text-center','rounded-xl bg-white text-zinc-900 px-4 md:px-5 py-3 text-sm text-center')}>Ver catálogo</a>
+                      <a href="#catalogo" className={`inline-flex items-center justify-center px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-200 hover:scale-105 shadow-lg ${tv(isDark,'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700','bg-gradient-to-r from-blue-600 to-purple-700 text-white hover:from-blue-700 hover:to-purple-800')}`}>
+                        <span className="mr-2">✨</span>
+                        Ver Catálogo
+                        <span className="ml-2">🚀</span>
+                      </a>
                     ) : (
-                      <button onClick={() => setView('auth')} className={tv(isDark,'rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 md:px-5 py-3 text-sm text-center shadow-lg','rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 md:px-5 py-3 text-sm text-center shadow-lg')}>Iniciar sesión</button>
+                      <button onClick={() => setView('auth')} className={`inline-flex items-center justify-center px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-200 hover:scale-105 shadow-lg ${tv(isDark,'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700','bg-gradient-to-r from-blue-600 to-purple-700 text-white hover:from-blue-700 hover:to-purple-800')}`}>
+                        <span className="mr-2">🔐</span>
+                        Iniciar Sesión
+                        <span className="ml-2">✨</span>
+                      </button>
                     )}
+                    <button onClick={() => setView('combos')} className={`inline-flex items-center justify-center px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-200 hover:scale-105 ${tv(isDark,'bg-white text-purple-600 border-2 border-purple-200 hover:bg-purple-50','bg-zinc-800 text-purple-400 border-2 border-purple-600 hover:bg-purple-900/20')}`}>
+                      <span className="mr-2">📦</span>
+                      Ver Combos
+                    </button>
+                  </div>
+                  
+                  {/* Stats */}
+                  <div className="grid grid-cols-3 gap-6 pt-8">
+                    <div className="text-center">
+                      <div className={`text-2xl font-bold ${tv(isDark,'text-blue-600','text-blue-400')}`}>500+</div>
+                      <div className={`text-sm ${tv(isDark,'text-gray-600','text-gray-400')}`}>Clientes felices</div>
+                    </div>
+                    <div className="text-center">
+                      <div className={`text-2xl font-bold ${tv(isDark,'text-purple-600','text-purple-400')}`}>24/7</div>
+                      <div className={`text-sm ${tv(isDark,'text-gray-600','text-gray-400')}`}>Soporte</div>
+                    </div>
+                    <div className="text-center">
+                      <div className={`text-2xl font-bold ${tv(isDark,'text-green-600','text-green-400')}`}>100%</div>
+                      <div className={`text-sm ${tv(isDark,'text-gray-600','text-gray-400')}`}>Garantía</div>
+                    </div>
                   </div>
                 </div>
-                <div className={`relative z-10 rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm backdrop-blur-md border ${tv(isDark,'bg-white/60 border-white/10','bg-zinc-900/50 border-zinc-800')}`}>
-                  <div className={tv(isDark,'text-sm md:text-base font-semibold text-zinc-700','text-sm md:text-base font-semibold text-zinc-300')}>💳 Métodos de Pago</div>
-                  <p className={tv(isDark,'text-xs md:text-sm text-zinc-500 mt-1','text-xs md:text-sm text-zinc-400 mt-1')}>
-                    Transferencias bancarias, PayPal y Pago Móvil
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <span className={tv(isDark,'text-xs bg-green-100 text-green-700 px-2 py-1 rounded','text-xs bg-green-800 text-green-200 px-2 py-1 rounded')}>🏦 Pichincha</span>
-                    <span className={tv(isDark,'text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded','text-xs bg-blue-800 text-blue-200 px-2 py-1 rounded')}>🏛️ Guayaquil</span>
-                    <span className={tv(isDark,'text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded','text-xs bg-purple-800 text-purple-200 px-2 py-1 rounded')}>🌊 Pacífico</span>
-                    <span className={tv(isDark,'text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded','text-xs bg-orange-800 text-orange-200 px-2 py-1 rounded')}>💳 PayPal</span>
+                {/* Hero Illustration */}
+                <div className="relative z-10">
+                  <div className={`relative rounded-3xl p-8 shadow-2xl backdrop-blur-md border-2 ${tv(isDark,'bg-gradient-to-br from-white/80 to-blue-50/80 border-blue-200/50','bg-gradient-to-br from-zinc-900/80 to-blue-900/80 border-blue-700/50')}`}>
+                    {/* Floating Cards */}
+                    <div className="relative h-80 flex items-center justify-center">
+                      <div className="absolute top-4 left-4 w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl shadow-lg flex items-center justify-center text-white text-2xl animate-float">
+                        🎬
+                      </div>
+                      <div className="absolute top-8 right-8 w-14 h-14 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl shadow-lg flex items-center justify-center text-white text-xl animate-float animation-delay-1000">
+                        🎧
+                      </div>
+                      <div className="absolute bottom-8 left-8 w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl shadow-lg flex items-center justify-center text-white text-lg animate-float animation-delay-2000">
+                        📺
+                      </div>
+                      <div className="absolute bottom-4 right-4 w-18 h-18 bg-gradient-to-r from-pink-500 to-pink-600 rounded-2xl shadow-lg flex items-center justify-center text-white text-2xl animate-float animation-delay-3000">
+                        🏰
+                      </div>
+                      
+                      {/* Central Icon */}
+                      <div className={`w-24 h-24 rounded-3xl shadow-2xl flex items-center justify-center text-white text-4xl ${tv(isDark,'bg-gradient-to-r from-blue-600 to-purple-600','bg-gradient-to-r from-blue-700 to-purple-700')}`}>
+                        ✨
+                      </div>
+                    </div>
+                    
+                    {/* Payment Methods */}
+                    <div className="mt-6 space-y-4">
+                      <div className={`text-center font-bold text-lg ${tv(isDark,'text-gray-800','text-gray-200')}`}>
+                        💳 Métodos de Pago
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className={`p-3 rounded-xl text-center ${tv(isDark,'bg-blue-50 border border-blue-200','bg-blue-900/30 border border-blue-700')}`}>
+                          <div className="text-2xl mb-1">🏦</div>
+                          <div className={`text-xs font-semibold ${tv(isDark,'text-blue-700','text-blue-300')}`}>Bancos</div>
+                        </div>
+                        <div className={`p-3 rounded-xl text-center ${tv(isDark,'bg-green-50 border border-green-200','bg-green-900/30 border border-green-700')}`}>
+                          <div className="text-2xl mb-1">💚</div>
+                          <div className={`text-xs font-semibold ${tv(isDark,'text-green-700','text-green-300')}`}>PayPal</div>
+                        </div>
+                        <div className={`p-3 rounded-xl text-center ${tv(isDark,'bg-purple-50 border border-purple-200','bg-purple-900/30 border border-purple-700')}`}>
+                          <div className="text-2xl mb-1">📱</div>
+                          <div className={`text-xs font-semibold ${tv(isDark,'text-purple-700','text-purple-300')}`}>Pago Móvil</div>
+                        </div>
+                      </div>
+                      
+                      {/* Bank Details */}
+                      <div className="mt-4 grid grid-cols-2 gap-2">
+                        <span className={`text-xs px-3 py-2 rounded-lg text-center ${tv(isDark,'bg-green-100 text-green-700','bg-green-800 text-green-200')}`}>🏦 Pichincha</span>
+                        <span className={`text-xs px-3 py-2 rounded-lg text-center ${tv(isDark,'bg-blue-100 text-blue-700','bg-blue-800 text-blue-200')}`}>🏛️ Guayaquil</span>
+                        <span className={`text-xs px-3 py-2 rounded-lg text-center ${tv(isDark,'bg-purple-100 text-purple-700','bg-purple-800 text-purple-200')}`}>🌊 Pacífico</span>
+                        <span className={`text-xs px-3 py-2 rounded-lg text-center ${tv(isDark,'bg-orange-100 text-orange-700','bg-orange-800 text-orange-200')}`}>💳 PayPal</span>
+                      </div>
+                    </div>
                   </div>
-                  <p className={tv(isDark,'text-xs text-zinc-500 mt-2','text-xs text-zinc-400 mt-2')}>
-                    Ver detalles completos al reservar
-                  </p>
                 </div>
               </div>
             </div>
@@ -1899,21 +2019,118 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
           </section>
 
 
-          <section id="catalogo" className="mx-auto max-w-6xl px-4 pb-16">
-            <div className="text-center mb-8 md:mb-12">
-              <h2 className="text-2xl md:text-3xl font-bold mb-4">Nuestro Catálogo</h2>
-              <p className={tv(isDark,'text-zinc-600 text-base md:text-lg','text-zinc-300 text-base md:text-lg')}>
-                Descubre todas las plataformas de streaming disponibles
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-              {SERVICES.map(s=> (
-                <div key={s.id}>
-                  <ServiceCard s={s} onReserve={onReserve} isDark={isDark}/>
+          {/* Catálogo de Servicios */}
+          <section id="catalogo" className="relative py-16 md:py-24">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-purple-50/50 to-pink-50/50 dark:from-blue-950/50 dark:via-purple-950/50 dark:to-pink-950/50"></div>
+            
+            <div className="relative mx-auto max-w-7xl px-4">
+              <div className="text-center mb-12 md:mb-16">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 mb-6">
+                  <span className="text-xl">✨</span>
+                  <span className={`text-sm font-semibold ${tv(isDark,'text-blue-600','text-blue-400')}`}>Plataformas Premium</span>
                 </div>
-              ))}
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
+                  <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">Nuestro Catálogo</span>
+                </h2>
+                <p className={`text-lg md:text-xl max-w-3xl mx-auto ${tv(isDark,'text-gray-600','text-gray-300')}`}>
+                  Descubre todas las plataformas de streaming disponibles con acceso inmediato y soporte 24/7
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+                {SERVICES.map((s, index) => (
+                  <div key={s.id} className="animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
+                    <ServiceCard s={s} onReserve={onReserve} isDark={isDark}/>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Call to Action */}
+              <div className="text-center mt-12 md:mt-16">
+                <div className={`inline-flex items-center gap-3 px-8 py-4 rounded-2xl shadow-lg ${tv(isDark,'bg-gradient-to-r from-blue-500 to-purple-600 text-white','bg-gradient-to-r from-blue-600 to-purple-700 text-white')}`}>
+                  <span className="text-2xl">🎯</span>
+                  <div>
+                    <div className="font-bold text-lg">¿No encuentras lo que buscas?</div>
+                    <div className="text-sm opacity-90">Contáctanos por WhatsApp para más opciones</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
+          
+          {/* Footer Moderno */}
+          <footer className={`relative py-16 ${tv(isDark,'bg-gradient-to-r from-gray-900 to-gray-800','bg-gradient-to-r from-zinc-900 to-zinc-800')}`}>
+            <div className="mx-auto max-w-7xl px-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                {/* Logo y Descripción */}
+                <div className="md:col-span-2">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Logo className="h-12 w-12" />
+                    <div>
+                      <div className="font-bold text-2xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">StreamZone</div>
+                      <div className="text-sm text-gray-400">Tu entretenimiento digital</div>
+                    </div>
+                  </div>
+                  <p className="text-gray-300 mb-6 max-w-md">
+                    La mejor plataforma para acceder a todos tus servicios de streaming favoritos con precios increíbles y soporte 24/7.
+                  </p>
+                  <div className="flex gap-4">
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-lg hover:scale-110 transition-transform cursor-pointer">
+                      📱
+                    </div>
+                    <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center text-white text-lg hover:scale-110 transition-transform cursor-pointer">
+                      💬
+                    </div>
+                    <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white text-lg hover:scale-110 transition-transform cursor-pointer">
+                      ✨
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Enlaces Rápidos */}
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-4">Enlaces Rápidos</h3>
+                  <ul className="space-y-2">
+                    <li><button onClick={() => setView('home')} className="text-gray-300 hover:text-blue-400 transition-colors">🏠 Inicio</button></li>
+                    <li><button onClick={() => setView('combos')} className="text-gray-300 hover:text-purple-400 transition-colors">📦 Combos</button></li>
+                    <li><button onClick={() => setView('register')} className="text-gray-300 hover:text-green-400 transition-colors">✨ Registro</button></li>
+                    <li><button onClick={() => setView('auth')} className="text-gray-300 hover:text-blue-400 transition-colors">🔐 Iniciar Sesión</button></li>
+                  </ul>
+                </div>
+                
+                {/* Contacto */}
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-4">Contacto</h3>
+                  <ul className="space-y-2">
+                    <li className="text-gray-300 flex items-center gap-2">
+                      <span>📱</span>
+                      WhatsApp 24/7
+                    </li>
+                    <li className="text-gray-300 flex items-center gap-2">
+                      <span>💬</span>
+                      Soporte Inmediato
+                    </li>
+                    <li className="text-gray-300 flex items-center gap-2">
+                      <span>⚡</span>
+                      Acceso Rápido
+                    </li>
+                    <li className="text-gray-300 flex items-center gap-2">
+                      <span>🔒</span>
+                      Pago Seguro
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="border-t border-gray-700 mt-12 pt-8 text-center">
+                <p className="text-gray-400">
+                  © 2024 StreamZone. Todos los derechos reservados. 
+                  <span className="text-blue-400"> Hecho con ❤️ para tu entretenimiento</span>
+                </p>
+              </div>
+            </div>
+          </footer>
         </>
       )}
 
@@ -2958,8 +3175,8 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
       <AdminRegisterPurchaseModal 
         open={adminRegisterPurchaseOpen} 
         onClose={()=>setAdminRegisterPurchaseOpen(false)} 
-        onRegister={adminRegisterPurchase}
-        isDark={isDark}
+        onRegister={adminRegisterPurchase} 
+        isDark={isDark} 
         systemPrefersDark={systemPrefersDark}
       />
 
@@ -2969,7 +3186,7 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
         onClose={()=>setEditPurchaseOpen(false)} 
         onUpdate={handleUpdatePurchase} 
         purchase={editingPurchase}
-        isDark={isDark}
+        isDark={isDark} 
         systemPrefersDark={systemPrefersDark}
       />
 
@@ -5347,42 +5564,42 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPr
                     </div>
                     <h4 className={`text-lg font-bold ${tv(isDark,'text-green-900','text-green-100')}`}>Notas Adicionales</h4>
                   </div>
-                  <textarea
-                    value={(() => {
-                      try {
-                        const credentials = JSON.parse(formData.admin_notes || '{}');
-                        if (credentials && typeof credentials === 'object' && !credentials.customer) {
-                          // Si es un objeto de credenciales, extraer las notas
-                          return credentials.notes || '';
-                        }
-                        return formData.admin_notes || '';
-                      } catch {
-                        return formData.admin_notes || '';
-                      }
-                    })()}
-                    onChange={(e) => {
-                      // Actualizar las notas en admin_notes
+                <textarea
+                  value={(() => {
+                    try {
                       const credentials = JSON.parse(formData.admin_notes || '{}');
                       if (credentials && typeof credentials === 'object' && !credentials.customer) {
-                        credentials.notes = e.target.value;
-                        setFormData(prev => ({
-                          ...prev,
-                          admin_notes: JSON.stringify(credentials)
-                        }));
-                      } else {
-                        setFormData(prev => ({
-                          ...prev,
-                          admin_notes: e.target.value
-                        }));
+                        // Si es un objeto de credenciales, extraer las notas
+                        return credentials.notes || '';
                       }
-                    }}
+                      return formData.admin_notes || '';
+                    } catch {
+                      return formData.admin_notes || '';
+                    }
+                  })()}
+                  onChange={(e) => {
+                    // Actualizar las notas en admin_notes
+                    const credentials = JSON.parse(formData.admin_notes || '{}');
+                    if (credentials && typeof credentials === 'object' && !credentials.customer) {
+                      credentials.notes = e.target.value;
+                      setFormData(prev => ({
+                        ...prev,
+                        admin_notes: JSON.stringify(credentials)
+                      }));
+                    } else {
+                      setFormData(prev => ({
+                        ...prev,
+                        admin_notes: e.target.value
+                      }));
+                    }
+                  }}
                     rows={4}
                     className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-purple-400 focus:ring-purple-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-purple-600 focus:ring-purple-300')}`}
-                    placeholder="Netflix: Perfil 2, Disney: Perfil 3"
-                  />
-                </div>
+                  placeholder="Netflix: Perfil 2, Disney: Perfil 3"
+                />
               </div>
-            ) : (
+            </div>
+          ) : (
               <div className={`p-6 rounded-2xl border-2 ${tv(isDark,'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200','bg-gradient-to-br from-purple-900/20 to-pink-900/20 border-purple-700/30')}`}>
                 <div className="flex items-center gap-3 mb-6">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tv(isDark,'bg-purple-100','bg-purple-800/30')}`}>
@@ -5395,52 +5612,52 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPr
                     <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
                       Email del servicio *
                     </label>
-                    <input
+                <input
                       required
-                      value={formData.service_email}
-                      onChange={(e) => setFormData(prev => ({...prev, service_email: e.target.value}))}
+                  value={formData.service_email}
+                  onChange={(e) => setFormData(prev => ({...prev, service_email: e.target.value}))}
                       className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-purple-400 focus:ring-purple-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-purple-600 focus:ring-purple-300')}`}
                       placeholder="usuario@email.com"
-                    />
-                  </div>
+                />
+              </div>
                   <div className="space-y-2">
                     <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
                       Contraseña del servicio *
                     </label>
-                    <input
+                <input
                       required
-                      value={formData.service_password}
-                      onChange={(e) => setFormData(prev => ({...prev, service_password: e.target.value}))}
+                  value={formData.service_password}
+                  onChange={(e) => setFormData(prev => ({...prev, service_password: e.target.value}))}
                       className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-purple-400 focus:ring-purple-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-purple-600 focus:ring-purple-300')}`}
                       placeholder="contraseña123"
-                    />
-                  </div>
+                />
+              </div>
                   <div className="md:col-span-2 space-y-2">
                     <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
                       Notas del administrador
                     </label>
-                    <textarea
-                      value={formData.admin_notes}
-                      onChange={(e) => setFormData(prev => ({...prev, admin_notes: e.target.value}))}
+              <textarea
+                value={formData.admin_notes}
+                onChange={(e) => setFormData(prev => ({...prev, admin_notes: e.target.value}))}
                       rows={3}
                       className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-purple-400 focus:ring-purple-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-purple-600 focus:ring-purple-300')}`}
-                      placeholder="Notas adicionales sobre esta compra..."
-                    />
+                placeholder="Notas adicionales sobre esta compra..."
+              />
                   </div>
                 </div>
-              </div>
-            )}
+            </div>
+          )}
           
           
             {/* Botones de acción */}
             <div className="flex gap-4 pt-6">
-              <button
-                type="button"
-                onClick={onClose}
+            <button
+              type="button"
+              onClick={onClose}
                 className={`flex-1 rounded-xl px-6 py-4 font-semibold text-sm transition-all hover:scale-105 ${tv(isDark,'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-gray-300','bg-gray-700 text-gray-200 hover:bg-gray-600 border-2 border-gray-600')}`}
-              >
-                Cancelar
-              </button>
+            >
+              Cancelar
+            </button>
               <button
                 type="button"
                 onClick={() => {
@@ -5489,8 +5706,8 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPr
                   Enviar por WhatsApp
                 </span>
               </button>
-              <button
-                type="submit"
+            <button
+              type="submit"
                 className={`flex-1 rounded-xl px-6 py-4 font-semibold text-sm bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all hover:scale-105 shadow-lg hover:shadow-xl`}
               >
                 <span className="flex items-center justify-center gap-2">
@@ -5498,9 +5715,9 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPr
                   Guardar Cambios
                   <span>✨</span>
                 </span>
-              </button>
-            </div>
-          </form>
+            </button>
+          </div>
+        </form>
         </div>
       </div>
     </div>
