@@ -1861,6 +1861,18 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
               >
                 🎯 Combos
               </button>
+              {user && (
+                <button
+                  onClick={() => setView('profile')}
+                  className={tv(
+                    isDark,
+                    'rounded-lg bg-green-100 text-green-700 px-3 py-1.5 text-xs whitespace-nowrap hover:bg-green-200',
+                    'rounded-lg bg-green-800 text-green-100 px-3 py-1.5 text-xs whitespace-nowrap hover:bg-green-700'
+                  )}
+                >
+                  👤 Mi Perfil
+                </button>
+              )}
               {user ? (
                 <button
                   onClick={logoutUser}
