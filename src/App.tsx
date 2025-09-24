@@ -550,11 +550,11 @@ function ServiceCard({ s, onReserve, isDark }:{ s:any; onReserve:(s:any)=>void; 
   );
 }
 
-function Modal({ open, onClose, children, title, isDark }:{ open:boolean; onClose:()=>void; children:React.ReactNode; title:string; isDark:boolean; }){
+function Modal({ open, onClose, children, title, isDark, className }:{ open:boolean; onClose:()=>void; children:React.ReactNode; title:string; isDark:boolean; className?:string; }){
   if(!open) return null;
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={onClose}>
-      <div className={`w-full max-w-lg rounded-2xl p-6 shadow-2xl ${tv(isDark,'bg-white','bg-zinc-900')}`} onClick={e=>e.stopPropagation()}>
+      <div className={`w-full max-w-lg rounded-2xl p-6 shadow-2xl ${tv(isDark,'bg-white','bg-zinc-900')} ${className || ''}`} onClick={e=>e.stopPropagation()}>
         <div className="mb-6 flex items-center justify-between">
           <h3 className="text-xl font-bold">{title}</h3>
           <button 
@@ -2792,30 +2792,30 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
 
       {/* ADMIN */}
       {view==='admin' && (
-        <section className="mx-auto max-w-6xl px-4 pb-16">
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
+        <section className="mx-auto max-w-6xl px-2 sm:px-4 pb-8 sm:pb-16">
+          <div className="mb-6 sm:mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
               <div>
-                <h3 className="text-3xl font-bold">🔧 Panel Administrador</h3>
-                <p className={tv(isDark,'text-zinc-600','text-zinc-300')}>Gestiona compras, administradores y configuración</p>
+                <h3 className="text-2xl sm:text-3xl font-bold">🔧 Panel Administrador</h3>
+                <p className={`text-sm sm:text-base ${tv(isDark,'text-zinc-600','text-zinc-300')}`}>Gestiona compras, administradores y configuración</p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                 <button 
                    onClick={() => setMenuOpen(true)}
-                   className={tv(isDark,'rounded-xl bg-zinc-200 text-zinc-800 px-4 py-2 text-sm hover:bg-zinc-300','rounded-xl bg-zinc-700 text-zinc-200 px-4 py-2 text-sm hover:bg-zinc-600')}
+                   className={`rounded-lg bg-zinc-200 text-zinc-800 px-3 py-2 text-xs sm:text-sm hover:bg-zinc-300 ${tv(isDark,'','')}`}
                 >
                    ☰ Menú
                 </button>
                 <button 
                    onClick={refreshAllStats}
                    disabled={adminLoading}
-                   className={tv(isDark,'rounded-xl bg-blue-600 text-white px-4 py-2 text-sm hover:bg-blue-700 disabled:opacity-50','rounded-xl bg-blue-500 text-white px-4 py-2 text-sm hover:bg-blue-600 disabled:opacity-50')}
+                   className={`rounded-lg bg-blue-600 text-white px-3 py-2 text-xs sm:text-sm hover:bg-blue-700 disabled:opacity-50 ${tv(isDark,'','')}`}
                 >
-                   {adminLoading ? '⏳ Cargando...' : '🔄 Actualizar Todo'}
+                   {adminLoading ? '⏳ Cargando...' : '🔄 Actualizar'}
                 </button>
                 <button 
                   onClick={() => setView('home')}
-                  className={tv(isDark,'rounded-xl bg-zinc-100 text-zinc-700 px-4 py-2 text-sm hover:bg-zinc-200','rounded-xl bg-zinc-800 text-zinc-200 px-4 py-2 text-sm hover:bg-zinc-700')}
+                  className={`rounded-lg bg-zinc-100 text-zinc-700 px-3 py-2 text-xs sm:text-sm hover:bg-zinc-200 ${tv(isDark,'','')}`}
                 >
                   ← Inicio
                 </button>
@@ -2823,93 +2823,93 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
             </div>
           </div>
 
-          {/* DASHBOARD COMPLETO */}
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-            <div className={`rounded-2xl p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+          {/* DASHBOARD COMPLETO - Optimizado para móviles */}
+              <div className="grid gap-3 sm:gap-6 grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
+            <div className={`rounded-xl p-3 sm:p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-medium text-zinc-500 mb-1">Total Compras</div>
-                  <div className="text-3xl font-bold">{purchases.length}</div>
+                  <div className="text-xs sm:text-sm font-medium text-zinc-500 mb-1">Total Compras</div>
+                  <div className="text-xl sm:text-3xl font-bold">{purchases.length}</div>
                 </div>
-                <div className="text-3xl">📊</div>
+                <div className="text-xl sm:text-3xl">📊</div>
               </div>
             </div>
-            <div className={`rounded-2xl p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+            <div className={`rounded-xl p-3 sm:p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-medium text-zinc-500 mb-1">Pendientes</div>
-                  <div className="text-3xl font-bold text-amber-600">{pendingPurchases.length}</div>
+                  <div className="text-xs sm:text-sm font-medium text-zinc-500 mb-1">Pendientes</div>
+                  <div className="text-xl sm:text-3xl font-bold text-amber-600">{pendingPurchases.length}</div>
                 </div>
-                <div className="text-3xl">⏳</div>
+                <div className="text-xl sm:text-3xl">⏳</div>
               </div>
             </div>
-            <div className={`rounded-2xl p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+            <div className={`rounded-xl p-3 sm:p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-medium text-zinc-500 mb-1">Validadas</div>
-                  <div className="text-3xl font-bold text-green-600">{purchases.filter(p=>p.validated).length}</div>
+                  <div className="text-xs sm:text-sm font-medium text-zinc-500 mb-1">Validadas</div>
+                  <div className="text-xl sm:text-3xl font-bold text-green-600">{purchases.filter(p=>p.validated).length}</div>
                 </div>
-                <div className="text-3xl">✅</div>
+                <div className="text-xl sm:text-3xl">✅</div>
               </div>
             </div>
-                <div className={`rounded-2xl p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+                <div className={`rounded-xl p-3 sm:p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-sm font-medium text-zinc-500 mb-1">Vencen Hoy</div>
-                  <div className="text-3xl font-bold text-red-600">{expiringServices.filter(s => s.days_remaining === 0).length}</div>
+                      <div className="text-xs sm:text-sm font-medium text-zinc-500 mb-1">Vencen Hoy</div>
+                  <div className="text-xl sm:text-3xl font-bold text-red-600">{expiringServices.filter(s => s.days_remaining === 0).length}</div>
                     </div>
-                    <div className="text-3xl">⚠️</div>
+                    <div className="text-xl sm:text-3xl">⚠️</div>
                   </div>
                 </div>
               </div>
 
-          {/* BOTONES DE ACCIÓN */}
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+          {/* BOTONES DE ACCIÓN - Optimizados para móviles */}
+          <div className="grid gap-3 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
             <button 
               onClick={()=>setAdminSub('purchases')} 
-              className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
+              className={`rounded-xl p-4 sm:p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
             >
-              <div className="text-2xl mb-2">🛒</div>
-              <div className="text-xl font-bold mb-2">Gestionar Compras</div>
-              <div className="text-sm opacity-70">Revisa, valida y notifica por WhatsApp</div>
+              <div className="text-xl sm:text-2xl mb-2">🛒</div>
+              <div className="text-lg sm:text-xl font-bold mb-2">Gestionar Compras</div>
+              <div className="text-xs sm:text-sm opacity-70">Revisa, valida y notifica por WhatsApp</div>
             </button>
             
             <button 
               onClick={()=>setAdminRegisterPurchaseOpen(true)} 
-              className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-blue-600 text-white shadow-lg','bg-blue-600 text-white shadow-lg')}`}
+              className={`rounded-xl p-4 sm:p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-blue-600 text-white shadow-lg','bg-blue-600 text-white shadow-lg')}`}
             >
-              <div className="text-2xl mb-2">➕</div>
-              <div className="text-xl font-bold mb-2">Registrar Compra</div>
-              <div className="text-sm opacity-70">Crear compra manual para un usuario</div>
+              <div className="text-xl sm:text-2xl mb-2">➕</div>
+              <div className="text-lg sm:text-xl font-bold mb-2">Registrar Compra</div>
+              <div className="text-xs sm:text-sm opacity-70">Crear compra manual para un usuario</div>
             </button>
             
             <button 
               onClick={()=>setDrawerOpen(true)} 
-              className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
+              className={`rounded-xl p-4 sm:p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
             >
-              <div className="text-2xl mb-2">👥</div>
-              <div className="text-xl font-bold mb-2">Administradores</div>
-              <div className="text-sm opacity-70">Agregar o quitar correos con acceso</div>
+              <div className="text-xl sm:text-2xl mb-2">👥</div>
+              <div className="text-lg sm:text-xl font-bold mb-2">Administradores</div>
+              <div className="text-xs sm:text-sm opacity-70">Agregar o quitar correos con acceso</div>
             </button>
             
             <button 
               onClick={exportCSV} 
-              className={`rounded-2xl p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
+              className={`rounded-xl p-4 sm:p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
             >
-              <div className="text-2xl mb-2">📊</div>
-              <div className="text-xl font-bold mb-2">Exportar Datos</div>
-              <div className="text-sm opacity-70">Descargar reporte en formato CSV</div>
+              <div className="text-xl sm:text-2xl mb-2">📊</div>
+              <div className="text-lg sm:text-xl font-bold mb-2">Exportar Datos</div>
+              <div className="text-xs sm:text-sm opacity-70">Descargar reporte en formato CSV</div>
             </button>
           </div>
 
-          {/* GESTIÓN DE COMPRAS */}
-          <div className={`rounded-2xl p-6 shadow-lg mb-6 ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
-            {/* Navegación por pestañas */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex gap-2">
+          {/* GESTIÓN DE COMPRAS - Optimizada para móviles */}
+          <div className={`rounded-xl p-3 sm:p-6 shadow-lg mb-4 sm:mb-6 ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+            {/* Navegación por pestañas - Responsiva */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <button
                   onClick={() => setAdminPurchaseView('pending')}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                  className={`px-3 py-2 rounded-lg font-medium transition-all text-sm ${
                     adminPurchaseView === 'pending' 
                       ? tv(isDark,'bg-amber-100 text-amber-800','bg-amber-900/30 text-amber-400')
                       : tv(isDark,'bg-zinc-100 text-zinc-600 hover:bg-zinc-200','bg-zinc-700 text-zinc-300 hover:bg-zinc-600')
@@ -2919,7 +2919,7 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                 </button>
                 <button
                   onClick={() => setAdminPurchaseView('active')}
-                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                  className={`px-3 py-2 rounded-lg font-medium transition-all text-sm ${
                     adminPurchaseView === 'active' 
                       ? tv(isDark,'bg-green-100 text-green-800','bg-green-900/30 text-green-400')
                       : tv(isDark,'bg-zinc-100 text-zinc-600 hover:bg-zinc-200','bg-zinc-700 text-zinc-300 hover:bg-zinc-600')
@@ -2933,9 +2933,9 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
             {/* CONTENIDO DE PESTAÑAS */}
             {adminPurchaseView === 'pending' && (
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-xl font-bold">⏳ Compras Pendientes</h4>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${tv(isDark,'bg-amber-100 text-amber-800','bg-amber-900/30 text-amber-400')}`}>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                  <h4 className="text-lg sm:text-xl font-bold">⏳ Compras Pendientes</h4>
+                  <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${tv(isDark,'bg-amber-100 text-amber-800','bg-amber-900/30 text-amber-400')}`}>
                     {pendingPurchases.length} pendientes
                   </span>
                 </div>
@@ -2951,36 +2951,36 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                     <p>No hay compras pendientes</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {pendingPurchases.map((purchase) => (
-                      <div key={purchase.id} className={`p-4 rounded-xl border ${tv(isDark,'bg-zinc-50 border-zinc-200','bg-zinc-700 border-zinc-600')}`}>
-                        <div className="flex items-center justify-between">
+                      <div key={purchase.id} className={`p-3 sm:p-4 rounded-lg border ${tv(isDark,'bg-zinc-50 border-zinc-200','bg-zinc-700 border-zinc-600')}`}>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                           <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <span className="font-semibold">{purchase.customer}</span>
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                              <span className="font-semibold text-sm sm:text-base">{purchase.customer}</span>
                               <span className={`px-2 py-1 rounded text-xs ${tv(isDark,'bg-blue-100 text-blue-800','bg-blue-900/30 text-blue-400')}`}>
                                 {purchase.service}
                               </span>
                             </div>
-                            <div className="text-sm text-zinc-500 mb-2">
+                            <div className="text-xs sm:text-sm text-zinc-500 mb-2">
                               📱 {purchase.phone} • 📅 {new Date(purchase.created_at).toLocaleDateString()}
                             </div>
-                            <div className="text-sm">
+                            <div className="text-xs sm:text-sm">
                               <span className="font-medium">Duración:</span> {purchase.months} meses • 
                               <span className="font-medium"> Inicio:</span> {purchase.start} • 
                               <span className="font-medium"> Fin:</span> {purchase.end}
                             </div>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex flex-col sm:flex-row gap-2">
                             <button
                               onClick={() => setSelectedPurchase(purchase)}
-                              className={`px-3 py-2 rounded-xl font-medium transition-all text-sm ${tv(isDark,'bg-green-600 text-white hover:bg-green-700','bg-green-500 text-white hover:bg-green-600')}`}
+                              className={`px-3 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm ${tv(isDark,'bg-green-600 text-white hover:bg-green-700','bg-green-500 text-white hover:bg-green-600')}`}
                             >
                               ✅ Aprobar
                             </button>
                             <button
                               onClick={() => handleRejectPurchase(purchase.id)}
-                              className={`px-3 py-2 rounded-xl font-medium transition-all text-sm ${tv(isDark,'bg-red-600 text-white hover:bg-red-700','bg-red-500 text-white hover:bg-red-600')}`}
+                              className={`px-3 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm ${tv(isDark,'bg-red-600 text-white hover:bg-red-700','bg-red-500 text-white hover:bg-red-600')}`}
                             >
                               ❌ Rechazar
                             </button>
@@ -3016,14 +3016,13 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                 ) : (
                   <div className="space-y-4">
                     {purchases.filter(p => p.validated).map((purchase) => (
-                      <PurchaseCard
-                        key={purchase.id}
-                        item={purchase}
-                        isDark={isDark}
-                        onToggleValidate={() => { void handleToggleValidate(purchase.id); }}
-                        onDelete={() => { void handleDeleteActivePurchase(purchase.id, purchase.customer, purchase.service); }}
-                        onEdit={() => handleEditPurchase(purchase)}
-                      />
+                       <PurchaseCard
+                         item={purchase}
+                         isDark={isDark}
+                         onToggleValidate={() => { void handleToggleValidate(purchase.id); }}
+                         onDelete={() => { void handleDeleteActivePurchase(purchase.id, purchase.customer, purchase.service); }}
+                         onEdit={() => handleEditPurchase(purchase)}
+                       />
                     ))}
                   </div>
                 )}
@@ -5509,43 +5508,43 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPr
   if (!open || !purchase) return null;
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
-        <div className={`w-full max-w-4xl mx-4 rounded-lg shadow-xl max-h-[95vh] overflow-y-auto ${tv(isDark,'bg-white','bg-gray-900')}`} onClick={e=>e.stopPropagation()}>
-        {/* Header minimalista */}
-        <div className={`relative p-4 border-b ${tv(isDark,'bg-white border-gray-200','bg-gray-900 border-gray-700')}`}>
+     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-2 sm:p-4" onClick={onClose}>
+         <div className={`w-full max-w-2xl sm:max-w-4xl mx-2 sm:mx-4 rounded-lg shadow-xl max-h-[98vh] sm:max-h-[95vh] overflow-y-auto ${tv(isDark,'bg-white','bg-gray-900')}`} onClick={e=>e.stopPropagation()}>
+        {/* Header compacto para móviles */}
+        <div className={`relative p-3 sm:p-4 border-b ${tv(isDark,'bg-white border-gray-200','bg-gray-900 border-gray-700')}`}>
           <div className="flex items-center justify-between">
-            <h3 className={`text-xl font-semibold ${tv(isDark,'text-gray-900','text-white')}`}>Editar Compra</h3>
+            <h3 className={`text-lg sm:text-xl font-semibold ${tv(isDark,'text-gray-900','text-white')}`}>Editar Compra</h3>
           <button
             onClick={onClose}
-              className={`w-6 h-6 rounded flex items-center justify-center text-lg font-bold ${tv(isDark,'text-gray-500 hover:bg-gray-100','text-gray-400 hover:bg-gray-800')}`}
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold ${tv(isDark,'text-gray-500 hover:bg-gray-100','text-gray-400 hover:bg-gray-800')}`}
           >
             ×
           </button>
           </div>
         </div>
         
-        <div className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Información del cliente - Ultra Minimalista */}
-            <div className={`p-4 rounded-lg ${tv(isDark,'bg-gray-50','bg-gray-800')}`}>
-              <div className="flex items-center justify-between">
+        <div className="p-3 sm:p-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+            {/* Información del cliente - Compacto para móviles */}
+            <div className={`p-3 sm:p-4 rounded-lg ${tv(isDark,'bg-gray-50','bg-gray-800')}`}>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div>
-                  <h4 className={`font-semibold ${tv(isDark,'text-gray-900','text-white')}`}>{formData.customer}</h4>
-                  <p className={`text-sm ${tv(isDark,'text-gray-600','text-gray-400')}`}>{formData.service} • {formData.months} {formData.months === 1 ? 'mes' : 'meses'}</p>
+                  <h4 className={`font-semibold text-sm sm:text-base ${tv(isDark,'text-gray-900','text-white')}`}>{formData.customer}</h4>
+                  <p className={`text-xs sm:text-sm ${tv(isDark,'text-gray-600','text-gray-400')}`}>{formData.service} • {formData.months} {formData.months === 1 ? 'mes' : 'meses'}</p>
                 </div>
-                <p className={`text-sm ${tv(isDark,'text-gray-500','text-gray-500')}`}>📱 {formData.phone}</p>
+                <p className={`text-xs sm:text-sm ${tv(isDark,'text-gray-500','text-gray-500')}`}>📱 {formData.phone}</p>
               </div>
             </div>
         
           
           {/* Detectar si es un combo */}
             {formData.service && isRealCombo(formData.service) ? (
-              <div className={`p-4 rounded-lg ${tv(isDark,'bg-gray-50','bg-gray-800')}`}>
-                {/* Banner de detección de combo - Ultra Minimalista */}
-                <div className={`p-2 rounded mb-4 ${tv(isDark,'bg-green-100','bg-green-800/20')}`}>
+              <div className={`p-3 sm:p-4 rounded-lg ${tv(isDark,'bg-gray-50','bg-gray-800')}`}>
+                {/* Banner de detección de combo - Compacto */}
+                <div className={`p-2 rounded mb-3 ${tv(isDark,'bg-green-100','bg-green-800/20')}`}>
                   <div className="flex items-center gap-2">
                     <span className="text-sm">🎯</span>
-                    <span className={`text-sm font-medium ${tv(isDark,'text-green-800','text-green-100')}`}>Combo Detectado</span>
+                    <span className={`text-xs sm:text-sm font-medium ${tv(isDark,'text-green-800','text-green-100')}`}>Combo Detectado</span>
                   </div>
                 </div>
               
@@ -5578,19 +5577,19 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPr
                   };
                   
                   return (
-                    <div key={index} className={`p-3 rounded-md ${tv(isDark,'bg-white','bg-gray-700')}`}>
-                      <h4 className={`font-medium text-sm mb-3 ${tv(isDark,'text-gray-800','text-white')}`}>
-                      {serviceName}
-                    </h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="space-y-2">
+                    <div key={index} className={`p-2 sm:p-3 rounded-md ${tv(isDark,'bg-white','bg-gray-700')}`}>
+                      <h4 className={`font-medium text-xs sm:text-sm mb-2 ${tv(isDark,'text-gray-800','text-white')}`}>
+                        {serviceName}
+                      </h4>
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="space-y-1">
                           <label className={`block text-xs font-medium ${tv(isDark,'text-gray-600','text-gray-400')}`}>
                             Email *
-                        </label>
-                        <input
-                          type="email"
+                          </label>
+                          <input
+                            type="email"
                             placeholder="usuario@email.com"
-                            className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100','border-gray-600 bg-gray-700 text-white focus:border-blue-400 focus:ring-2 focus:ring-blue-800/30','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200')}`}
+                            className={`w-full rounded-lg border-2 px-3 py-2 text-xs sm:text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100','border-gray-600 bg-gray-700 text-white focus:border-blue-400 focus:ring-2 focus:ring-blue-800/30','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200')}`}
                           onChange={(e) => {
                             // Actualizar las credenciales en admin_notes
                             const credentials = JSON.parse(formData.admin_notes || '{}');
@@ -5616,14 +5615,14 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPr
                           })()}
                         />
                       </div>
-                        <div className="space-y-2">
+                        <div className="space-y-1">
                           <label className={`block text-xs font-medium ${tv(isDark,'text-gray-600','text-gray-400')}`}>
                             Contraseña *
-                        </label>
+                          </label>
                           <input
                             type="text"
                             placeholder="contraseña123"
-                            className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100','border-gray-600 bg-gray-700 text-white focus:border-blue-400 focus:ring-2 focus:ring-blue-800/30','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200')}`}
+                            className={`w-full rounded-lg border-2 px-3 py-2 text-xs sm:text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100','border-gray-600 bg-gray-700 text-white focus:border-blue-400 focus:ring-2 focus:ring-blue-800/30','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200')}`}
                             onChange={(e) => {
                               // Actualizar las credenciales en admin_notes
                               const credentials = JSON.parse(formData.admin_notes || '{}');
@@ -5655,13 +5654,13 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPr
                 })}
               </div>
               
-                {/* Notas para combos */}
-                <div className="mt-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tv(isDark,'bg-purple-100','bg-purple-800/30')}`}>
-                      <span className="text-lg">📝</span>
+                {/* Notas para combos - Compacto */}
+                <div className="mt-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${tv(isDark,'bg-purple-100','bg-purple-800/30')}`}>
+                      <span className="text-sm">📝</span>
                     </div>
-                    <h4 className={`text-lg font-bold ${tv(isDark,'text-green-900','text-green-100')}`}>Notas Adicionales</h4>
+                    <h4 className={`text-sm font-bold ${tv(isDark,'text-green-900','text-green-100')}`}>Notas Adicionales</h4>
                   </div>
                 <textarea
                   value={(() => {
@@ -5692,8 +5691,8 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPr
                       }));
                     }
                   }}
-                    rows={4}
-                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-purple-400 focus:ring-purple-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-purple-600 focus:ring-purple-300')}`}
+                    rows={3}
+                    className={`w-full rounded-lg border-2 px-3 py-2 text-xs sm:text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-purple-400 focus:ring-purple-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-purple-600 focus:ring-purple-300')}`}
                   placeholder="Netflix: Perfil 2, Disney: Perfil 3"
                 />
               </div>
@@ -5748,15 +5747,15 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPr
           )}
           
           
-            {/* Botones de acción */}
-            <div className="flex gap-4 pt-6">
-            <button
-              type="button"
-              onClick={onClose}
-                className={`flex-1 rounded-xl px-6 py-4 font-semibold text-sm transition-all hover:scale-105 ${tv(isDark,'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-gray-300','bg-gray-700 text-gray-200 hover:bg-gray-600 border-2 border-gray-600')}`}
-            >
-              Cancelar
-            </button>
+            {/* Botones de acción - Compactos para móviles */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className={`flex-1 rounded-lg px-4 py-3 font-semibold text-xs sm:text-sm transition-all hover:scale-105 ${tv(isDark,'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-gray-300','bg-gray-700 text-gray-200 hover:bg-gray-600 border-2 border-gray-600')}`}
+              >
+                Cancelar
+              </button>
               <button
                 type="button"
                 onClick={() => {
@@ -5798,21 +5797,23 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPr
                   const whatsappUrl = whatsappLink(formData.phone, message);
                   window.open(whatsappUrl, '_blank');
                 }}
-                className={`flex-1 rounded-xl px-6 py-4 font-semibold text-sm transition-all hover:scale-105 ${tv(isDark,'bg-green-600 text-white hover:bg-green-700 border-2 border-green-600','bg-green-600 text-white hover:bg-green-700 border-2 border-green-600')}`}
+                className={`flex-1 rounded-lg px-4 py-3 font-semibold text-xs sm:text-sm transition-all hover:scale-105 ${tv(isDark,'bg-green-600 text-white hover:bg-green-700 border-2 border-green-600','bg-green-600 text-white hover:bg-green-700 border-2 border-green-600')}`}
               >
                 <span className="flex items-center justify-center gap-2">
                   <span>📱</span>
-                  Enviar por WhatsApp
+                  <span className="hidden sm:inline">Enviar por WhatsApp</span>
+                  <span className="sm:hidden">WhatsApp</span>
                 </span>
             </button>
             <button
               type="submit"
-                className={`flex-1 rounded-xl px-6 py-4 font-semibold text-sm bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all hover:scale-105 shadow-lg hover:shadow-xl`}
+                className={`flex-1 rounded-lg px-4 py-3 font-semibold text-xs sm:text-sm bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all hover:scale-105 shadow-lg hover:shadow-xl`}
               >
                 <span className="flex items-center justify-center gap-2">
                   <span>💾</span>
-                  Guardar Cambios
-                  <span>✨</span>
+                  <span className="hidden sm:inline">Guardar Cambios</span>
+                  <span className="sm:hidden">Guardar</span>
+                  <span className="hidden sm:inline">✨</span>
                 </span>
             </button>
           </div>
