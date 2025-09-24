@@ -157,8 +157,16 @@ function daysBetween(a: string, b: string){
   const diff = d2.getTime()-d1.getTime();
   return Math.round(diff/(1000*60*60*24)); 
 }
-function whatsappLink(to: string, text: string){ return `https://wa.me/${to}?text=${encodeURIComponent(text)}`; }
-function tv<T>(isDark: boolean, light: T, dark: T){ return isDark? dark : light; }
+  function whatsappLink(to: string, text: string){ return `https://wa.me/${to}?text=${encodeURIComponent(text)}`; }
+  function tv<T>(isDark: boolean, light: T, dark: T){ return isDark? dark : light; }
+  
+  // Función mejorada para contraste que considera el modo del sistema
+  function tvContrast<T>(isDark: boolean, systemPrefersDark: boolean, light: T, dark: T, lightHighContrast?: T){ 
+    if (isDark) return dark;
+    // Si la app está en modo claro pero el sistema está en modo oscuro, usar alto contraste
+    if (systemPrefersDark && lightHighContrast) return lightHighContrast;
+    return light;
+  }
 
 // Función para calcular días restantes hasta el vencimiento
 const getDaysRemaining = (endDate: string): number => {
@@ -385,7 +393,7 @@ function useChatbot(services: readonly any[], combos: readonly any[]){
     if(text.includes('combo') || text.includes('combos') || text.includes('descuento') || text.includes('ahorro') || text.includes('barato') || text.includes('ofertas') || text.includes('especiales')) {
       console.log('Detectado: consulta de combos');
       
-      const comboList = combos.slice(0, 5).map((c, i) => 
+        const comboList = combos.slice(0, 5).map((c, i) => 
         `${i+1}️⃣ ${c.name} - ${fmt(c.price)}/mes (Ahorro significativo)`
       ).join('\n');
       
@@ -684,6 +692,21 @@ function App(){
   // Tema
   const[theme,setTheme]=useState<string>(()=>{ try{return localStorage.getItem('sz_theme')||'light'}catch{return 'light'} });
   const isDark = theme==='dark';
+  
+  // Detectar modo del sistema
+  const [systemPrefersDark, setSystemPrefersDark] = useState(false);
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setSystemPrefersDark(mediaQuery.matches);
+    
+    const handleChange = (e: MediaQueryListEvent) => {
+      setSystemPrefersDark(e.matches);
+    };
+    
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+  
   useEffect(()=>{ try{localStorage.setItem('sz_theme',theme)}catch{} },[theme]);
   const toggleTheme=()=>setTheme(isDark?'light':'dark');
 
@@ -2935,8 +2958,9 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
       <AdminRegisterPurchaseModal 
         open={adminRegisterPurchaseOpen} 
         onClose={()=>setAdminRegisterPurchaseOpen(false)} 
-        onRegister={adminRegisterPurchase} 
-        isDark={isDark} 
+        onRegister={adminRegisterPurchase}
+        isDark={isDark}
+        systemPrefersDark={systemPrefersDark}
       />
 
       {/* Modal de edición de compra */}
@@ -2945,7 +2969,8 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
         onClose={()=>setEditPurchaseOpen(false)} 
         onUpdate={handleUpdatePurchase} 
         purchase={editingPurchase}
-        isDark={isDark} 
+        isDark={isDark}
+        systemPrefersDark={systemPrefersDark}
       />
 
       {/* Drawers y flotantes */}
@@ -2965,7 +2990,7 @@ function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit }:{ ite
   const status = days < 0 ? 'Vencido' : days === 0 ? 'Vence hoy' : `${days} dias`;
   
   // Verificar si es un combo y extraer credenciales
-  const isCombo = item.service && item.service.includes('+');
+  const isCombo = item.service && isRealCombo(item.service);
   const comboCredentials = isCombo ? getComboCredentials(item.admin_notes || '') : {};
   const comboServices = isCombo ? extractComboServices(item.service) : [];
   const comboNotes = isCombo ? getComboNotes(item.admin_notes || '') : '';
@@ -4384,7 +4409,7 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
             ×
           </button>
         </div>
-        
+
         <div className="space-y-6">
 
           {/* Información del servicio */}
@@ -4405,7 +4430,7 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
             <label className={`block text-sm font-semibold mb-3 ${tv(isDark,'text-gray-800','text-gray-200')}`}>Duración</label>
             <div className="flex gap-2">
               {[1, 2, 3, 6].map((months) => (
-                <button
+              <button
                   key={months}
                   type="button"
                   onClick={() => setDuration(months)}
@@ -4416,7 +4441,7 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
                   }`}
                 >
                   {months} {isAnnual ? (months === 1 ? 'año' : 'años') : (months === 1 ? 'mes' : 'meses')}
-                </button>
+              </button>
               ))}
             </div>
           </div>
@@ -4595,8 +4620,8 @@ function PurchaseModal({ open, onClose, service, user, isDark, onPurchase }: {
 }
 
 // Modal de registro de compra por admin
-function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark }: {
-  open: boolean; onClose: () => void; onRegister: (data: any) => void; isDark: boolean;
+function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, systemPrefersDark }: {
+  open: boolean; onClose: () => void; onRegister: (data: any) => void; isDark: boolean; systemPrefersDark: boolean;
 }) {
   const [formData, setFormData] = useState({
     name: '',
@@ -4640,50 +4665,73 @@ function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark }: {
   };
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={onClose}>
-      <div className={`w-full max-w-2xl rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto ${tv(isDark,'bg-white','bg-zinc-900')}`} onClick={e=>e.stopPropagation()}>
-        <div className="mb-6 flex items-center justify-between">
-          <h3 className="text-2xl font-bold">Registrar Compra Manual</h3>
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className={`w-full max-w-3xl rounded-3xl shadow-2xl max-h-[90vh] overflow-y-auto border-2 ${tv(isDark,'bg-white border-gray-200','bg-zinc-900 border-zinc-700')}`} onClick={e=>e.stopPropagation()}>
+        {/* Header con gradiente */}
+        <div className={`relative rounded-t-3xl p-6 border-b-2 ${tv(isDark,'bg-gradient-to-r from-blue-600 to-purple-600 border-gray-200','bg-gradient-to-r from-blue-700 to-purple-700 border-zinc-700')}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${tv(isDark,'bg-white/20','bg-white/10')}`}>
+                <span className="text-2xl">🛒</span>
+              </div>
+              <div>
+                <h3 className={`text-2xl font-bold ${tv(isDark,'text-white','text-white')}`}>Registrar Compra Manual</h3>
+                <p className={`text-sm opacity-90 ${tv(isDark,'text-white/80','text-white/80')}`}>Crear nueva compra para un cliente</p>
+              </div>
+            </div>
           <button 
             onClick={onClose} 
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold transition-colors ${tv(isDark,'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100','text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800')}`}
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-xl font-bold transition-all hover:scale-110 ${tv(isDark,'text-white hover:bg-white/20','text-white hover:bg-white/10')}`}
           >
             ×
           </button>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="p-6">
+          <form onSubmit={handleSubmit} className="space-y-8">
           {/* Información del cliente */}
-          <div className={`p-4 rounded-xl ${tv(isDark,'bg-zinc-50','bg-zinc-800')}`}>
-            <h4 className="font-semibold mb-4">👤 Información del Cliente</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Nombre completo *</label>
+            <div className={`p-6 rounded-2xl border-2 ${tv(isDark,'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200','bg-gradient-to-br from-blue-900/20 to-purple-900/20 border-blue-700/30')}`}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tv(isDark,'bg-blue-100','bg-blue-800/30')}`}>
+                  <span className="text-xl">👤</span>
+                </div>
+                <h4 className={`text-xl font-bold ${tv(isDark,'text-blue-900','text-blue-100')}`}>Información del Cliente</h4>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                    Nombre completo *
+                  </label>
                 <input
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-blue-400 focus:ring-blue-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-600 focus:ring-blue-300')}`}
                   placeholder="Juan Pérez"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">WhatsApp *</label>
+                <div className="space-y-2">
+                  <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                    WhatsApp *
+                  </label>
                 <input
                   required
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-blue-400 focus:ring-blue-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-600 focus:ring-blue-300')}`}
                   placeholder="+593987654321"
                 />
               </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-2">Email (opcional)</label>
+                <div className="md:col-span-2 space-y-2">
+                  <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                    Email (opcional)
+                  </label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-blue-400 focus:ring-blue-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-600 focus:ring-blue-300')}`}
                   placeholder="juan@correo.com"
                 />
               </div>
@@ -4691,16 +4739,23 @@ function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark }: {
           </div>
 
           {/* Información del servicio */}
-          <div className={`p-4 rounded-xl ${tv(isDark,'bg-zinc-50','bg-zinc-800')}`}>
-            <h4 className="font-semibold mb-4">🛍️ Información del Servicio</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Servicio *</label>
+            <div className={`p-6 rounded-2xl border-2 ${tv(isDark,'bg-gradient-to-br from-green-50 to-blue-50 border-green-200','bg-gradient-to-br from-green-900/20 to-blue-900/20 border-green-700/30')}`}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tv(isDark,'bg-green-100','bg-green-800/30')}`}>
+                  <span className="text-xl">🛍️</span>
+                </div>
+                <h4 className={`text-xl font-bold ${tv(isDark,'text-green-900','text-green-100')}`}>Información del Servicio</h4>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                    Servicio *
+                  </label>
                 <select
                   required
                   value={formData.service}
                   onChange={(e) => setFormData({...formData, service: e.target.value})}
-                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-green-500 focus:ring-green-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-green-400 focus:ring-green-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-green-600 focus:ring-green-300')}`}
                 >
                   <option value="">Seleccionar servicio</option>
                   {SERVICES.map(service => (
@@ -4710,8 +4765,10 @@ function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark }: {
                   ))}
                 </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Precio (USD) *</label>
+                <div className="space-y-2">
+                  <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                    Precio (USD) *
+                  </label>
                 <input
                   required
                   type="number"
@@ -4719,73 +4776,87 @@ function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark }: {
                   min="0"
                   value={formData.price}
                   onChange={(e) => setFormData({...formData, price: e.target.value})}
-                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-green-500 focus:ring-green-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-green-400 focus:ring-green-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-green-600 focus:ring-green-300')}`}
                   placeholder="4.00"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Duración *</label>
-                <div className="flex gap-2">
+                <div className="space-y-2">
+                  <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                    Duración *
+                  </label>
+                  <div className="flex gap-3">
                   <input
                     required
                     type="number"
                     min="1"
                     value={formData.duration}
                     onChange={(e) => setFormData({...formData, duration: parseInt(e.target.value) || 1})}
-                    className={`flex-1 rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                      className={`flex-1 rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-green-500 focus:ring-green-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-green-400 focus:ring-green-800/20')}`}
                   />
                   <select
                     value={formData.isAnnual ? 'annual' : 'monthly'}
                     onChange={(e) => setFormData({...formData, isAnnual: e.target.value === 'annual'})}
-                    className={`rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                      className={`rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-green-500 focus:ring-green-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-green-400 focus:ring-green-800/20')}`}
                   >
                     <option value="monthly">Meses</option>
                     <option value="annual">Años</option>
                   </select>
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Fecha de inicio *</label>
+                <div className="space-y-2">
+                  <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                    Fecha de inicio *
+                  </label>
                 <input
                   required
                   type="date"
                   value={formData.startDate}
                   onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-                  className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
+                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-green-500 focus:ring-green-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-green-400 focus:ring-green-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-green-600 focus:ring-green-300')}`}
                 />
               </div>
             </div>
           </div>
 
           {/* Notas */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Notas adicionales</label>
+            <div className={`p-6 rounded-2xl border-2 ${tv(isDark,'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200','bg-gradient-to-br from-purple-900/20 to-pink-900/20 border-purple-700/30')}`}>
+              <div className="flex items-center gap-3 mb-4">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tv(isDark,'bg-purple-100','bg-purple-800/30')}`}>
+                  <span className="text-xl">📝</span>
+                </div>
+                <h4 className={`text-lg font-bold ${tv(isDark,'text-purple-900','text-purple-100')}`}>Notas Adicionales</h4>
+              </div>
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
-              className={`w-full rounded-xl border px-3 py-2 ${tv(isDark,'border-zinc-300','border-zinc-700 bg-zinc-800 text-zinc-100')}`}
-              rows={3}
-              placeholder="Comentarios o instrucciones especiales..."
+                className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-purple-400 focus:ring-purple-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-purple-600 focus:ring-purple-300')}`}
+                rows={4}
+                placeholder="Comentarios, instrucciones especiales o información adicional..."
             />
           </div>
 
-          {/* Botones */}
-          <div className="flex gap-3">
+            {/* Botones de acción */}
+            <div className="flex gap-4 pt-4">
             <button 
               type="button"
               onClick={onClose} 
-              className={`flex-1 rounded-xl px-4 py-3 font-medium ${tv(isDark,'bg-zinc-100 text-zinc-700 hover:bg-zinc-200','bg-zinc-700 text-zinc-200 hover:bg-zinc-600')}`}
+                className={`flex-1 rounded-xl px-6 py-4 font-semibold text-sm transition-all hover:scale-105 ${tv(isDark,'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-gray-300','bg-gray-700 text-gray-200 hover:bg-gray-600 border-2 border-gray-600')}`}
             >
               Cancelar
             </button>
             <button 
               type="submit"
-              className="flex-1 rounded-xl px-4 py-3 font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all"
+                className="flex-1 rounded-xl px-6 py-4 font-semibold text-sm bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all hover:scale-105 shadow-lg hover:shadow-xl"
             >
+                <span className="flex items-center justify-center gap-2">
+                  <span>✨</span>
               Registrar Compra
+                  <span>✨</span>
+                </span>
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );
@@ -4797,35 +4868,100 @@ function parseComboCredentialsFromText(text: string): Record<string, { email: st
   
   if (!text) return credentials;
   
-  // Buscar patrones como "Netflix: email@domain.com / password"
+  console.log('🔍 Parsing combo credentials from text:', text);
+  
   const lines = text.split('\n');
   for (const line of lines) {
+    const trimmedLine = line.trim();
+    if (!trimmedLine) continue;
+    
+    console.log('🔍 Processing line:', trimmedLine);
+    
     // Patrón 1: "Netflix: email@domain.com / password"
-    let match = line.match(/^([^:]+):\s*([^\s/]+)\s*\/\s*(.+)$/);
+    let match = trimmedLine.match(/^([^:]+):\s*([^\s/]+)\s*\/\s*(.+)$/);
     if (match) {
       const service = match[1].trim();
       const email = match[2].trim();
       const password = match[3].trim();
       credentials[service] = { email, password };
+      console.log('🔍 Found credentials for', service, ':', email, '/', password);
       continue;
     }
     
     // Patrón 2: "Disney+ Estándar: email@domain.com / password"
-    match = line.match(/^([^:]+):\s*([^\s/]+)\s*\/\s*(.+)$/);
+    match = trimmedLine.match(/^([^:]+):\s*([^\s/]+)\s*\/\s*(.+)$/);
     if (match) {
       const service = match[1].trim();
       const email = match[2].trim();
       const password = match[3].trim();
       credentials[service] = { email, password };
+      console.log('🔍 Found credentials for', service, ':', email, '/', password);
+      continue;
+    }
+    
+    // Patrón 3: Buscar emails en la línea
+    const emailMatch = trimmedLine.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+    if (emailMatch) {
+      const email = emailMatch[1];
+      console.log('🔍 Found email in line:', email);
+      // Intentar extraer el servicio del contexto
+      if (trimmedLine.toLowerCase().includes('netflix')) {
+        credentials['Netflix'] = { email, password: 'contraseña' };
+      } else if (trimmedLine.toLowerCase().includes('disney')) {
+        credentials['Disney+'] = { email, password: 'contraseña' };
+      } else if (trimmedLine.toLowerCase().includes('paramount')) {
+        credentials['Paramount+'] = { email, password: 'contraseña' };
+      } else {
+        // Si no hay contexto claro, usar el email como está
+        console.log('🔍 No service context found, using email as-is');
+      }
+    }
+    
+    // Patrón 4: Buscar contraseñas después de "contraseña:" o "password:"
+    const passwordMatch = trimmedLine.match(/(?:contraseña|password):\s*(.+)/i);
+    if (passwordMatch) {
+      const password = passwordMatch[1].trim();
+      console.log('🔍 Found password:', password);
+    }
+    
+    // Patrón 5: Buscar emails sueltos y crear credenciales por defecto para Paramount+
+    if (emailMatch && trimmedLine.toLowerCase().includes('paramount') && !credentials['Paramount+']) {
+      const email = emailMatch[1];
+      console.log('🔍 Creating default credentials for Paramount+ with email:', email);
+      credentials['Paramount+'] = { email, password: 'contraseña' };
     }
   }
   
+  console.log('🔍 Final parsed credentials:', credentials);
   return credentials;
+}
+
+// Función para detectar si un servicio es realmente un combo
+function isRealCombo(serviceName: string): boolean {
+  if (!serviceName) return false;
+  
+  // Lista de combos reales definidos en COMBOS
+  const realCombos = [
+    'Netflix + Disney Estándar',
+    'Netflix + Disney Premium', 
+    'Netflix + Max',
+    'Netflix + Prime Video',
+    'Prime Video + Disney Estándar',
+    'Disney Premium + Max',
+    'Max + Prime Video',
+    'Paramount + Max + Prime Video',
+    'Netflix + Max + Disney + Prime + Paramount',
+    'Spotify + Netflix',
+    'Spotify + Disney Premium'
+  ];
+  
+  // Verificar si el servicio está en la lista de combos reales
+  return realCombos.includes(serviceName);
 }
 
 // Función para extraer servicios de un combo
 function extractComboServices(comboName: string): string[] {
-  if (!comboName || !comboName.includes('+')) return [comboName];
+  if (!comboName || !isRealCombo(comboName)) return [comboName];
   
   // Mapeo de nombres de combos a servicios individuales
   const comboMapping: Record<string, string[]> = {
@@ -4934,12 +5070,13 @@ function getComboNotes(adminNotes: string): string {
 }
 
 // Modal de edición de compra
-function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark }: {
+function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPrefersDark }: {
   open: boolean; 
   onClose: () => void; 
   onUpdate: (data: Partial<DatabasePurchase>) => void; 
   purchase: DatabasePurchase | null;
   isDark: boolean;
+  systemPrefersDark: boolean;
 }) {
   const [formData, setFormData] = useState({
     customer: '',
@@ -4959,7 +5096,7 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark }: {
       let credentials = {};
       let notes = '';
       
-      if (purchase.service && purchase.service.includes('+')) {
+      if (purchase.service && isRealCombo(purchase.service)) {
         try {
           const parsed = JSON.parse(purchase.admin_notes || '{}');
           if (parsed && typeof parsed === 'object' && !parsed.customer) {
@@ -4999,7 +5136,7 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark }: {
     e.preventDefault();
     
     // Si es un combo, asegurar que las credenciales se guarden correctamente
-    if (formData.service && formData.service.includes('+')) {
+    if (formData.service && isRealCombo(formData.service)) {
       try {
         // Verificar que las credenciales estén en formato JSON
         const credentials = JSON.parse(formData.admin_notes || '{}');
@@ -5023,55 +5160,81 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark }: {
   if (!open || !purchase) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-3 z-50 overflow-y-auto">
-      <div className={`w-full max-w-3xl max-h-[90vh] rounded-xl p-6 shadow-2xl overflow-y-auto border-2 ${tv(isDark,'bg-white border-gray-300','bg-zinc-800 border-zinc-600')}`}>
-        {/* Header compacto */}
-        <div className={`flex items-center justify-between mb-4 pb-3 border-b-2 ${tv(isDark,'border-gray-300','border-zinc-600')}`}>
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tv(isDark,'bg-orange-100','bg-orange-900/30')}`}>
-              <span className="text-lg">✏️</span>
-            </div>
-            <h3 className={`text-xl font-bold ${tv(isDark,'text-gray-900','text-white')}`}>Editar Compra</h3>
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className={`w-full max-w-4xl rounded-3xl shadow-2xl max-h-[90vh] overflow-y-auto border-2 ${tv(isDark,'bg-white border-gray-200','bg-zinc-900 border-zinc-700')}`} onClick={e=>e.stopPropagation()}>
+        {/* Header con gradiente */}
+        <div className={`relative rounded-t-3xl p-6 border-b-2 ${tv(isDark,'bg-gradient-to-r from-orange-500 to-red-500 border-gray-200','bg-gradient-to-r from-orange-600 to-red-600 border-zinc-700')}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${tv(isDark,'bg-white/20','bg-white/10')}`}>
+                <span className="text-2xl">✏️</span>
+              </div>
+              <div>
+                <h3 className={`text-2xl font-bold ${tv(isDark,'text-white','text-white')}`}>Editar Compra</h3>
+                <p className={`text-sm opacity-90 ${tv(isDark,'text-white/80','text-white/80')}`}>Modificar información de la compra</p>
+              </div>
           </div>
           <button
             onClick={onClose}
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold transition-colors ${tv(isDark,'text-gray-600 hover:bg-gray-100 hover:text-gray-900','text-gray-400 hover:bg-zinc-700 hover:text-white')}`}
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-xl font-bold transition-all hover:scale-110 ${tv(isDark,'text-white hover:bg-white/20','text-white hover:bg-white/10')}`}
           >
             ×
           </button>
+          </div>
         </div>
         
-        {/* Información del cliente compacta */}
-        <div className={`p-4 rounded-xl mb-4 border ${tv(isDark,'bg-blue-50 border-blue-200','bg-zinc-700 border-zinc-600')}`}>
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tv(isDark,'bg-blue-100','bg-blue-900/30')}`}>
-              <span className="text-lg">👤</span>
-            </div>
-            <div>
-              <h4 className={`font-semibold text-base ${tv(isDark,'text-gray-900','text-white')}`}>{formData.customer}</h4>
-              <p className={`text-sm ${tv(isDark,'text-gray-700','text-gray-300')}`}>{formData.service} • {formData.months} {formData.months === 1 ? 'mes' : 'meses'}</p>
+        <div className="p-6">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Información del cliente - Tarjeta compacta */}
+            <div className={`p-4 rounded-xl border-2 ${tv(isDark,'bg-blue-50 border-blue-200','bg-blue-900/20 border-blue-700/30')}`}>
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tv(isDark,'bg-blue-100','bg-blue-800/30')}`}>
+                  <span className={`text-sm font-bold ${tv(isDark,'text-blue-700','text-blue-200')}`}>
+                    {(() => {
+                      const customerName = formData.customer || '';
+                      if (!customerName || customerName.trim() === '') {
+                        return '👤';
+                      }
+                      
+                      const words = customerName.trim().split(' ').filter(word => word.length > 0);
+                      const initials = words.map(word => word[0]).join('').toUpperCase().slice(0, 2);
+                      
+                      return initials || '👤';
+                    })()}
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <h4 className={`font-semibold text-base ${tv(isDark,'text-gray-900','text-white')}`}>{formData.customer}</h4>
+                  <p className={`text-sm ${tv(isDark,'text-gray-700','text-gray-300')}`}>{formData.service} • {formData.months} {formData.months === 1 ? 'mes' : 'meses'}</p>
+                  <p className={`text-xs ${tv(isDark,'text-gray-600','text-gray-400')}`}>📱 {formData.phone}</p>
             </div>
           </div>
         </div>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
           
           {/* Detectar si es un combo */}
-          {formData.service && formData.service.includes('+') ? (
+            {formData.service && isRealCombo(formData.service) ? (
+              <div className={`p-6 rounded-2xl border-2 ${tv(isDark,'bg-gradient-to-br from-green-50 to-blue-50 border-green-200','bg-gradient-to-br from-green-900/20 to-blue-900/20 border-green-700/30')}`}>
+                {/* Banner de detección de combo */}
+                <div className={`p-4 rounded-xl mb-6 ${tv(isDark,'bg-green-100 border-2 border-green-200','bg-green-800/30 border-2 border-green-700/30')}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tv(isDark,'bg-green-200','bg-green-700/30')}`}>
+                      <span className="text-xl">🎯</span>
+                    </div>
             <div>
-              {/* Banner de detección de combo compacto */}
-              <div className={`p-2 rounded-lg mb-3 ${tv(isDark,'bg-blue-50','bg-blue-900/20')}`}>
-                <div className="flex items-center gap-2">
-                  <div className="text-sm">🎯</div>
-                  <div>
-                    <h4 className={`font-semibold text-xs ${tv(isDark,'text-blue-800','text-blue-200')}`}>Combo detectado</h4>
-                    <p className={`text-xs ${tv(isDark,'text-blue-600','text-blue-300')}`}>Múltiples plataformas</p>
+                      <h4 className={`font-bold text-lg ${tv(isDark,'text-green-800','text-green-100')}`}>Combo Detectado</h4>
+                      <p className={`text-sm ${tv(isDark,'text-green-600','text-green-200')}`}>Múltiples plataformas en una sola compra</p>
                   </div>
                 </div>
               </div>
               
-              <div className="space-y-3">
-                <h3 className={`text-sm font-semibold ${tv(isDark,'text-zinc-800','text-zinc-200')}`}>🔑 Cuentas del Combo</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tv(isDark,'bg-blue-100','bg-blue-800/30')}`}>
+                      <span className="text-lg">🔑</span>
+                    </div>
+                    <h3 className={`text-lg font-bold ${tv(isDark,'text-green-900','text-green-100')}`}>Cuentas del Combo</h3>
+                  </div>
                 
                 {formData.service.split(' + ').map((service, index) => {
                   const serviceName = service.trim();
@@ -5099,19 +5262,19 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark }: {
                   };
                   
                   return (
-                  <div key={index} className={`p-3 rounded-lg border ${tv(isDark,'bg-gray-50 border-gray-200','bg-zinc-700 border-zinc-600')}`}>
-                    <h4 className={`font-semibold text-sm mb-2 ${tv(isDark,'text-zinc-800','text-zinc-200')}`}>
+                    <div key={index} className={`p-4 rounded-xl border-2 ${tv(isDark,'bg-white border-gray-200 shadow-sm','bg-zinc-800 border-zinc-600 shadow-lg')}`}>
+                      <h4 className={`font-bold text-base mb-4 ${tv(isDark,'text-gray-900','text-white')}`}>
                       {serviceName}
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <label className={`flex items-center gap-2 text-sm font-semibold mb-2 ${tv(isDark,'text-gray-800','text-white')}`}>
-                          <span className="text-lg">📧</span> Email
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                            📧 Email *
                         </label>
                         <input
                           type="email"
-                          placeholder={`email@${service.toLowerCase().replace(/\s+/g, '')}.com`}
-                          className={`w-full rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200','border-zinc-600 bg-zinc-800 text-zinc-100 focus:border-blue-400 focus:ring-2 focus:ring-blue-800')}`}
+                            placeholder="usuario@email.com"
+                            className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-blue-400 focus:ring-blue-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-600 focus:ring-blue-300')}`}
                           onChange={(e) => {
                             // Actualizar las credenciales en admin_notes
                             const credentials = JSON.parse(formData.admin_notes || '{}');
@@ -5137,15 +5300,14 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark }: {
                           })()}
                         />
                       </div>
-                      <div>
-                        <label className={`flex items-center gap-2 text-sm font-semibold mb-2 ${tv(isDark,'text-gray-800','text-white')}`}>
-                          <span className="text-lg">🔑</span> Contraseña
+                        <div className="space-y-2">
+                          <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                            🔑 Contraseña *
                         </label>
-                        <div className="relative">
                           <input
-                            type="password"
-                            placeholder="contraseña"
-                            className={`w-full rounded-lg border-2 px-4 py-3 pr-12 text-sm font-medium transition-colors ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200','border-zinc-600 bg-zinc-800 text-zinc-100 focus:border-blue-400 focus:ring-2 focus:ring-blue-800')}`}
+                            type="text"
+                            placeholder="contraseña123"
+                            className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-blue-400 focus:ring-blue-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-600 focus:ring-blue-300')}`}
                             onChange={(e) => {
                               // Actualizar las credenciales en admin_notes
                               const credentials = JSON.parse(formData.admin_notes || '{}');
@@ -5170,17 +5332,6 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark }: {
                               }
                             })()}
                           />
-                          <button
-                            type="button"
-                            className={`absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors duration-200 text-xs ${tv(isDark,'hover:text-zinc-700','hover:text-zinc-300')}`}
-                            onClick={(e) => {
-                              const input = e.currentTarget.previousElementSibling as HTMLInputElement;
-                              input.type = input.type === 'password' ? 'text' : 'password';
-                            }}
-                          >
-                            👁️
-                          </button>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -5188,144 +5339,169 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark }: {
                 })}
               </div>
               
-              {/* Notas para combos compactas */}
-              <div className="mt-3">
-                <label className={`block text-xs font-medium mb-1 ${tv(isDark,'text-zinc-800','text-zinc-200')}`}>📝 Notas (opcional)</label>
-                <textarea
-                  value={(() => {
-                    try {
+                {/* Notas para combos */}
+                <div className="mt-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tv(isDark,'bg-purple-100','bg-purple-800/30')}`}>
+                      <span className="text-lg">📝</span>
+                    </div>
+                    <h4 className={`text-lg font-bold ${tv(isDark,'text-green-900','text-green-100')}`}>Notas Adicionales</h4>
+                  </div>
+                  <textarea
+                    value={(() => {
+                      try {
+                        const credentials = JSON.parse(formData.admin_notes || '{}');
+                        if (credentials && typeof credentials === 'object' && !credentials.customer) {
+                          // Si es un objeto de credenciales, extraer las notas
+                          return credentials.notes || '';
+                        }
+                        return formData.admin_notes || '';
+                      } catch {
+                        return formData.admin_notes || '';
+                      }
+                    })()}
+                    onChange={(e) => {
+                      // Actualizar las notas en admin_notes
                       const credentials = JSON.parse(formData.admin_notes || '{}');
                       if (credentials && typeof credentials === 'object' && !credentials.customer) {
-                        // Si es un objeto de credenciales, extraer las notas
-                        return credentials.notes || '';
+                        credentials.notes = e.target.value;
+                        setFormData(prev => ({
+                          ...prev,
+                          admin_notes: JSON.stringify(credentials)
+                        }));
+                      } else {
+                        setFormData(prev => ({
+                          ...prev,
+                          admin_notes: e.target.value
+                        }));
                       }
-                      return formData.admin_notes || '';
+                    }}
+                    rows={4}
+                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-purple-400 focus:ring-purple-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-purple-600 focus:ring-purple-300')}`}
+                    placeholder="Netflix: Perfil 2, Disney: Perfil 3"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className={`p-6 rounded-2xl border-2 ${tv(isDark,'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200','bg-gradient-to-br from-purple-900/20 to-pink-900/20 border-purple-700/30')}`}>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tv(isDark,'bg-purple-100','bg-purple-800/30')}`}>
+                    <span className="text-xl">🔑</span>
+                  </div>
+                  <h4 className={`text-xl font-bold ${tv(isDark,'text-purple-900','text-purple-100')}`}>Credenciales del Servicio</h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                      Email del servicio *
+                    </label>
+                    <input
+                      required
+                      value={formData.service_email}
+                      onChange={(e) => setFormData(prev => ({...prev, service_email: e.target.value}))}
+                      className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-purple-400 focus:ring-purple-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-purple-600 focus:ring-purple-300')}`}
+                      placeholder="usuario@email.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                      Contraseña del servicio *
+                    </label>
+                    <input
+                      required
+                      value={formData.service_password}
+                      onChange={(e) => setFormData(prev => ({...prev, service_password: e.target.value}))}
+                      className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-purple-400 focus:ring-purple-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-purple-600 focus:ring-purple-300')}`}
+                      placeholder="contraseña123"
+                    />
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                      Notas del administrador
+                    </label>
+                    <textarea
+                      value={formData.admin_notes}
+                      onChange={(e) => setFormData(prev => ({...prev, admin_notes: e.target.value}))}
+                      rows={3}
+                      className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-purple-400 focus:ring-purple-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-purple-600 focus:ring-purple-300')}`}
+                      placeholder="Notas adicionales sobre esta compra..."
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          
+          
+            {/* Botones de acción */}
+            <div className="flex gap-4 pt-6">
+              <button
+                type="button"
+                onClick={onClose}
+                className={`flex-1 rounded-xl px-6 py-4 font-semibold text-sm transition-all hover:scale-105 ${tv(isDark,'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-gray-300','bg-gray-700 text-gray-200 hover:bg-gray-600 border-2 border-gray-600')}`}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  // Generar mensaje de WhatsApp con credenciales
+                  let message = `🎬 *Credenciales de ${formData.service}*\n\n`;
+                  message += `👤 Cliente: ${formData.customer}\n`;
+                  message += `📅 Duración: ${formData.months} ${formData.months === 1 ? 'mes' : 'meses'}\n`;
+                  message += `📆 Vence: ${formData.end}\n\n`;
+                  
+                  if (formData.service && isRealCombo(formData.service)) {
+                    // Es un combo
+                    message += `🔑 *Credenciales del Combo:*\n\n`;
+                    try {
+                      const credentials = JSON.parse(formData.admin_notes || '{}');
+                      Object.entries(credentials).forEach(([service, creds]: [string, any]) => {
+                        if (service !== 'notes' && creds.email && creds.password) {
+                          message += `*${service}:*\n`;
+                          message += `📧 Email: ${creds.email}\n`;
+                          message += `🔑 Contraseña: ${creds.password}\n\n`;
+                        }
+                      });
                     } catch {
-                      return formData.admin_notes || '';
+                      message += `📧 Email: ${formData.service_email}\n`;
+                      message += `🔑 Contraseña: ${formData.service_password}\n\n`;
                     }
-                  })()}
-                  onChange={(e) => {
-                    // Actualizar las notas en admin_notes
-                    const credentials = JSON.parse(formData.admin_notes || '{}');
-                    if (credentials && typeof credentials === 'object' && !credentials.customer) {
-                      credentials.notes = e.target.value;
-                      setFormData(prev => ({
-                        ...prev,
-                        admin_notes: JSON.stringify(credentials)
-                      }));
-                    } else {
-                      setFormData(prev => ({
-                        ...prev,
-                        admin_notes: e.target.value
-                      }));
-                    }
-                  }}
-                  rows={2}
-                  className={`w-full rounded-md border px-2 py-1.5 text-xs ${tv(isDark,'border-gray-300 bg-white text-zinc-900 focus:border-blue-500','border-zinc-600 bg-zinc-800 text-zinc-100 focus:border-blue-400')}`}
-                  placeholder="Netflix: Perfil 2, Disney: Perfil 3"
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div>
-                <label className={`block text-xs font-medium mb-1 ${tv(isDark,'text-zinc-800','text-zinc-300')}`}>📧 Email del servicio</label>
-                <input
-                  type="email"
-                  value={formData.service_email}
-                  onChange={(e) => setFormData(prev => ({...prev, service_email: e.target.value}))}
-                  className={`w-full rounded-md border px-2 py-1.5 text-xs ${tv(isDark,'border-zinc-300 bg-white text-zinc-900','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
-                />
-              </div>
-              
-              <div>
-                <label className={`block text-xs font-medium mb-1 ${tv(isDark,'text-zinc-800','text-zinc-300')}`}>🔑 Contraseña del servicio</label>
-                <input
-                  type="text"
-                  value={formData.service_password}
-                  onChange={(e) => setFormData(prev => ({...prev, service_password: e.target.value}))}
-                  className={`w-full rounded-md border px-2 py-1.5 text-xs ${tv(isDark,'border-zinc-300 bg-white text-zinc-900','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
-                />
-              </div>
-            </div>
-          )}
-          
-          {/* Solo mostrar notas si no es un combo */}
-          {!(formData.service && formData.service.includes('+')) && (
-            <div>
-              <label className={`block text-xs font-medium mb-1 ${tv(isDark,'text-zinc-800','text-zinc-300')}`}>📝 Notas del administrador</label>
-              <textarea
-                value={formData.admin_notes}
-                onChange={(e) => setFormData(prev => ({...prev, admin_notes: e.target.value}))}
-                rows={2}
-                className={`w-full rounded-md border px-2 py-1.5 text-xs ${tv(isDark,'border-zinc-300 bg-white text-zinc-900','border-zinc-600 bg-zinc-700 text-zinc-100')}`}
-                placeholder="Notas adicionales sobre esta compra..."
-              />
-            </div>
-          )}
-          
-          {/* Botones compactos */}
-          <div className={`flex gap-3 mt-6 pt-4 border-t-2 ${tv(isDark,'border-gray-300','border-zinc-600')}`}>
-            <button
-              type="button"
-              onClick={onClose}
-              className={`flex-1 px-4 py-3 rounded-lg text-sm font-semibold transition-all duration-200 border-2 ${tv(isDark,'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200 hover:border-gray-400','bg-gray-700 text-gray-200 border-gray-600 hover:bg-gray-600 hover:border-gray-500')}`}
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                // Generar mensaje de WhatsApp con credenciales
-                let message = `🎬 *Credenciales de ${formData.service}*\n\n`;
-                message += `👤 Cliente: ${formData.customer}\n`;
-                message += `📅 Duración: ${formData.months} ${formData.months === 1 ? 'mes' : 'meses'}\n`;
-                message += `📆 Vence: ${formData.end}\n\n`;
-                
-                if (formData.service && formData.service.includes('+')) {
-                  // Es un combo
-                  message += `🔑 *Credenciales del Combo:*\n\n`;
-                  try {
-                    const credentials = JSON.parse(formData.admin_notes || '{}');
-                    Object.entries(credentials).forEach(([service, creds]: [string, any]) => {
-                      if (service !== 'notes' && creds.email && creds.password) {
-                        message += `*${service}:*\n`;
-                        message += `📧 Email: ${creds.email}\n`;
-                        message += `🔑 Contraseña: ${creds.password}\n\n`;
-                      }
-                    });
-                  } catch {
+                  } else {
+                    // Servicio individual
+                    message += `🔑 *Credenciales:*\n`;
                     message += `📧 Email: ${formData.service_email}\n`;
                     message += `🔑 Contraseña: ${formData.service_password}\n\n`;
                   }
-                } else {
-                  // Servicio individual
-                  message += `🔑 *Credenciales:*\n`;
-                  message += `📧 Email: ${formData.service_email}\n`;
-                  message += `🔑 Contraseña: ${formData.service_password}\n\n`;
-                }
-                
-                message += `💡 *Instrucciones:*\n`;
-                message += `• Descarga la app oficial de cada servicio\n`;
-                message += `• Inicia sesión con las credenciales proporcionadas\n`;
-                message += `• Disfruta de tu contenido favorito\n\n`;
-                message += `❓ ¿Necesitas ayuda? Contáctanos por WhatsApp`;
-                
-                const whatsappUrl = `https://wa.me/${cleanPhone(formData.phone)}?text=${encodeURIComponent(message)}`;
-                window.open(whatsappUrl, '_blank');
-              }}
-              className={`px-4 py-3 rounded-lg text-sm font-semibold transition-all duration-200 border-2 border-green-600 hover:scale-105 ${tv(isDark,'bg-green-600 text-white hover:bg-green-700','bg-green-600 text-white hover:bg-green-700')}`}
-            >
-              📱 Enviar por WhatsApp
-            </button>
-            <button
-              type="submit"
-              className={`flex-1 px-4 py-3 rounded-lg text-sm font-semibold transition-all duration-200 border-2 border-blue-600 hover:scale-105 ${tv(isDark,'bg-blue-600 text-white hover:bg-blue-700','bg-blue-600 text-white hover:bg-blue-700')}`}
-            >
-              💾 Guardar Cambios
-            </button>
-          </div>
-        </form>
+                  
+                  message += `💡 *Instrucciones:*\n`;
+                  message += `• Descarga la app oficial de cada servicio\n`;
+                  message += `• Inicia sesión con las credenciales proporcionadas\n`;
+                  message += `• Disfruta de tu contenido favorito\n\n`;
+                  message += `❓ ¿Necesitas ayuda? Contáctanos por WhatsApp`;
+                  
+                  const whatsappUrl = whatsappLink(formData.phone, message);
+                  window.open(whatsappUrl, '_blank');
+                }}
+                className={`flex-1 rounded-xl px-6 py-4 font-semibold text-sm transition-all hover:scale-105 ${tv(isDark,'bg-green-600 text-white hover:bg-green-700 border-2 border-green-600','bg-green-600 text-white hover:bg-green-700 border-2 border-green-600')}`}
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <span>📱</span>
+                  Enviar por WhatsApp
+                </span>
+              </button>
+              <button
+                type="submit"
+                className={`flex-1 rounded-xl px-6 py-4 font-semibold text-sm bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all hover:scale-105 shadow-lg hover:shadow-xl`}
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <span>💾</span>
+                  Guardar Cambios
+                  <span>✨</span>
+                </span>
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

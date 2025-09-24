@@ -12,10 +12,10 @@ console.log('✅ Variables configuradas correctamente');
 
 // Verificar si las variables de entorno están configuradas
 const isSupabaseConfigured = url && anon && 
-  url !== "https://tu-proyecto.supabase.co" && 
-  anon !== "tu_clave_anonima_aqui" &&
   url.includes('supabase.co') &&
-  anon.startsWith('eyJ');
+  anon.startsWith('eyJ') &&
+  !url.includes('tu-proyecto') &&
+  !anon.includes('tu_clave_anonima');
 
 let supabase: any = null;
 
