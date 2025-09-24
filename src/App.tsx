@@ -517,7 +517,7 @@ function ServiceCard({ s, onReserve, isDark }:{ s:any; onReserve:(s:any)=>void; 
         <div className="relative mb-6">
           <div className={`h-16 w-16 md:h-20 md:w-20 ${s.color} rounded-3xl text-white grid place-content-center text-2xl md:text-3xl font-bold mx-auto mb-4 shadow-2xl group-hover:scale-110 transition-transform duration-300`}>
             {s.logo}
-          </div>
+        </div>
           <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full ${tv(isDark,'bg-green-500','bg-green-400')} flex items-center justify-center text-white text-xs font-bold animate-pulse`}>
             ✓
           </div>
@@ -541,7 +541,7 @@ function ServiceCard({ s, onReserve, isDark }:{ s:any; onReserve:(s:any)=>void; 
         >
           <span className="flex items-center justify-center gap-2">
             <span>🚀</span>
-            Comprar Ahora
+          Comprar Ahora
             <span>✨</span>
           </span>
         </button>
@@ -717,7 +717,7 @@ function FloatingThemeToggle({ isDark, onToggle }:{ isDark:boolean; onToggle:()=
 // ===================== App =====================
 function App(){
   // Tema
-  const[theme,setTheme]=useState<string>(()=>{ try{return localStorage.getItem('sz_theme')||'light'}catch{return 'light'} });
+  const[theme,setTheme]=useState<string>(()=>{ try{return localStorage.getItem('sz_theme')||'dark'}catch{return 'dark'} });
   const isDark = theme==='dark';
   
   // Detectar modo del sistema
@@ -1947,11 +1947,11 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                     <div className="text-center">
                       <div className={`text-2xl font-bold ${tv(isDark,'text-blue-600','text-blue-400')}`}>500+</div>
                       <div className={`text-sm ${tv(isDark,'text-gray-600','text-gray-400')}`}>Clientes felices</div>
-                    </div>
+                </div>
                     <div className="text-center">
                       <div className={`text-2xl font-bold ${tv(isDark,'text-purple-600','text-purple-400')}`}>24/7</div>
                       <div className={`text-sm ${tv(isDark,'text-gray-600','text-gray-400')}`}>Soporte</div>
-                    </div>
+                  </div>
                     <div className="text-center">
                       <div className={`text-2xl font-bold ${tv(isDark,'text-green-600','text-green-400')}`}>100%</div>
                       <div className={`text-sm ${tv(isDark,'text-gray-600','text-gray-400')}`}>Garantía</div>
@@ -2035,15 +2035,15 @@ Cancelar = Agente 2 (+593 99 879 9579)`);
                 </h2>
                 <p className={`text-lg md:text-xl max-w-3xl mx-auto ${tv(isDark,'text-gray-600','text-gray-300')}`}>
                   Descubre todas las plataformas de streaming disponibles con acceso inmediato y soporte 24/7
-                </p>
-              </div>
+              </p>
+            </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
                 {SERVICES.map((s, index) => (
                   <div key={s.id} className="animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
-                    <ServiceCard s={s} onReserve={onReserve} isDark={isDark}/>
-                  </div>
-                ))}
+                  <ServiceCard s={s} onReserve={onReserve} isDark={isDark}/>
+                </div>
+              ))}
               </div>
               
               {/* Call to Action */}
@@ -5705,7 +5705,7 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPr
                   <span>📱</span>
                   Enviar por WhatsApp
                 </span>
-              </button>
+            </button>
             <button
               type="submit"
                 className={`flex-1 rounded-xl px-6 py-4 font-semibold text-sm bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all hover:scale-105 shadow-lg hover:shadow-xl`}
