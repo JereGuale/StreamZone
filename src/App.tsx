@@ -32,7 +32,35 @@ const SERVICES = [
   { id: "microsoft365", name: "Microsoft 365 (1 año)", price: 15.0, billing: "annual", color: "bg-blue-500", logo: "M365" },
   { id: "autodesk", name: "Autodesk (1 año)", price: 12.5, billing: "annual", color: "bg-zinc-700", logo: "AD" },
   { id: "office365", name: "Office 365 (1 año)", price: 15.0, billing: "annual", color: "bg-blue-600", logo: "O365" }
-] as const;
+  ] as const;
+
+// ===================== Países y Códigos =====================
+const COUNTRIES = [
+  { code: '+593', name: 'Ecuador', flag: '🇪🇨' },
+  { code: '+1', name: 'Estados Unidos', flag: '🇺🇸' },
+  { code: '+1', name: 'Canadá', flag: '🇨🇦' },
+  { code: '+52', name: 'México', flag: '🇲🇽' },
+  { code: '+54', name: 'Argentina', flag: '🇦🇷' },
+  { code: '+55', name: 'Brasil', flag: '🇧🇷' },
+  { code: '+56', name: 'Chile', flag: '🇨🇱' },
+  { code: '+57', name: 'Colombia', flag: '🇨🇴' },
+  { code: '+51', name: 'Perú', flag: '🇵🇪' },
+  { code: '+58', name: 'Venezuela', flag: '🇻🇪' },
+  { code: '+591', name: 'Bolivia', flag: '🇧🇴' },
+  { code: '+598', name: 'Uruguay', flag: '🇺🇾' },
+  { code: '+595', name: 'Paraguay', flag: '🇵🇾' },
+  { code: '+34', name: 'España', flag: '🇪🇸' },
+  { code: '+33', name: 'Francia', flag: '🇫🇷' },
+  { code: '+49', name: 'Alemania', flag: '🇩🇪' },
+  { code: '+39', name: 'Italia', flag: '🇮🇹' },
+  { code: '+44', name: 'Reino Unido', flag: '🇬🇧' },
+  { code: '+86', name: 'China', flag: '🇨🇳' },
+  { code: '+81', name: 'Japón', flag: '🇯🇵' },
+  { code: '+82', name: 'Corea del Sur', flag: '🇰🇷' },
+  { code: '+91', name: 'India', flag: '🇮🇳' },
+  { code: '+61', name: 'Australia', flag: '🇦🇺' },
+  { code: '+64', name: 'Nueva Zelanda', flag: '🇳🇿' }
+];
 
 // ===================== Combos =====================
 const COMBOS = [
@@ -207,7 +235,20 @@ const getServiceStatus = (endDate: string): { status: string; color: string; ico
   }
 };
 function ownPurchases(list: any[], user: any){ if(!user) return []; return list.filter(p=>p.validated && p.phone===user.phone); }
-function cleanPhone(value: string){ return String(value||"").replace(/[^\d+]/g,""); }
+function cleanPhone(value: string){ 
+  let cleaned = String(value||"").replace(/[^\d+]/g,"");
+  
+  // Si el número no tiene código de país y empieza con 0, agregar +593 (Ecuador)
+  if (cleaned && !cleaned.startsWith('+') && cleaned.startsWith('0')) {
+    cleaned = '+593' + cleaned.substring(1);
+  }
+  // Si el número no tiene código de país y no empieza con +, agregar +593
+  else if (cleaned && !cleaned.startsWith('+') && cleaned.length >= 9) {
+    cleaned = '+593' + cleaned;
+  }
+  
+  return cleaned;
+}
 function emailOk(e: string){ return /.+@.+\..+/.test(e); }
 
 // ===================== Logo =====================
@@ -3842,10 +3883,133 @@ function AdminMenuDrawer({ open, onClose, isDark, setSubView, openAdmins, onExpo
   );
 }
 
+// ========== Componente Selector de Código de País ==========
+function CountryCodeSelector({ value, onChange, isDark, disabled }: {
+  value: string;
+  onChange: (value: string) => void;
+  isDark: boolean;
+  disabled?: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState(
+    COUNTRIES.find(c => c.code === value) || COUNTRIES[0]
+  );
+
+  const filteredCountries = COUNTRIES.filter(country =>
+    country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    country.code.includes(searchTerm) ||
+    country.flag.includes(searchTerm)
+  );
+
+  const handleSelect = (country: typeof COUNTRIES[0]) => {
+    setSelectedCountry(country);
+    onChange(country.code);
+    setIsOpen(false);
+    setSearchTerm('');
+  };
+
+  return (
+    <div className="relative w-32 sm:w-40">
+      {/* Botón del selector */}
+      <button
+        type="button"
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
+        className={`w-full rounded-xl border-2 px-3 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 flex items-center justify-between ${tv(
+          isDark,
+          'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200 hover:border-blue-300',
+          'border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20 hover:border-blue-400'
+        )} ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-lg">{selectedCountry.flag}</span>
+          <span className="text-sm font-medium">{selectedCountry.code}</span>
+        </div>
+        <svg 
+          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {/* Dropdown */}
+      {isOpen && (
+        <div className={`absolute top-full left-0 right-0 mt-1 rounded-xl border-2 shadow-lg z-50 max-h-64 overflow-hidden ${tv(
+          isDark,
+          'border-gray-200 bg-white',
+          'border-gray-600 bg-gray-800'
+        )}`}>
+          {/* Barra de búsqueda */}
+          <div className="p-2 border-b border-gray-200 dark:border-gray-600">
+            <input
+              type="text"
+              placeholder="Buscar país..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={`w-full px-3 py-2 rounded-lg text-sm border ${tv(
+                isDark,
+                'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-200',
+                'border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-1 focus:ring-blue-800/20'
+              )}`}
+              autoFocus
+            />
+          </div>
+
+          {/* Lista de países */}
+          <div className="max-h-48 overflow-y-auto">
+            {filteredCountries.length > 0 ? (
+              filteredCountries.map((country) => (
+                <button
+                  key={country.code + country.name}
+                  type="button"
+                  onClick={() => handleSelect(country)}
+                  className={`w-full px-3 py-2 text-left hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex items-center gap-3 ${tv(
+                    isDark,
+                    'text-gray-900 hover:text-blue-700',
+                    'text-white hover:text-blue-300'
+                  )} ${selectedCountry.code === country.code ? 'bg-blue-100 dark:bg-blue-900/30' : ''}`}
+                >
+                  <span className="text-lg">{country.flag}</span>
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">{country.name}</div>
+                    <div className="text-xs opacity-70">{country.code}</div>
+                  </div>
+                  {selectedCountry.code === country.code && (
+                    <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </button>
+              ))
+            ) : (
+              <div className={`px-3 py-2 text-sm ${tv(isDark, 'text-gray-500', 'text-gray-400')}`}>
+                No se encontraron países
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Overlay para cerrar al hacer clic fuera */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
 // ========== Formularios ==========
 function UserRegisterForm({ isDark, onSubmit }:{ isDark:boolean; onSubmit:(profile:any)=>void; }){
   const[name,setName]=useState(''); 
   const[phone,setPhone]=useState(''); 
+  const[countryCode,setCountryCode]=useState('+593'); // Ecuador por defecto
   const[email,setEmail]=useState('');
   const[password,setPassword]=useState('');
   const[confirmPassword,setConfirmPassword]=useState('');
@@ -3879,11 +4043,12 @@ function UserRegisterForm({ isDark, onSubmit }:{ isDark:boolean; onSubmit:(profi
 
     try {
       // Crear usuario en Supabase
+      const fullPhone = countryCode + phone.replace(/[^\d]/g, ''); // Combinar código de país con número
       const { data: newUser, error } = await supabase
         .from('users')
         .insert([{
           name,
-          phone: cleanPhone(phone),
+          phone: fullPhone,
           email: email.toLowerCase().trim(),
           password
         }])
@@ -3924,14 +4089,28 @@ function UserRegisterForm({ isDark, onSubmit }:{ isDark:boolean; onSubmit:(profi
       
       <div>
         <label className={tv(isDark,'text-sm text-zinc-800','text-sm text-zinc-300')}>WhatsApp</label>
-        <input 
-          required
-          className={`w-full rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`} 
-          value={phone} 
-          onChange={e=>setPhone(e.target.value)} 
-          placeholder="+593 99 999 9999"
-          disabled={loading}
-        />
+        <div className="flex gap-2">
+          {/* Selector de código de país mejorado */}
+          <CountryCodeSelector 
+            value={countryCode}
+            onChange={setCountryCode}
+            isDark={isDark}
+            disabled={loading}
+          />
+          
+          {/* Campo de número de teléfono */}
+          <input 
+            required
+            className={`flex-1 rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`} 
+            value={phone} 
+            onChange={e=>setPhone(e.target.value)} 
+            placeholder="99 999 9999"
+            disabled={loading}
+          />
+        </div>
+        <div className={`text-xs mt-1 ${tv(isDark,'text-gray-500','text-gray-400')}`}>
+          Número completo: {countryCode} {phone}
+        </div>
       </div>
       
       <div>
@@ -5771,42 +5950,41 @@ function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPr
               <button
                 type="button"
                 onClick={() => {
-                  // Generar mensaje de WhatsApp con credenciales
-                  let message = `🎬 *Credenciales de ${formData.service}*\n\n`;
-                  message += `👤 Cliente: ${formData.customer}\n`;
-                  message += `📅 Duración: ${formData.months} ${formData.months === 1 ? 'mes' : 'meses'}\n`;
-                  message += `📆 Vence: ${formData.end}\n\n`;
+                  // Generar mensaje de WhatsApp elegante y conciso
+                  let message = `✨ *¡Hola ${formData.customer}!* ✨\n\n`;
+                  message += `🎬 *${formData.service}* actualizado\n`;
+                  message += `⏰ Vence: ${new Date(formData.end).toLocaleDateString('es-ES')}\n\n`;
                   
                   if (formData.service && isRealCombo(formData.service)) {
                     // Es un combo
-                    message += `🔑 *Credenciales del Combo:*\n\n`;
+                    message += `🔑 *Tus credenciales:*\n\n`;
                     try {
                       const credentials = JSON.parse(formData.admin_notes || '{}');
                       Object.entries(credentials).forEach(([service, creds]: [string, any]) => {
                         if (service !== 'notes' && creds.email && creds.password) {
-                          message += `*${service}:*\n`;
-                          message += `📧 Email: ${creds.email}\n`;
-                          message += `🔑 Contraseña: ${creds.password}\n\n`;
+                          message += `📺 *${service}*\n`;
+                          message += `📧 ${creds.email}\n`;
+                          message += `🔐 ${creds.password}\n\n`;
                         }
                       });
                     } catch {
-                      message += `📧 Email: ${formData.service_email}\n`;
-                      message += `🔑 Contraseña: ${formData.service_password}\n\n`;
+                      message += `📧 ${formData.service_email}\n`;
+                      message += `🔐 ${formData.service_password}\n\n`;
                     }
                   } else {
                     // Servicio individual
-                    message += `🔑 *Credenciales:*\n`;
-                    message += `📧 Email: ${formData.service_email}\n`;
-                    message += `🔑 Contraseña: ${formData.service_password}\n\n`;
+                    message += `🔑 *Tus credenciales:*\n`;
+                    message += `📧 ${formData.service_email}\n`;
+                    message += `🔐 ${formData.service_password}\n\n`;
                   }
                   
-                  message += `💡 *Instrucciones:*\n`;
-                  message += `• Descarga la app oficial de cada servicio\n`;
-                  message += `• Inicia sesión con las credenciales proporcionadas\n`;
-                  message += `• Disfruta de tu contenido favorito\n\n`;
-                  message += `❓ ¿Necesitas ayuda? Contáctanos por WhatsApp`;
+                  message += `📱 *Instrucciones:*\n`;
+                  message += `1️⃣ Descarga la app\n`;
+                  message += `2️⃣ Inicia sesión\n`;
+                  message += `3️⃣ ¡Disfruta! 🎉\n\n`;
+                  message += `💬 ¿Dudas? Escríbenos aquí`;
                   
-                  const whatsappUrl = whatsappLink(formData.phone, message);
+                  const whatsappUrl = whatsappLink(cleanPhone(formData.phone), message);
                   window.open(whatsappUrl, '_blank');
                 }}
                 className={`flex-1 rounded-xl px-6 py-4 font-semibold text-sm transition-all hover:scale-105 ${tv(isDark,'bg-green-600 text-white hover:bg-green-700 border-2 border-green-600','bg-green-600 text-white hover:bg-green-700 border-2 border-green-600')}`}
