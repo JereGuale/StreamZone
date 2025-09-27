@@ -9,9 +9,10 @@ interface UserProfileProps {
   onDeletePurchase: (id: string) => void;
   onEditPurchase: (purchase: any) => void;
   onSetView: (view: string) => void;
+  loading?: boolean;
 }
 
-export function UserProfile({ isDark, user, purchases, onToggleValidate, onDeletePurchase, onEditPurchase, onSetView }: UserProfileProps) {
+export function UserProfile({ isDark, user, purchases, onToggleValidate, onDeletePurchase, onEditPurchase, onSetView, loading = false }: UserProfileProps) {
   const [showPasswords, setShowPasswords] = useState<{ [key: string]: boolean }>({});
   const userActivePurchases = purchases.filter(p => p.phone === user.phone && p.validated);
 
@@ -135,6 +136,12 @@ export function UserProfile({ isDark, user, purchases, onToggleValidate, onDelet
                   </span>
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </button>
+              </div>
+            ) : loading ? (
+              <div className={`text-center py-12 ${tv(isDark, 'text-gray-500', 'text-gray-400')}`}>
+                <div className="text-6xl mb-4 animate-spin">⏳</div>
+                <h3 className="text-xl font-bold mb-2">Cargando tus suscripciones...</h3>
+                <p className="text-sm">Por favor espera un momento</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

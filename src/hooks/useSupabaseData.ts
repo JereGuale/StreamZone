@@ -145,17 +145,20 @@ export function useSupabaseData(userPhone?: string) {
     }
   };
 
-  // Cargar datos iniciales
+  // Cargar datos iniciales solo si no hay userPhone (modo admin)
   useEffect(() => {
-    console.log('🔄 useSupabaseData: Iniciando carga de datos...');
-    refreshAllStats();
-  }, []);
+    if (!userPhone) {
+      console.log('🔄 useSupabaseData: Iniciando carga de datos de admin...');
+      refreshAllStats();
+    }
+  }, [userPhone]);
 
   // Cargar compras del usuario cuando cambie el teléfono
   useEffect(() => {
     if (userPhone) {
       console.log('🔄 Cargando compras del usuario:', userPhone);
-      loadUserActivePurchases(userPhone);
+      setLoading(true);
+      loadUserActivePurchases(userPhone).finally(() => setLoading(false));
     } else {
       setUserActivePurchases([]);
     }

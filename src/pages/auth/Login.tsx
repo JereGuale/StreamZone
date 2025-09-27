@@ -30,7 +30,7 @@ export function UserLoginForm({ isDark, onLogin, onForgotPassword, setView }: Lo
         if (setView) {
           setTimeout(() => {
             setView('profile');
-          }, 1000); // Esperar 1 segundo para mostrar el mensaje de éxito
+          }, 500); // Reducir a 500ms para mayor velocidad
         }
       } else {
         setMsg('Credenciales incorrectas');
