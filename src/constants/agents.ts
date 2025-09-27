@@ -11,3 +11,4 @@ export const PAYMENT_METHODS = {
   PAYPAL: "guale2023@outlook.com"
 } as const;
 
+

@@ -44,7 +44,7 @@ function App(){
   } = useAuth();
   
   // Hook para manejar datos de Supabase
-  const supabaseData = useSupabaseData(user?.phone);
+  const supabaseData = useSupabaseData();
   
   const {
     adminUsers, setAdminUsers,

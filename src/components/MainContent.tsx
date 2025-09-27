@@ -91,7 +91,7 @@ export function MainContent({
           <UserProfile
             isDark={isDark}
             user={user}
-            purchases={userActivePurchases || []}
+            purchases={purchases || []}
             onToggleValidate={handleToggleValidate}
             onDeletePurchase={handleDeletePurchase}
             onEditPurchase={handleEditPurchase}

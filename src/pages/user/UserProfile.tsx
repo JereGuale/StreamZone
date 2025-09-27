@@ -15,6 +15,14 @@ interface UserProfileProps {
 export function UserProfile({ isDark, user, purchases, onToggleValidate, onDeletePurchase, onEditPurchase, onSetView, loading = false }: UserProfileProps) {
   const [showPasswords, setShowPasswords] = useState<{ [key: string]: boolean }>({});
   const userActivePurchases = purchases.filter(p => p.phone === user.phone && p.validated);
+  
+  // Debug logs
+  console.log('🔍 UserProfile Debug:', {
+    totalPurchases: purchases.length,
+    userPhone: user.phone,
+    userActivePurchases: userActivePurchases.length,
+    purchases: purchases
+  });
 
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-4 pb-8 sm:pb-16">
