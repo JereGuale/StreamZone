@@ -140,3 +140,4 @@ export function getServiceDescription(serviceId: string): string {
   };
   return descriptions[serviceId] || 'Contenido premium de entretenimiento';
 }
+

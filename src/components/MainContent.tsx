@@ -1,6 +1,6 @@
 import React from 'react';
 import { tv } from '../utils/helpers';
-import { Home } from '../pages/Home';
+import Home from '../pages/Home';
 import { Combos } from '../pages/Combos';
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
 import { UserProfile } from '../pages/user/UserProfile';
@@ -17,6 +17,12 @@ interface MainContentProps {
   user: any;
   adminLogged: boolean;
   purchases: any[];
+  pendingPurchases?: any[];
+  userActivePurchases?: any[];
+  expiringServices?: any[];
+  renewalStats?: any;
+  loading?: boolean;
+  error?: string | null;
   adminUsers: any[];
   setAdminUsers: (users: any[]) => void;
   authStep: string;
@@ -36,6 +42,7 @@ interface MainContentProps {
   handlePasswordReset: () => void;
   setAdminRegisterPurchaseOpen: (open: boolean) => void;
   handleExportCSV: () => void;
+  refreshAllStats?: () => void;
   adminEmails: string[];
 }
 
@@ -45,6 +52,12 @@ export function MainContent({
   user,
   adminLogged,
   purchases,
+  pendingPurchases,
+  userActivePurchases,
+  expiringServices,
+  renewalStats,
+  loading,
+  error,
   adminUsers,
   setAdminUsers,
   authStep,
@@ -64,6 +77,7 @@ export function MainContent({
   handlePasswordReset,
   setAdminRegisterPurchaseOpen,
   handleExportCSV,
+  refreshAllStats,
   adminEmails
 }: MainContentProps) {
   const renderMainContent = () => {
@@ -74,10 +88,10 @@ export function MainContent({
         return <Combos isDark={isDark} onReserve={handleReserve} />;
       case 'profile':
         return user ? (
-          <UserProfile 
-            isDark={isDark} 
-            user={user} 
-            purchases={purchases}
+          <UserProfile
+            isDark={isDark}
+            user={user}
+            purchases={userActivePurchases || []}
             onToggleValidate={handleToggleValidate}
             onDeletePurchase={handleDeletePurchase}
             onEditPurchase={handleEditPurchase}
@@ -89,6 +103,11 @@ export function MainContent({
           <AdminDashboard 
             isDark={isDark} 
             purchases={purchases}
+            pendingPurchases={pendingPurchases || []}
+            expiringServices={expiringServices || []}
+            renewalStats={renewalStats}
+            loading={loading}
+            error={error}
             adminUsers={adminUsers}
             setAdminUsers={setAdminUsers}
             onToggleValidate={handleToggleValidate}
@@ -96,6 +115,7 @@ export function MainContent({
             onEditPurchase={handleEditPurchase}
             onRegisterPurchase={() => setAdminRegisterPurchaseOpen(true)}
             onExportCSV={handleExportCSV}
+            refreshAllStats={refreshAllStats}
             onLogout={handleAdminLogout}
             onSetView={setView}
           />
@@ -202,7 +222,8 @@ export function MainContent({
                 {authStep === 'register' && (
                   <UserRegisterForm 
                     isDark={isDark} 
-                    onSubmit={handleLogin} 
+                    onSubmit={handleLogin}
+                    setView={setView} 
                   />
                 )}
                 {authStep === 'email' && (
@@ -287,3 +308,4 @@ export function MainContent({
   
   return renderMainContent();
 }
+

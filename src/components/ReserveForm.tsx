@@ -63,7 +63,7 @@ export function ReserveForm({ service, onClose, onAddPurchase, isDark, user }: R
       {/* Información del servicio */}
       <div className={`p-4 rounded-xl ${tv(isDark,'bg-blue-50 border border-blue-200','bg-blue-900/20 border border-blue-400/30')}`}>
         <div className="flex items-center gap-3">
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold ${service.color}`}>
+          <div className={`h-16 w-16 ${service.color} rounded-xl text-white flex items-center justify-center text-2xl font-bold`}>
             {service.logo}
           </div>
           <div>

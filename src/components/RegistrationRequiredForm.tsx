@@ -62,7 +62,7 @@ export function RegistrationRequiredForm({ service, onClose, isDark, onGoToAuth 
       <div className={`rounded-xl p-4 border ${tv(isDark,'bg-gradient-to-r from-gray-50 to-blue-50 border-gray-200','bg-gradient-to-r from-gray-800 to-blue-900/20 border-gray-600')}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`h-12 w-12 ${service.color} rounded-xl text-white flex items-center justify-center text-xl font-bold shadow-md`}>
+            <div className={`h-16 w-16 ${service.color} rounded-xl text-white flex items-center justify-center text-2xl font-bold shadow-md`}>
               {service.logo}
             </div>
             <div>

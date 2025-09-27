@@ -46,25 +46,47 @@ export function tvContrast<T>(isDark: boolean, systemPrefersDark: boolean, light
 
 export const getDaysRemaining = (endDate: string): number => {
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const end = new Date(endDate);
+  const diffTime = end.getTime() - today.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
+};
+
+// Nueva función para calcular los días totales del servicio
+export const getServiceDays = (startDate: string, endDate: string): number => {
+  const start = new Date(startDate);
+  start.setHours(0, 0, 0, 0);
   const end = new Date(endDate);
   end.setHours(0, 0, 0, 0);
-  const diffTime = end.getTime() - today.getTime();
+  const diffTime = end.getTime() - start.getTime();
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
 
 export const getServiceStatus = (endDate: string): { status: string; color: string; icon: string; message: string } => {
-  const days = getDaysRemaining(endDate);
-  if (days < 0) {
-    return { status: 'Vencido', color: 'text-red-600', icon: '🔴', message: 'Tu servicio ha caducado.' };
+  const daysRemaining = getDaysRemaining(endDate);
+  
+  if (daysRemaining < 0) {
+    return {
+      status: 'expired',
+      color: 'text-red-600',
+      icon: '❌',
+      message: 'Servicio Caducado'
+    };
+  } else if (daysRemaining === 0) {
+    return {
+      status: 'expires-today',
+      color: 'text-red-600',
+      icon: '⚠️',
+      message: 'Caduca Hoy'
+    };
+  } else {
+    return {
+      status: 'active',
+      color: 'text-red-600',
+      icon: '⏰',
+      message: `${daysRemaining} ${daysRemaining === 1 ? 'día' : 'días'} restantes`
+    };
   }
-  if (days === 0) {
-    return { status: 'Vence hoy', color: 'text-orange-600', icon: '🟠', message: 'Tu servicio vence hoy. ¡Renueva pronto!' };
-  }
-  if (days <= 7) {
-    return { status: `Vence en ${days} días`, color: 'text-amber-600', icon: '🟡', message: `Tu servicio vence en ${days} días.` };
-  }
-  return { status: 'Activo', color: 'text-green-600', icon: '🟢', message: 'Tu servicio está activo.' };
 };
 
 export function ownPurchases(list: any[], user: any){ 

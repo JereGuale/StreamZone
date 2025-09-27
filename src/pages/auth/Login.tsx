@@ -26,6 +26,12 @@ export function UserLoginForm({ isDark, onLogin, onForgotPassword, setView }: Lo
       if (result.data) {
         setMsg('Login exitoso');
         onLogin(result.data);
+        // Redirigir automáticamente al perfil después del login exitoso
+        if (setView) {
+          setTimeout(() => {
+            setView('profile');
+          }, 1000); // Esperar 1 segundo para mostrar el mensaje de éxito
+        }
       } else {
         setMsg('Credenciales incorrectas');
       }

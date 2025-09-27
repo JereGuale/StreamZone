@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { SERVICES } from "../constants/services_original";
-import { fmt, tv, tvContrast } from "../utils/helpers_original";
+import { fmt, tv } from "../utils/helpers";
 
 interface AdminRegisterPurchaseModalProps {
   open: boolean;
@@ -20,7 +20,9 @@ export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, 
     duration: 1,
     isAnnual: false,
     startDate: new Date().toISOString().slice(0, 10),
-    notes: ''
+    service_email: '',
+    service_password: '',
+    admin_notes: ''
   });
 
   if (!open) return null;
@@ -35,7 +37,8 @@ export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, 
     onRegister({
       ...formData,
       price: parseFloat(formData.price),
-      endDate: endDate.toISOString()
+      endDate: endDate.toISOString().slice(0, 10),
+      months: monthsToAdd
     });
     
     // Reset form
@@ -48,172 +51,140 @@ export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, 
       duration: 1,
       isAnnual: false,
       startDate: new Date().toISOString().slice(0, 10),
-      notes: ''
+      service_email: '',
+      service_password: '',
+      admin_notes: ''
     });
+    
+    onClose();
+  };
+
+  const handleWhatsApp = () => {
+    if (!formData.phone || !formData.service_email || !formData.service_password) {
+      alert('⚠️ Por favor completa todos los campos requeridos antes de enviar por WhatsApp');
+      return;
+    }
+    
+    const endDate = new Date(formData.startDate);
+    const monthsToAdd = formData.isAnnual ? formData.duration * 12 : formData.duration;
+    endDate.setMonth(endDate.getMonth() + monthsToAdd);
+    const endDateStr = endDate.toISOString().slice(0, 10);
+    
+    const message = `🎉 ¡Hola ${formData.name}! 🎉\n\n✨ Aquí tienes tus credenciales de ${formData.service}:\n\n🔑 *CREDENCIALES DEL SERVICIO* 🔑\n📧 *Email:* ${formData.service_email}\n🔐 *Contraseña:* ${formData.service_password}\n\n⏰ *Duración:* ${monthsToAdd} ${monthsToAdd === 1 ? 'mes' : 'meses'}\n📅 *Válido hasta:* ${endDateStr}\n\n🎬 ¡Disfruta tu servicio! 🎬\n\n💬 Si tienes alguna pregunta, no dudes en contactarnos.\n\n🙏 ¡Gracias por confiar en nosotros!`;
+    const whatsappUrl = `https://wa.me/${formData.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className={`w-full max-w-3xl rounded-lg shadow-xl max-h-[90vh] overflow-y-auto ${tv(isDark,'bg-white','bg-gray-900')}`} onClick={e=>e.stopPropagation()}>
-        {/* Header minimalista */}
-        <div className={`relative p-6 border-b ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-700')}`}>
+      <div className={`w-full max-w-2xl rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto ${tv(isDark,'bg-white','bg-gray-900')}`} onClick={e=>e.stopPropagation()}>
+        {/* Header */}
+        <div className={`relative p-6 border-b-2 ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-700')}`}>
           <div className="flex items-center justify-between">
-            <h3 className={`text-xl font-semibold ${tv(isDark,'text-gray-900','text-white')}`}>Registrar Compra Manual</h3>
-          <button 
-            onClick={onClose} 
-              className={`w-6 h-6 rounded flex items-center justify-center text-lg font-bold ${tv(isDark,'text-gray-500 hover:bg-gray-100','text-gray-400 hover:bg-gray-700')}`}
-          >
-            ×
-          </button>
+            <h3 className={`text-2xl font-bold ${tv(isDark,'text-gray-900','text-white')}`}>Registrar Compra Manual</h3>
+            <button 
+              onClick={onClose} 
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-xl font-bold transition-all ${tv(isDark,'text-gray-500 hover:bg-gray-100','text-gray-400 hover:bg-gray-700')}`}
+            >
+              ×
+            </button>
           </div>
         </div>
 
         <div className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Información del cliente */}
-            <div className={`p-4 rounded-lg ${tv(isDark,'bg-gray-50','bg-gray-800')}`}>
-              <h4 className={`text-lg font-semibold mb-4 ${tv(isDark,'text-gray-900','text-white')}`}>Información del Cliente</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
-                    Nombre completo *
-                  </label>
-                <input
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100','border-gray-600 bg-gray-700 text-white focus:border-blue-400 focus:ring-2 focus:ring-blue-800/30','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200')}`}
-                  placeholder="Juan Pérez"
-                />
-              </div>
-                <div className="space-y-2">
-                  <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
-                    WhatsApp *
-                  </label>
-                <input
-                  required
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100','border-gray-600 bg-gray-700 text-white focus:border-blue-400 focus:ring-2 focus:ring-blue-800/30','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200')}`}
-                  placeholder="+593987654321"
-                />
-              </div>
-                <div className="md:col-span-2 space-y-2">
-                  <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
-                    Email (opcional)
-                  </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100','border-gray-600 bg-gray-700 text-white focus:border-blue-400 focus:ring-2 focus:ring-blue-800/30','border-gray-400 bg-gray-50 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200')}`}
-                  placeholder="juan@correo.com"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Información del servicio */}
-            <div className={`p-4 rounded-lg ${tv(isDark,'bg-gray-50','bg-gray-800')}`}>
-              <h4 className={`text-lg font-semibold mb-4 ${tv(isDark,'text-gray-900','text-white')}`}>Información del Servicio</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
-                    Servicio *
-                  </label>
-                <select
-                  required
-                  value={formData.service}
-                  onChange={(e) => setFormData({...formData, service: e.target.value})}
-                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-green-500 focus:ring-green-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-green-400 focus:ring-green-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-green-600 focus:ring-green-300')}`}
-                >
-                  <option value="">Seleccionar servicio</option>
-                  {SERVICES.map(service => (
-                    <option key={service.id} value={service.name}>
-                      {service.name} - {fmt(service.price)}/{service.billing === 'annual' ? 'año' : 'mes'}
-                    </option>
-                  ))}
-                </select>
-              </div>
-                <div className="space-y-2">
-                  <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
-                    Precio (USD) *
-                  </label>
-                <input
-                  required
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.price}
-                  onChange={(e) => setFormData({...formData, price: e.target.value})}
-                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tvContrast(isDark,systemPrefersDark,'border-gray-300 bg-white text-gray-900 focus:border-green-500 focus:ring-green-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-green-400 focus:ring-green-800/20','border-gray-400 bg-gray-50 text-gray-900 focus:border-green-600 focus:ring-green-300')}`}
-                  placeholder="4.00"
-                />
-              </div>
-                <div className="space-y-2">
-                  <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
-                    Duración *
-                  </label>
-                  <div className="flex gap-3">
-                  <input
-                    required
-                    type="number"
-                    min="1"
-                    value={formData.duration}
-                    onChange={(e) => setFormData({...formData, duration: parseInt(e.target.value) || 1})}
-                      className={`flex-1 rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-green-500 focus:ring-green-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-green-400 focus:ring-green-800/20')}`}
-                  />
-                  <select
-                    value={formData.isAnnual ? 'annual' : 'monthly'}
-                    onChange={(e) => setFormData({...formData, isAnnual: e.target.value === 'annual'})}
-                      className={`rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-green-500 focus:ring-green-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-green-400 focus:ring-green-800/20')}`}
-                  >
-                    <option value="monthly">Meses</option>
-                    <option value="annual">Años</option>
-                  </select>
-                  </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Información del cliente */}
+            <div className={`p-6 rounded-xl border-2 ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-700')}`}>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h4 className={`text-xl font-bold ${tv(isDark,'text-gray-900','text-white')}`}>{formData.name || 'Nombre del Cliente'}</h4>
+                  <p className={`text-lg font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                    {formData.service || 'Servicio'} • {formData.duration} {formData.duration === 1 ? 'mes' : 'meses'}
+                  </p>
                 </div>
-                <div className="space-y-2">
-                  <label className={`block text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
-                    Fecha de inicio *
-                  </label>
-                <input
-                  required
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-green-500 focus:ring-green-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-green-400 focus:ring-green-800/20')}`}
-                />
+                <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tv(isDark,'bg-blue-100','bg-blue-900/30')}`}>
+                  <span className="text-lg">📱</span>
+                  <span className={`font-semibold ${tv(isDark,'text-blue-800','text-blue-200')}`}>{formData.phone || '+593...'}</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Notas adicionales */}
-            <div className={`p-4 rounded-lg ${tv(isDark,'bg-gray-50','bg-gray-800')}`}>
-              <h4 className={`text-lg font-semibold mb-4 ${tv(isDark,'text-gray-900','text-white')}`}>Notas Adicionales</h4>
+            {/* Credenciales del servicio */}
+            <div className={`p-6 rounded-xl border-2 ${tv(isDark,'bg-purple-50 border-purple-200','bg-purple-900/20 border-purple-700')}`}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tv(isDark,'bg-yellow-100','bg-yellow-900/30')}`}>
+                  🔑
+                </div>
+                <h4 className={`text-xl font-bold ${tv(isDark,'text-gray-900','text-white')}`}>Credenciales del Servicio</h4>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className={`block text-sm font-bold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                    Email del servicio *
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.service_email}
+                    onChange={(e) => setFormData({...formData, service_email: e.target.value})}
+                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200','border-gray-600 bg-gray-700 text-white focus:border-purple-400 focus:ring-purple-800/30')}`}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className={`block text-sm font-bold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                    Contraseña del servicio *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.service_password}
+                    onChange={(e) => setFormData({...formData, service_password: e.target.value})}
+                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200','border-gray-600 bg-gray-700 text-white focus:border-purple-400 focus:ring-purple-800/30')}`}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Notas del administrador */}
+            <div className={`p-6 rounded-xl border-2 ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-700')}`}>
+              <h4 className={`text-lg font-bold mb-4 ${tv(isDark,'text-gray-900','text-white')}`}>Notas del administrador</h4>
               <textarea
-                value={formData.notes}
-                onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                  className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-600 bg-gray-800 text-gray-100 focus:border-blue-400 focus:ring-blue-800/20')}`}
-                rows={3}
-                placeholder="Información adicional sobre la compra..."
+                value={formData.admin_notes}
+                onChange={(e) => setFormData({...formData, admin_notes: e.target.value})}
+                className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 resize-none ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-600 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/30')}`}
+                rows={6}
+                placeholder="Escribe algo..."
               />
             </div>
 
             {/* Botones de acción */}
-            <div className="flex gap-4 pt-6">
+            <div className="flex gap-4 pt-4">
               <button
                 type="button"
                 onClick={onClose}
-                  className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all ${tv(isDark,'text-gray-600 bg-gray-100 hover:bg-gray-200','text-gray-300 bg-gray-700 hover:bg-gray-600')}`}
+                className={`flex-1 px-6 py-3 rounded-xl text-sm font-bold transition-all ${tv(isDark,'bg-gray-200 text-gray-800 hover:bg-gray-300','bg-gray-700 text-gray-200 hover:bg-gray-600')}`}
               >
                 Cancelar
               </button>
+              
+              <button
+                type="button"
+                onClick={handleWhatsApp}
+                className={`flex-1 px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${tv(isDark,'bg-green-500 text-white hover:bg-green-600','bg-green-600 text-white hover:bg-green-700')}`}
+              >
+                <span className="text-lg">📱</span>
+                Enviar por WhatsApp
+              </button>
+              
               <button
                 type="submit"
-                  className={`flex-1 px-6 py-3 rounded-xl font-semibold text-white transition-all ${tv(isDark,'bg-blue-600 hover:bg-blue-700','bg-blue-500 hover:bg-blue-600')}`}
+                className={`flex-1 px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700`}
               >
-                Registrar Compra
+                <span className="text-lg">💾</span>
+                <span className="text-lg">⭐</span>
+                Guardar Cambios
               </button>
             </div>
           </form>

@@ -6,9 +6,10 @@ import { CountryCodeSelector } from '../../components/CountryCodeSelector';
 interface RegisterProps {
   isDark: boolean;
   onSubmit: (profile: any) => void;
+  setView?: (view: string) => void;
 }
 
-export function UserRegisterForm({ isDark, onSubmit }: RegisterProps) {
+export function UserRegisterForm({ isDark, onSubmit, setView }: RegisterProps) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('+593'); // Ecuador por defecto
@@ -69,6 +70,12 @@ export function UserRegisterForm({ isDark, onSubmit }: RegisterProps) {
 
       setMsg('✅ Cuenta creada exitosamente');
       onSubmit({ name, phone: cleanPhone(phone), email, password });
+      // Redirigir automáticamente al perfil después del registro exitoso
+      if (setView) {
+        setTimeout(() => {
+          setView('profile');
+        }, 1000); // Esperar 1 segundo para mostrar el mensaje de éxito
+      }
     } catch (error) {
       setMsg('Error al crear la cuenta');
       setLoading(false);

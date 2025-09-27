@@ -37,6 +37,11 @@ export function AdminDashboard({
   const [adminPurchaseView, setAdminPurchaseView] = useState<'pending' | 'active'>('pending');
   const [adminLoading, setAdminLoading] = useState(false);
 
+  // Debug: Log purchases
+  console.log('🏢 AdminDashboard received purchases:', purchases);
+  console.log('🔍 onToggleValidate function:', onToggleValidate);
+  console.log('🗑️ onDeletePurchase function:', onDeletePurchase);
+
   // Estadísticas
   const totalPurchases = purchases.length;
   const pendingPurchases = purchases.filter(p => !p.validated);
@@ -84,38 +89,38 @@ export function AdminDashboard({
 
       {/* DASHBOARD COMPLETO - Optimizado para móviles */}
       <div className="grid gap-3 sm:gap-6 grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
-        <div className={`rounded-xl p-3 sm:p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+        <div className={`rounded-xl p-3 sm:p-6 shadow-lg border-2 ${tv(isDark,'bg-white border-zinc-300','bg-zinc-800 border-zinc-600')}`}>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xs sm:text-sm font-medium text-zinc-500 mb-1">Total Compras</div>
-              <div className="text-xl sm:text-3xl font-bold">{totalPurchases}</div>
+              <div className={`text-xs sm:text-sm font-semibold mb-1 ${tv(isDark,'text-zinc-700','text-zinc-300')}`}>Total Compras</div>
+              <div className={`text-xl sm:text-3xl font-bold ${tv(isDark,'text-zinc-900','text-white')}`}>{totalPurchases}</div>
             </div>
             <div className="text-xl sm:text-3xl">📊</div>
           </div>
         </div>
-        <div className={`rounded-xl p-3 sm:p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+        <div className={`rounded-xl p-3 sm:p-6 shadow-lg border-2 ${tv(isDark,'bg-white border-zinc-300','bg-zinc-800 border-zinc-600')}`}>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xs sm:text-sm font-medium text-zinc-500 mb-1">Pendientes</div>
-              <div className="text-xl sm:text-3xl font-bold text-amber-600">{pendingPurchases.length}</div>
+              <div className={`text-xs sm:text-sm font-semibold mb-1 ${tv(isDark,'text-zinc-700','text-zinc-300')}`}>Pendientes</div>
+              <div className="text-xl sm:text-3xl font-bold text-amber-700 dark:text-amber-400">{pendingPurchases.length}</div>
             </div>
             <div className="text-xl sm:text-3xl">⏳</div>
           </div>
         </div>
-        <div className={`rounded-xl p-3 sm:p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+        <div className={`rounded-xl p-3 sm:p-6 shadow-lg border-2 ${tv(isDark,'bg-white border-zinc-300','bg-zinc-800 border-zinc-600')}`}>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xs sm:text-sm font-medium text-zinc-500 mb-1">Validadas</div>
-              <div className="text-xl sm:text-3xl font-bold text-green-600">{activePurchases.length}</div>
+              <div className={`text-xs sm:text-sm font-semibold mb-1 ${tv(isDark,'text-zinc-700','text-zinc-300')}`}>Validadas</div>
+              <div className="text-xl sm:text-3xl font-bold text-green-700 dark:text-green-400">{activePurchases.length}</div>
             </div>
             <div className="text-xl sm:text-3xl">✅</div>
           </div>
         </div>
-        <div className={`rounded-xl p-3 sm:p-6 shadow-lg ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+        <div className={`rounded-xl p-3 sm:p-6 shadow-lg border-2 ${tv(isDark,'bg-white border-zinc-300','bg-zinc-800 border-zinc-600')}`}>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xs sm:text-sm font-medium text-zinc-500 mb-1">Vencen Hoy</div>
-              <div className="text-xl sm:text-3xl font-bold text-red-600">{expiringServices.filter(s => s.days_remaining === 0).length}</div>
+              <div className={`text-xs sm:text-sm font-semibold mb-1 ${tv(isDark,'text-zinc-700','text-zinc-300')}`}>Vencen Hoy</div>
+              <div className="text-xl sm:text-3xl font-bold text-red-700 dark:text-red-400">{expiringServices.filter(s => s.days_remaining === 0).length}</div>
             </div>
             <div className="text-xl sm:text-3xl">⚠️</div>
           </div>
@@ -162,26 +167,26 @@ export function AdminDashboard({
       </div>
 
       {/* GESTIÓN DE COMPRAS - Optimizada para móviles */}
-      <div className={`rounded-xl p-3 sm:p-6 shadow-lg mb-4 sm:mb-6 ${tv(isDark,'bg-white border border-zinc-200','bg-zinc-800 border border-zinc-700')}`}>
+      <div className={`rounded-xl p-3 sm:p-6 shadow-lg mb-4 sm:mb-6 border-2 ${tv(isDark,'bg-white border-zinc-300','bg-zinc-800 border-zinc-600')}`}>
         {/* Navegación por pestañas - Responsiva */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row gap-2">
             <button
               onClick={() => setAdminPurchaseView('pending')}
-              className={`px-3 sm:px-4 py-2 rounded-xl font-medium transition-all text-sm ${
+              className={`px-4 py-3 rounded-xl font-semibold transition-all text-sm border-2 ${
                 adminPurchaseView === 'pending' 
-                  ? tv(isDark,'bg-amber-100 text-amber-800','bg-amber-900/30 text-amber-400')
-                  : tv(isDark,'bg-zinc-100 text-zinc-600 hover:bg-zinc-200','bg-zinc-700 text-zinc-300 hover:bg-zinc-600')
+                  ? tv(isDark,'bg-amber-200 text-amber-900 border-amber-400','bg-amber-800 text-amber-100 border-amber-500')
+                  : tv(isDark,'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 border-zinc-300','bg-zinc-700 text-zinc-300 hover:bg-zinc-600 border-zinc-500')
               }`}
             >
               ⏳ Pendientes ({pendingPurchases.length})
             </button>
             <button
               onClick={() => setAdminPurchaseView('active')}
-              className={`px-3 sm:px-4 py-2 rounded-xl font-medium transition-all text-sm ${
+              className={`px-4 py-3 rounded-xl font-semibold transition-all text-sm border-2 ${
                 adminPurchaseView === 'active' 
-                  ? tv(isDark,'bg-green-100 text-green-800','bg-green-900/30 text-green-400')
-                  : tv(isDark,'bg-zinc-100 text-zinc-600 hover:bg-zinc-200','bg-zinc-700 text-zinc-300 hover:bg-zinc-600')
+                  ? tv(isDark,'bg-green-200 text-green-900 border-green-400','bg-green-800 text-green-100 border-green-500')
+                  : tv(isDark,'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 border-zinc-300','bg-zinc-700 text-zinc-300 hover:bg-zinc-600 border-zinc-500')
               }`}
             >
               ✅ Activas ({activePurchases.length})
@@ -193,8 +198,8 @@ export function AdminDashboard({
         {adminPurchaseView === 'pending' && (
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
-              <h4 className="text-lg sm:text-xl font-bold">⏳ Compras Pendientes</h4>
-              <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${tv(isDark,'bg-amber-100 text-amber-800','bg-amber-900/30 text-amber-400')}`}>
+              <h4 className={`text-lg sm:text-xl font-bold ${tv(isDark,'text-zinc-900','text-white')}`}>⏳ Compras Pendientes</h4>
+              <span className={`px-4 py-2 rounded-full text-sm font-semibold border-2 ${tv(isDark,'bg-amber-200 text-amber-900 border-amber-400','bg-amber-800 text-amber-100 border-amber-500')}`}>
                 {pendingPurchases.length} pendientes
               </span>
             </div>
@@ -202,13 +207,13 @@ export function AdminDashboard({
             {adminLoading ? (
               <div className="text-center py-8">
                 <div className="text-2xl mb-2">⏳</div>
-                <p className={`text-sm ${tv(isDark,'text-zinc-600','text-zinc-400')}`}>Cargando compras...</p>
+                <p className={`text-sm font-medium ${tv(isDark,'text-zinc-700','text-zinc-300')}`}>Cargando compras...</p>
               </div>
             ) : pendingPurchases.length === 0 ? (
               <div className="text-center py-8">
                 <div className="text-4xl mb-4">🎉</div>
-                <h5 className="text-lg font-semibold mb-2">¡No hay compras pendientes!</h5>
-                <p className={`text-sm ${tv(isDark,'text-zinc-600','text-zinc-400')}`}>Todas las compras han sido procesadas</p>
+                <h5 className={`text-lg font-bold mb-2 ${tv(isDark,'text-zinc-900','text-white')}`}>¡No hay compras pendientes!</h5>
+                <p className={`text-sm font-medium ${tv(isDark,'text-zinc-700','text-zinc-300')}`}>Todas las compras han sido procesadas</p>
               </div>
             ) : (
               <div className="space-y-3 sm:space-y-4">
@@ -230,8 +235,8 @@ export function AdminDashboard({
         {adminPurchaseView === 'active' && (
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
-              <h4 className="text-lg sm:text-xl font-bold">✅ Compras Activas</h4>
-              <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${tv(isDark,'bg-green-100 text-green-800','bg-green-900/30 text-green-400')}`}>
+              <h4 className={`text-lg sm:text-xl font-bold ${tv(isDark,'text-zinc-900','text-white')}`}>✅ Compras Activas</h4>
+              <span className={`px-4 py-2 rounded-full text-sm font-semibold border-2 ${tv(isDark,'bg-green-200 text-green-900 border-green-400','bg-green-800 text-green-100 border-green-500')}`}>
                 {activePurchases.length} activas
               </span>
             </div>
@@ -239,8 +244,8 @@ export function AdminDashboard({
             {activePurchases.length === 0 ? (
               <div className="text-center py-8">
                 <div className="text-4xl mb-4">📊</div>
-                <h5 className="text-lg font-semibold mb-2">No hay compras activas</h5>
-                <p className={`text-sm ${tv(isDark,'text-zinc-600','text-zinc-400')}`}>Las compras activas aparecerán aquí</p>
+                <h5 className={`text-lg font-bold mb-2 ${tv(isDark,'text-zinc-900','text-white')}`}>No hay compras activas</h5>
+                <p className={`text-sm font-medium ${tv(isDark,'text-zinc-700','text-zinc-300')}`}>Las compras activas aparecerán aquí</p>
               </div>
             ) : (
               <div className="space-y-3 sm:space-y-4">

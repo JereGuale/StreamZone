@@ -1,8 +1,6 @@
 import React from 'react';
-import { SERVICES, COMBOS } from '../constants/services';
 import { ServiceCard } from '../components/ServiceCard';
-import { fmt, tv } from '../utils/helpers';
-import { Logo } from '../components/Logo';
+import { SERVICES } from '../constants/services';
 
 interface HomeProps {
   isDark: boolean;
@@ -11,7 +9,9 @@ interface HomeProps {
   setView: (view: string) => void;
 }
 
-export function Home({ isDark, onReserve, user, setView }: HomeProps) {
+const Home = ({ isDark, onReserve, user, setView }: HomeProps) => {
+  console.log('Home component rendering with props:', { isDark, user, setView });
+
   return (
     <>
       {/* Hero Section */}
@@ -21,65 +21,65 @@ export function Home({ isDark, onReserve, user, setView }: HomeProps) {
         <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
         <div className="absolute top-0 right-1/4 w-72 h-72 bg-purple-500/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse animation-delay-2000"></div>
         
-        <div className="relative mx-auto max-w-7xl px-4 py-16 md:py-24 lg:py-32">
-          <div className="grid items-center gap-8 md:gap-12 lg:grid-cols-2">
-            <div className="relative z-10 space-y-8">
-              <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20">
-                  <span className="text-2xl">🎬</span>
-                  <span className={`text-sm font-semibold ${tv(isDark,'text-blue-600','text-blue-400')}`}>Entretenimiento Premium</span>
+        <div className="relative mx-auto max-w-7xl px-3 sm:px-4 py-12 sm:py-16 md:py-24 lg:py-32">
+          <div className="grid items-center gap-6 sm:gap-8 md:gap-12 lg:grid-cols-2">
+            <div className="relative z-10 space-y-6 sm:space-y-8">
+              <div className="space-y-3 sm:space-y-4">
+                <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20">
+                  <span className="text-xl sm:text-2xl">🎬</span>
+                  <span className={`text-xs sm:text-sm font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>Entretenimiento Premium</span>
                 </div>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight">
                   <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">StreamZone</span>
                 </h1>
-                <p className={`text-xl md:text-2xl font-semibold ${tv(isDark,'text-gray-700','text-gray-200')}`}>
+                <p className={`text-lg sm:text-xl md:text-2xl font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
                   Tus plataformas favoritas, al mejor precio
                 </p>
-                <p className={`text-base md:text-lg ${tv(isDark,'text-gray-600','text-gray-300')}`}>
+                <p className={`text-sm sm:text-base md:text-lg ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                   Reserva por WhatsApp, recibe acceso con soporte inmediato y renueva sin complicaciones. 
                   <span className="font-semibold text-blue-600"> Administra tus servicios desde tu cuenta.</span>
                 </p>
               </div>
               
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 {user ? (
-                  <a href="#catalogo" className={`inline-flex items-center justify-center px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-200 hover:scale-105 shadow-lg ${tv(isDark,'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700','bg-gradient-to-r from-blue-600 to-purple-700 text-white hover:from-blue-700 hover:to-purple-800')}`}>
+                  <a href="#catalogo" className={`inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 rounded-2xl font-semibold text-base sm:text-lg transition-all duration-200 hover:scale-105 shadow-lg ${isDark ? 'bg-gradient-to-r from-blue-600 to-purple-700 text-white hover:from-blue-700 hover:to-purple-800' : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700'}`}>
                     <span className="mr-2">✨</span>
                     Ver Catálogo
                     <span className="ml-2">🚀</span>
                   </a>
                 ) : (
-                  <button onClick={() => setView('auth')} className={`inline-flex items-center justify-center px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-200 hover:scale-105 shadow-lg ${tv(isDark,'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700','bg-gradient-to-r from-blue-600 to-purple-700 text-white hover:from-blue-700 hover:to-purple-800')}`}>
+                  <button onClick={() => setView('auth')} className={`inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 rounded-2xl font-semibold text-base sm:text-lg transition-all duration-200 hover:scale-105 shadow-lg ${isDark ? 'bg-gradient-to-r from-blue-600 to-purple-700 text-white hover:from-blue-700 hover:to-purple-800' : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700'}`}>
                     <span className="mr-2">🔐</span>
                     Iniciar Sesión
                     <span className="ml-2">✨</span>
                   </button>
                 )}
-                <button onClick={() => setView('combos')} className={`inline-flex items-center justify-center px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-200 hover:scale-105 ${tv(isDark,'bg-white text-purple-600 border-2 border-purple-200 hover:bg-purple-50','bg-zinc-800 text-purple-400 border-2 border-purple-600 hover:bg-purple-900/20')}`}>
+                <button onClick={() => setView('combos')} className={`inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 rounded-2xl font-semibold text-base sm:text-lg transition-all duration-200 hover:scale-105 ${isDark ? 'bg-zinc-800 text-purple-400 border-2 border-purple-600 hover:bg-purple-900/20' : 'bg-white text-purple-600 border-2 border-purple-200 hover:bg-purple-50'}`}>
                   <span className="mr-2">📦</span>
                   Ver Combos
                 </button>
               </div>
               
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-6 pt-8">
+              <div className="grid grid-cols-3 gap-4 sm:gap-6 pt-6 sm:pt-8">
                 <div className="text-center">
-                  <div className={`text-2xl font-bold ${tv(isDark,'text-blue-600','text-blue-400')}`}>500+</div>
-                  <div className={`text-sm ${tv(isDark,'text-gray-600','text-gray-400')}`}>Clientes felices</div>
+                  <div className={`text-xl sm:text-2xl font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>500+</div>
+                  <div className={`text-xs sm:text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Clientes felices</div>
                 </div>
                 <div className="text-center">
-                  <div className={`text-2xl font-bold ${tv(isDark,'text-purple-600','text-purple-400')}`}>24/7</div>
-                  <div className={`text-sm ${tv(isDark,'text-gray-600','text-gray-400')}`}>Soporte</div>
+                  <div className={`text-xl sm:text-2xl font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>24/7</div>
+                  <div className={`text-xs sm:text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Soporte</div>
                 </div>
                 <div className="text-center">
-                  <div className={`text-2xl font-bold ${tv(isDark,'text-green-600','text-green-400')}`}>100%</div>
-                  <div className={`text-sm ${tv(isDark,'text-gray-600','text-gray-400')}`}>Garantía</div>
+                  <div className={`text-xl sm:text-2xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>100%</div>
+                  <div className={`text-xs sm:text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Garantía</div>
                 </div>
               </div>
             </div>
             {/* Hero Illustration */}
             <div className="relative z-10">
-              <div className={`relative rounded-3xl p-8 shadow-2xl backdrop-blur-md border-2 ${tv(isDark,'bg-gradient-to-br from-white/80 to-blue-50/80 border-blue-200/50','bg-gradient-to-br from-zinc-900/80 to-blue-900/80 border-blue-700/50')}`}>
+              <div className={`relative rounded-3xl p-8 shadow-2xl backdrop-blur-md border-2 ${isDark ? 'bg-gradient-to-br from-zinc-900/80 to-blue-900/80 border-blue-700/50' : 'bg-gradient-to-br from-white/80 to-blue-50/80 border-blue-200/50'}`}>
                 {/* Floating Cards */}
                 <div className="relative h-80 flex items-center justify-center">
                   <div className="absolute top-4 left-4 w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl shadow-lg flex items-center justify-center text-white text-2xl animate-float">
@@ -96,37 +96,37 @@ export function Home({ isDark, onReserve, user, setView }: HomeProps) {
                   </div>
                   
                   {/* Central Icon */}
-                  <div className={`w-24 h-24 rounded-3xl shadow-2xl flex items-center justify-center text-white text-4xl ${tv(isDark,'bg-gradient-to-r from-blue-600 to-purple-600','bg-gradient-to-r from-blue-700 to-purple-700')}`}>
+                  <div className={`w-24 h-24 rounded-3xl shadow-2xl flex items-center justify-center text-white text-4xl ${isDark ? 'bg-gradient-to-r from-blue-700 to-purple-700' : 'bg-gradient-to-r from-blue-600 to-purple-600'}`}>
                     ✨
                   </div>
                 </div>
                 
                 {/* Payment Methods */}
                 <div className="mt-6 space-y-4">
-                  <div className={`text-center font-bold text-lg ${tv(isDark,'text-gray-800','text-gray-200')}`}>
+                  <div className={`text-center font-bold text-lg ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
                     💳 Métodos de Pago
                   </div>
                   <div className="grid grid-cols-3 gap-3">
-                    <div className={`p-3 rounded-xl text-center ${tv(isDark,'bg-blue-50 border border-blue-200','bg-blue-900/30 border border-blue-700')}`}>
+                    <div className={`p-3 rounded-xl text-center ${isDark ? 'bg-blue-900/30 border border-blue-700' : 'bg-blue-50 border border-blue-200'}`}>
                       <div className="text-2xl mb-1">🏦</div>
-                      <div className={`text-xs font-semibold ${tv(isDark,'text-blue-700','text-blue-300')}`}>Bancos</div>
+                      <div className={`text-xs font-semibold ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>Bancos</div>
                     </div>
-                    <div className={`p-3 rounded-xl text-center ${tv(isDark,'bg-green-50 border border-green-200','bg-green-900/30 border border-green-700')}`}>
+                    <div className={`p-3 rounded-xl text-center ${isDark ? 'bg-green-900/30 border border-green-700' : 'bg-green-50 border border-green-200'}`}>
                       <div className="text-2xl mb-1">💚</div>
-                      <div className={`text-xs font-semibold ${tv(isDark,'text-green-700','text-green-300')}`}>PayPal</div>
+                      <div className={`text-xs font-semibold ${isDark ? 'text-green-300' : 'text-green-700'}`}>PayPal</div>
                     </div>
-                    <div className={`p-3 rounded-xl text-center ${tv(isDark,'bg-purple-50 border border-purple-200','bg-purple-900/30 border border-purple-700')}`}>
+                    <div className={`p-3 rounded-xl text-center ${isDark ? 'bg-purple-900/30 border border-purple-700' : 'bg-purple-50 border border-purple-200'}`}>
                       <div className="text-2xl mb-1">📱</div>
-                      <div className={`text-xs font-semibold ${tv(isDark,'text-purple-700','text-purple-300')}`}>Pago Móvil</div>
+                      <div className={`text-xs font-semibold ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>Pago Móvil</div>
                     </div>
                   </div>
                   
                   {/* Bank Details */}
                   <div className="mt-4 grid grid-cols-2 gap-2">
-                    <span className={`text-xs px-3 py-2 rounded-lg text-center ${tv(isDark,'bg-green-100 text-green-700','bg-green-800 text-green-200')}`}>🏦 Pichincha</span>
-                    <span className={`text-xs px-3 py-2 rounded-lg text-center ${tv(isDark,'bg-blue-100 text-blue-700','bg-blue-800 text-blue-200')}`}>🏛️ Guayaquil</span>
-                    <span className={`text-xs px-3 py-2 rounded-lg text-center ${tv(isDark,'bg-purple-100 text-purple-700','bg-purple-800 text-purple-200')}`}>🌊 Pacífico</span>
-                    <span className={`text-xs px-3 py-2 rounded-lg text-center ${tv(isDark,'bg-orange-100 text-orange-700','bg-orange-800 text-orange-200')}`}>💳 PayPal</span>
+                    <span className={`text-xs px-3 py-2 rounded-lg text-center ${isDark ? 'bg-green-800 text-green-200' : 'bg-green-100 text-green-700'}`}>🏦 Pichincha</span>
+                    <span className={`text-xs px-3 py-2 rounded-lg text-center ${isDark ? 'bg-blue-800 text-blue-200' : 'bg-blue-100 text-blue-700'}`}>🏛️ Guayaquil</span>
+                    <span className={`text-xs px-3 py-2 rounded-lg text-center ${isDark ? 'bg-purple-800 text-purple-200' : 'bg-purple-100 text-purple-700'}`}>🌊 Pacífico</span>
+                    <span className={`text-xs px-3 py-2 rounded-lg text-center ${isDark ? 'bg-orange-800 text-orange-200' : 'bg-orange-100 text-orange-700'}`}>💳 PayPal</span>
                   </div>
                 </div>
               </div>
@@ -137,26 +137,27 @@ export function Home({ isDark, onReserve, user, setView }: HomeProps) {
         <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700" />
       </section>
 
+
       {/* Catálogo de Servicios */}
-      <section id="catalogo" className="relative py-16 md:py-24">
+      <section id="catalogo" className="relative py-12 sm:py-16 md:py-24">
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-purple-50/50 to-pink-50/50 dark:from-blue-950/50 dark:via-purple-950/50 dark:to-pink-950/50"></div>
         
-        <div className="relative mx-auto max-w-7xl px-4">
-          <div className="text-center mb-12 md:mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 mb-6">
-              <span className="text-xl">✨</span>
-              <span className={`text-sm font-semibold ${tv(isDark,'text-blue-600','text-blue-400')}`}>Plataformas Premium</span>
+        <div className="relative mx-auto max-w-7xl px-3 sm:px-4">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
+            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 mb-4 sm:mb-6">
+              <span className="text-lg sm:text-xl">✨</span>
+              <span className={`text-xs sm:text-sm font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>Plataformas Premium</span>
             </div>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">
               <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">Nuestro Catálogo</span>
             </h2>
-            <p className={`text-lg md:text-xl max-w-3xl mx-auto ${tv(isDark,'text-gray-600','text-gray-300')}`}>
+            <p className={`text-base sm:text-lg md:text-xl max-w-3xl mx-auto ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
               Descubre todas las plataformas de streaming disponibles con acceso inmediato y soporte 24/7
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+            
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
             {SERVICES.map((s, index) => (
               <div key={s.id} className="animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
                 <ServiceCard s={s} onReserve={onReserve} isDark={isDark}/>
@@ -166,7 +167,7 @@ export function Home({ isDark, onReserve, user, setView }: HomeProps) {
           
           {/* Call to Action */}
           <div className="text-center mt-12 md:mt-16">
-            <div className={`inline-flex items-center gap-3 px-8 py-4 rounded-2xl shadow-lg ${tv(isDark,'bg-gradient-to-r from-blue-500 to-purple-600 text-white','bg-gradient-to-r from-blue-600 to-purple-700 text-white')}`}>
+            <div className={`inline-flex items-center gap-3 px-8 py-4 rounded-2xl shadow-lg ${isDark ? 'bg-gradient-to-r from-blue-600 to-purple-700 text-white' : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'}`}>
               <span className="text-2xl">🎯</span>
               <div>
                 <div className="font-bold text-lg">¿No encuentras lo que buscas?</div>
@@ -178,13 +179,15 @@ export function Home({ isDark, onReserve, user, setView }: HomeProps) {
       </section>
       
       {/* Footer Moderno */}
-      <footer className={`relative py-16 ${tv(isDark,'bg-gradient-to-r from-gray-900 to-gray-800','bg-gradient-to-r from-zinc-900 to-zinc-800')}`}>
+      <footer className={`relative py-16 ${isDark ? 'bg-gradient-to-r from-zinc-900 to-zinc-800' : 'bg-gradient-to-r from-gray-900 to-gray-800'}`}>
         <div className="mx-auto max-w-7xl px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Logo y Descripción */}
             <div className="md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <Logo className="h-12 w-12" />
+                <div className="h-12 w-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-2xl font-bold">
+                  SZ
+                </div>
                 <div>
                   <div className="font-bold text-2xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">StreamZone</div>
                   <div className="text-sm text-gray-400">Tu entretenimiento digital</div>
@@ -210,45 +213,44 @@ export function Home({ isDark, onReserve, user, setView }: HomeProps) {
             <div>
               <h3 className="text-lg font-semibold text-white mb-4">Enlaces Rápidos</h3>
               <ul className="space-y-2">
-                <li><button onClick={() => setView('home')} className="text-gray-300 hover:text-blue-400 transition-colors">🏠 Inicio</button></li>
-                <li><button onClick={() => setView('combos')} className="text-gray-300 hover:text-purple-400 transition-colors">📦 Combos</button></li>
-                <li><button onClick={() => setView('register')} className="text-gray-300 hover:text-green-400 transition-colors">✨ Registro</button></li>
-                <li><button onClick={() => setView('auth')} className="text-gray-300 hover:text-blue-400 transition-colors">🔐 Iniciar Sesión</button></li>
+                <li><a href="#catalogo" className="text-gray-300 hover:text-blue-400 transition-colors">Catálogo</a></li>
+                <li><a href="#combos" className="text-gray-300 hover:text-blue-400 transition-colors">Combos</a></li>
+                <li><a href="#contacto" className="text-gray-300 hover:text-blue-400 transition-colors">Contacto</a></li>
+                <li><a href="#soporte" className="text-gray-300 hover:text-blue-400 transition-colors">Soporte</a></li>
               </ul>
             </div>
             
-            {/* Contacto */}
+            {/* Información de Contacto */}
             <div>
               <h3 className="text-lg font-semibold text-white mb-4">Contacto</h3>
-              <ul className="space-y-2">
-                <li className="text-gray-300 flex items-center gap-2">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-gray-300">
                   <span>📱</span>
-                  WhatsApp 24/7
-                </li>
-                <li className="text-gray-300 flex items-center gap-2">
+                  <span>+593 99 999 9999</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-300">
                   <span>💬</span>
-                  Soporte Inmediato
-                </li>
-                <li className="text-gray-300 flex items-center gap-2">
-                  <span>⚡</span>
-                  Acceso Rápido
-                </li>
-                <li className="text-gray-300 flex items-center gap-2">
-                  <span>🔒</span>
-                  Pago Seguro
-                </li>
-              </ul>
+                  <span>WhatsApp</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-300">
+                  <span>✉️</span>
+                  <span>info@streamzone.com</span>
+                </div>
+              </div>
             </div>
           </div>
           
           <div className="border-t border-gray-700 mt-12 pt-8 text-center">
-            <p className="text-gray-400">
-              © 2024 StreamZone. Todos los derechos reservados. 
-              <span className="text-blue-400"> Hecho con ❤️ para tu entretenimiento</span>
+            <p className="text-gray-400 text-sm">
+              © 2024 StreamZone. Todos los derechos reservados. | 
+              <a href="#" className="hover:text-blue-400 transition-colors ml-1">Términos de Servicio</a> | 
+              <a href="#" className="hover:text-blue-400 transition-colors ml-1">Política de Privacidad</a>
             </p>
           </div>
         </div>
       </footer>
     </>
   );
-}
+};
+
+export default Home;

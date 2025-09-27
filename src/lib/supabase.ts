@@ -347,12 +347,24 @@ export const approvePurchase = async (
   adminNotes?: string,
   approvedBy?: string
 ) => {
+  console.log('🔍 approvePurchase: Verificando configuración de Supabase...');
+  console.log('🔍 supabase client:', supabase);
+  console.log('🔍 isSupabaseConfigured:', isSupabaseConfigured);
+  
   if (!supabase) {
-    console.warn('Supabase no configurado, no se puede aprobar compra');
+    console.error('❌ Supabase no configurado, no se puede aprobar compra');
     return { data: null, error: new Error('Supabase no configurado') };
   }
 
   try {
+    console.log('🔄 Supabase: Aprobando compra...', {
+      purchaseId,
+      serviceEmail,
+      servicePassword: servicePassword ? '***' : 'undefined',
+      adminNotes,
+      approvedBy
+    });
+
     const { data, error } = await supabase
       .from('purchases')
       .update({
@@ -360,17 +372,21 @@ export const approvePurchase = async (
         service_email: serviceEmail,
         service_password: servicePassword,
         admin_notes: adminNotes,
-        approved_by: approvedBy,
-        approved_at: new Date().toISOString()
+        approved_by: approvedBy
       })
       .eq('id', purchaseId)
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Supabase Error:', error);
+      throw error;
+    }
+
+    console.log('✅ Supabase: Compra aprobada exitosamente:', data);
     return { data, error: null };
   } catch (error) {
-    console.error('Error approving purchase:', error);
+    console.error('❌ Error approving purchase:', error);
     return { data: null, error };
   }
 };
