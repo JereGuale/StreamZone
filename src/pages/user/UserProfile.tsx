@@ -18,12 +18,24 @@ export function UserProfile({ isDark, user, purchases, onToggleValidate, onDelet
 
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-4 pb-8 sm:pb-16">
+      {/* Barra superior con mensaje de seguridad */}
+      <div className={`w-full py-2 px-4 rounded-t-2xl ${tv(isDark, 'bg-gray-800', 'bg-gray-900')} mb-0`}>
+        <div className="flex items-center justify-center">
+          <div className="flex items-center gap-2">
+            <div className="text-green-400 text-sm">🛡️</div>
+            <span className="text-xs font-semibold text-green-300">
+              Seguridad Garantizada
+            </span>
+          </div>
+        </div>
+      </div>
+      
       {/* Header con gradiente y efectos */}
       <div className="relative mb-8 sm:mb-12">
         <div className={`absolute inset-0 rounded-3xl ${tv(isDark, 'bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10', 'bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20')} blur-xl`}></div>
         <div className={`relative p-6 sm:p-8 rounded-3xl backdrop-blur-sm border ${tv(isDark, 'bg-white/80 border-white/20', 'bg-zinc-900/80 border-zinc-700/50')} shadow-2xl`}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-1">
               {/* Avatar con gradiente */}
               <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-2xl sm:text-3xl font-bold ${tv(isDark, 'bg-gradient-to-br from-blue-500 to-purple-600 text-white', 'bg-gradient-to-br from-blue-400 to-purple-500 text-white')} shadow-lg`}>
                 {user.name.charAt(0).toUpperCase()}
@@ -37,6 +49,8 @@ export function UserProfile({ isDark, user, purchases, onToggleValidate, onDelet
                 </p>
               </div>
             </div>
+            
+            
             <button 
               onClick={() => onSetView('home')}
               className={`group relative overflow-hidden rounded-2xl px-6 py-3 text-sm font-semibold transition-all duration-300 hover:scale-105 ${tv(isDark,'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl','bg-gradient-to-r from-blue-600 to-purple-700 text-white shadow-lg hover:shadow-xl')}`}

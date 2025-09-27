@@ -96,7 +96,7 @@ export function MainContent({
             onDeletePurchase={handleDeletePurchase}
             onEditPurchase={handleEditPurchase}
             onSetView={setView}
-            loading={supabaseData.loading}
+            loading={loading}
           />
         ) : null;
       case 'admin':

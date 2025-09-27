@@ -10,3 +10,4 @@ export const PAYMENT_METHODS = {
   PACIFICO: "1061220256 (Byron Guale)",
   PAYPAL: "guale2023@outlook.com"
 } as const;
+
