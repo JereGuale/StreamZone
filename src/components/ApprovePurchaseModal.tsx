@@ -97,49 +97,49 @@ ${serviceCredentials.notes ? `📝 Notas: ${serviceCredentials.notes}` : ''}
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className={`w-full max-w-lg rounded-3xl shadow-2xl border-2 overflow-hidden ${tv(isDark,'bg-white border-gray-200','bg-gray-900 border-gray-700')}`}>
-        {/* Header con gradiente */}
-        <div className={`relative p-6 ${tv(isDark,'bg-gradient-to-r from-green-500 to-emerald-600','bg-gradient-to-r from-green-600 to-emerald-700')}`}>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
+      <div className={`w-full max-w-md sm:max-w-lg rounded-2xl sm:rounded-3xl shadow-2xl border-2 overflow-hidden max-h-[95vh] overflow-y-auto ${tv(isDark,'bg-white border-gray-200','bg-gray-900 border-gray-700')}`}>
+        {/* Header con gradiente - Compacto */}
+        <div className={`relative p-3 sm:p-4 md:p-6 ${tv(isDark,'bg-gradient-to-r from-green-500 to-emerald-600','bg-gradient-to-r from-green-600 to-emerald-700')}`}>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <span className="text-2xl">✅</span>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-lg sm:rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <span className="text-lg sm:text-xl md:text-2xl">✅</span>
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-white">Aprobar Compra</h3>
-                <p className="text-green-100 text-sm">Completar credenciales del servicio</p>
+                <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white">Aprobar Compra</h3>
+                <p className="text-green-100 text-xs sm:text-sm">Completar credenciales del servicio</p>
               </div>
             </div>
             <button 
               onClick={onClose}
-              className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200"
+              className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-lg sm:rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200"
             >
-              <span className="text-xl">×</span>
+              <span className="text-lg sm:text-xl">×</span>
             </button>
           </div>
         </div>
         
-        {/* Información del cliente */}
-        <div className={`p-6 border-b ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-700')}`}>
-          <div className="flex items-center gap-4">
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl ${tv(isDark,'bg-blue-100 text-blue-600','bg-blue-900/30 text-blue-400')}`}>
+        {/* Información del cliente - Compacto */}
+        <div className={`p-3 sm:p-4 md:p-6 border-b ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-700')}`}>
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center text-lg sm:text-xl md:text-2xl ${tv(isDark,'bg-blue-100 text-blue-600','bg-blue-900/30 text-blue-400')}`}>
               🎬
             </div>
             <div>
-              <h4 className={`text-xl font-bold ${tv(isDark,'text-gray-900','text-white')}`}>{purchase.customer}</h4>
-              <p className={`text-sm font-medium ${tv(isDark,'text-gray-600','text-gray-400')}`}>
+              <h4 className={`text-base sm:text-lg md:text-xl font-bold ${tv(isDark,'text-gray-900','text-white')}`}>{purchase.customer}</h4>
+              <p className={`text-xs sm:text-sm font-medium ${tv(isDark,'text-gray-600','text-gray-400')}`}>
                 {purchase.service} • {purchase.months} {purchase.months === 1 ? 'mes' : 'meses'}
               </p>
             </div>
           </div>
         </div>
         
-        {/* Formulario de credenciales */}
-        <div className="p-6 space-y-6">
+        {/* Formulario de credenciales - Compacto */}
+        <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6">
           <div>
-            <label className={`flex items-center gap-2 text-sm font-semibold mb-3 ${tv(isDark,'text-gray-700','text-gray-300')}`}>
-              <span className="w-6 h-6 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-xs">📧</span>
+            <label className={`flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-semibold mb-2 sm:mb-3 ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+              <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-xs">📧</span>
               Email del Servicio
             </label>
             <div className="relative">
@@ -147,15 +147,15 @@ ${serviceCredentials.notes ? `📝 Notas: ${serviceCredentials.notes}` : ''}
                 type="email"
                 value={serviceCredentials.email}
                 onChange={(e) => setServiceCredentials(prev => ({...prev, email: e.target.value}))}
-                className={`w-full rounded-2xl border-2 px-4 py-4 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500','border-gray-600 bg-gray-800 text-white focus:border-blue-400')}`}
+                className={`w-full rounded-xl sm:rounded-2xl border-2 px-3 sm:px-4 py-2.5 sm:py-3 md:py-4 text-xs sm:text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500','border-gray-600 bg-gray-800 text-white focus:border-blue-400')}`}
                 placeholder="usuario@netflix.com"
               />
             </div>
           </div>
           
           <div>
-            <label className={`flex items-center gap-2 text-sm font-semibold mb-3 ${tv(isDark,'text-gray-700','text-gray-300')}`}>
-              <span className="w-6 h-6 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-xs">🔑</span>
+            <label className={`flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-semibold mb-2 sm:mb-3 ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+              <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-xs">🔑</span>
               Contraseña del Servicio
             </label>
             <div className="relative">
@@ -163,30 +163,30 @@ ${serviceCredentials.notes ? `📝 Notas: ${serviceCredentials.notes}` : ''}
                 type="password"
                 value={serviceCredentials.password}
                 onChange={(e) => setServiceCredentials(prev => ({...prev, password: e.target.value}))}
-                className={`w-full rounded-2xl border-2 px-4 py-4 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-amber-500/20 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-amber-500','border-gray-600 bg-gray-800 text-white focus:border-amber-400')}`}
+                className={`w-full rounded-xl sm:rounded-2xl border-2 px-3 sm:px-4 py-2.5 sm:py-3 md:py-4 text-xs sm:text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-amber-500/20 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-amber-500','border-gray-600 bg-gray-800 text-white focus:border-amber-400')}`}
                 placeholder="••••••••"
               />
             </div>
           </div>
           
           <div>
-            <label className={`flex items-center gap-2 text-sm font-semibold mb-3 ${tv(isDark,'text-gray-700','text-gray-300')}`}>
-              <span className="w-6 h-6 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-xs">📝</span>
+            <label className={`flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-semibold mb-2 sm:mb-3 ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+              <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-xs">📝</span>
               Notas Adicionales
               <span className="text-xs text-gray-500">(opcional)</span>
             </label>
             <textarea
               value={serviceCredentials.notes}
               onChange={(e) => setServiceCredentials(prev => ({...prev, notes: e.target.value}))}
-              className={`w-full rounded-2xl border-2 px-4 py-4 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-purple-500/20 resize-none ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500','border-gray-600 bg-gray-800 text-white focus:border-purple-400')}`}
-              rows={3}
+              className={`w-full rounded-xl sm:rounded-2xl border-2 px-3 sm:px-4 py-2.5 sm:py-3 md:py-4 text-xs sm:text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-purple-500/20 resize-none ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500','border-gray-600 bg-gray-800 text-white focus:border-purple-400')}`}
+              rows={2}
               placeholder="Notas adicionales sobre esta compra..."
             />
           </div>
         </div>
         
         {/* Botones de acción - Optimizados para móvil */}
-        <div className={`p-4 sm:p-6 ${tv(isDark,'bg-gray-50','bg-gray-800')}`}>
+        <div className={`p-3 sm:p-4 md:p-6 ${tv(isDark,'bg-gray-50','bg-gray-800')}`}>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <button 
               onClick={onClose}
