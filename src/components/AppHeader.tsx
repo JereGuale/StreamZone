@@ -35,19 +35,19 @@ export function AppHeader({ isDark, view, user, adminLogged, setView, handleLogo
             </div>
           </div>
           
-          {/* Navegación - Responsive mejorado */}
-          <nav className="flex items-center gap-1 sm:gap-2 lg:gap-3">
-            {/* Botones de navegación - Diseño moderno optimizado para móvil */}
+          {/* Navegación - Responsive mejorado para móviles */}
+          <nav className="flex items-center gap-0.5 sm:gap-2 lg:gap-3">
+            {/* Botones de navegación - Compactos para móvil */}
             <button 
               onClick={() => setView('home')}
-              className={`group relative min-w-[50px] sm:min-w-[70px] px-2 sm:px-3 py-2 rounded-lg font-semibold transition-all duration-300 text-xs overflow-hidden ${view === 'home' 
+              className={`group relative min-w-[36px] sm:min-w-[70px] px-1.5 sm:px-3 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-medium sm:font-semibold transition-all duration-300 text-xs overflow-hidden ${view === 'home' 
                 ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25' 
                 : tv(isDark, 'text-gray-700 hover:text-gray-900 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 border border-gray-200 hover:border-blue-300', 'text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-blue-900/20 hover:to-purple-900/20 border border-gray-600 hover:border-blue-500/50')
               }`}
               title="Inicio"
             >
-              <div className="relative z-10 flex items-center justify-center gap-1">
-                <span className="text-sm">🏠</span>
+              <div className="relative z-10 flex items-center justify-center gap-0.5 sm:gap-1">
+                <span className="text-xs sm:text-sm">🏠</span>
                 <span className="hidden sm:inline">Inicio</span>
               </div>
               {view === 'home' && (
@@ -57,14 +57,14 @@ export function AppHeader({ isDark, view, user, adminLogged, setView, handleLogo
             
             <button 
               onClick={() => setView('combos')}
-              className={`group relative min-w-[50px] sm:min-w-[70px] px-2 sm:px-3 py-2 rounded-lg font-semibold transition-all duration-300 text-xs overflow-hidden ${view === 'combos' 
+              className={`group relative min-w-[36px] sm:min-w-[70px] px-1.5 sm:px-3 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-medium sm:font-semibold transition-all duration-300 text-xs overflow-hidden ${view === 'combos' 
                 ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg shadow-green-500/25' 
                 : tv(isDark, 'text-gray-700 hover:text-gray-900 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 border border-gray-200 hover:border-green-300', 'text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-green-900/20 hover:to-emerald-900/20 border border-gray-600 hover:border-green-500/50')
               }`}
               title="Combos"
             >
-              <div className="relative z-10 flex items-center justify-center gap-1">
-                <span className="text-sm">🎁</span>
+              <div className="relative z-10 flex items-center justify-center gap-0.5 sm:gap-1">
+                <span className="text-xs sm:text-sm">🎁</span>
                 <span className="hidden sm:inline">Combos</span>
               </div>
               {view === 'combos' && (
@@ -72,19 +72,19 @@ export function AppHeader({ isDark, view, user, adminLogged, setView, handleLogo
               )}
             </button>
             
-            {/* Botones de usuario - Optimizados para móvil */}
+            {/* Botones de usuario - Compactos para móvil */}
             {user ? (
               <>
                 <button
                   onClick={() => setView('profile')}
-                  className={`group relative min-w-[50px] sm:min-w-[70px] px-2 sm:px-3 py-2 rounded-lg font-semibold transition-all duration-300 text-xs overflow-hidden ${view === 'profile' 
+                  className={`group relative min-w-[36px] sm:min-w-[70px] px-1.5 sm:px-3 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-medium sm:font-semibold transition-all duration-300 text-xs overflow-hidden ${view === 'profile' 
                     ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-500/25' 
                     : tv(isDark, 'text-gray-700 hover:text-gray-900 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-blue-50 border border-gray-200 hover:border-indigo-300', 'text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-indigo-900/20 hover:to-blue-900/20 border border-gray-600 hover:border-indigo-500/50')
                   }`}
                   title="Mi Perfil"
                 >
-                  <div className="relative z-10 flex items-center justify-center gap-1">
-                    <span className="text-sm">👤</span>
+                  <div className="relative z-10 flex items-center justify-center gap-0.5 sm:gap-1">
+                    <span className="text-xs sm:text-sm">👤</span>
                     <span className="hidden sm:inline">Perfil</span>
                   </div>
                   {view === 'profile' && (
@@ -93,11 +93,11 @@ export function AppHeader({ isDark, view, user, adminLogged, setView, handleLogo
                 </button>
                 <button
                   onClick={handleLogout}
-                  className={`group relative min-w-[50px] sm:min-w-[70px] px-2 sm:px-3 py-2 rounded-lg font-semibold transition-all duration-300 text-xs overflow-hidden ${tv(isDark, 'text-red-600 hover:text-red-700 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 border border-red-200 hover:border-red-300', 'text-red-400 hover:text-red-300 hover:bg-gradient-to-r hover:from-red-900/20 hover:to-pink-900/20 border border-red-600 hover:border-red-500/50')}`}
+                  className={`group relative min-w-[36px] sm:min-w-[70px] px-1.5 sm:px-3 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-medium sm:font-semibold transition-all duration-300 text-xs overflow-hidden ${tv(isDark, 'text-red-600 hover:text-red-700 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 border border-red-200 hover:border-red-300', 'text-red-400 hover:text-red-300 hover:bg-gradient-to-r hover:from-red-900/20 hover:to-pink-900/20 border border-red-600 hover:border-red-500/50')}`}
                   title="Salir"
                 >
-                  <div className="relative z-10 flex items-center justify-center gap-1">
-                    <span className="text-sm">🚪</span>
+                  <div className="relative z-10 flex items-center justify-center gap-0.5 sm:gap-1">
+                    <span className="text-xs sm:text-sm">🚪</span>
                     <span className="hidden sm:inline">Salir</span>
                   </div>
                 </button>
@@ -105,29 +105,29 @@ export function AppHeader({ isDark, view, user, adminLogged, setView, handleLogo
             ) : (
               <button
                 onClick={() => setView('auth')}
-                className={`group relative min-w-[50px] sm:min-w-[70px] px-2 sm:px-3 py-2 rounded-lg font-semibold transition-all duration-300 text-xs overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-105`}
+                className={`group relative min-w-[36px] sm:min-w-[70px] px-1.5 sm:px-3 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-medium sm:font-semibold transition-all duration-300 text-xs overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-105`}
                 title="Iniciar Sesión"
               >
-                <div className="relative z-10 flex items-center justify-center gap-1">
-                  <span className="text-sm">🔐</span>
+                <div className="relative z-10 flex items-center justify-center gap-0.5 sm:gap-1">
+                  <span className="text-xs sm:text-sm">🔐</span>
                   <span className="hidden sm:inline">Login</span>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
             )}
             
-            {/* Botón Admin - Optimizado para móvil */}
+            {/* Botón Admin - Compacto para móvil */}
             {adminLogged ? (
               <button 
                 onClick={() => setView('admin')}
-                className={`group relative min-w-[50px] sm:min-w-[70px] px-2 sm:px-3 py-2 rounded-lg font-semibold transition-all duration-300 text-xs overflow-hidden ${view === 'admin' 
+                className={`group relative min-w-[36px] sm:min-w-[70px] px-1.5 sm:px-3 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-medium sm:font-semibold transition-all duration-300 text-xs overflow-hidden ${view === 'admin' 
                   ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25' 
                   : tv(isDark, 'text-gray-700 hover:text-gray-900 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 border border-gray-200 hover:border-purple-300', 'text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-purple-900/20 hover:to-pink-900/20 border border-gray-600 hover:border-purple-500/50')
                 }`}
                 title="Admin"
               >
-                <div className="relative z-10 flex items-center justify-center gap-1">
-                  <span className="text-sm">🔧</span>
+                <div className="relative z-10 flex items-center justify-center gap-0.5 sm:gap-1">
+                  <span className="text-xs sm:text-sm">🔧</span>
                   <span className="hidden sm:inline">Admin</span>
                 </div>
                 {view === 'admin' && (
@@ -137,11 +137,11 @@ export function AppHeader({ isDark, view, user, adminLogged, setView, handleLogo
             ) : (
               <button 
                 onClick={() => setView('admin')}
-                className={`group relative min-w-[50px] sm:min-w-[70px] px-2 sm:px-3 py-2 rounded-lg font-semibold transition-all duration-300 text-xs overflow-hidden bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 hover:scale-105`}
+                className={`group relative min-w-[36px] sm:min-w-[70px] px-1.5 sm:px-3 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-medium sm:font-semibold transition-all duration-300 text-xs overflow-hidden bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 hover:scale-105`}
                 title="Login Admin"
               >
-                <div className="relative z-10 flex items-center justify-center gap-1">
-                  <span className="text-sm">🔧</span>
+                <div className="relative z-10 flex items-center justify-center gap-0.5 sm:gap-1">
+                  <span className="text-xs sm:text-sm">🔧</span>
                   <span className="hidden sm:inline">Admin</span>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
