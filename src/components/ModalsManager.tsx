@@ -117,6 +117,7 @@ export function ModalsManager({
         onUpdate={onUpdate} 
         purchase={editingPurchase}
         isDark={isDark}
+        systemPrefersDark={systemPrefersDark}
       />
     </>
   );

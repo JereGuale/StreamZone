@@ -7,6 +7,11 @@ import { AdminMenuDrawer } from '../../components/admin/AdminMenuDrawer';
 interface AdminDashboardProps {
   isDark: boolean;
   purchases: any[];
+  pendingPurchases?: any[];
+  expiringServices?: any[];
+  renewalStats?: any;
+  loading?: boolean;
+  error?: string | null;
   adminUsers: any[];
   setAdminUsers: (users: any[]) => void;
   onToggleValidate: (id: string) => void;
@@ -14,13 +19,22 @@ interface AdminDashboardProps {
   onEditPurchase: (purchase: any) => void;
   onRegisterPurchase: () => void;
   onExportCSV: () => void;
+  refreshAllStats?: () => void;
+  onGoToHome?: () => void;
+  onSetAdminUserRegisterFormPurchaseOpen?: (open: boolean) => void;
+  onSetDrawerOpen?: (open: boolean) => void;
   onLogout: () => void;
   onSetView: (view: string) => void;
 }
 
 export function AdminDashboard({ 
   isDark, 
-  purchases, 
+  purchases,
+  pendingPurchases = [],
+  expiringServices = [],
+  renewalStats,
+  loading = false,
+  error = null,
   adminUsers, 
   setAdminUsers,
   onToggleValidate, 
@@ -28,6 +42,10 @@ export function AdminDashboard({
   onEditPurchase,
   onRegisterPurchase,
   onExportCSV,
+  refreshAllStats,
+  onGoToHome,
+  onSetAdminUserRegisterFormPurchaseOpen,
+  onSetDrawerOpen,
   onLogout,
   onSetView
 }: AdminDashboardProps) {
@@ -44,16 +62,8 @@ export function AdminDashboard({
 
   // Estadísticas
   const totalPurchases = purchases.length;
-  const pendingPurchases = purchases.filter(p => !p.validated);
   const activePurchases = purchases.filter(p => p.validated);
-  const expiringServices = []; // TODO: Implementar lógica de servicios que vencen
   const totalRevenue = activePurchases.reduce((sum, p) => sum + (p.price || 0), 0);
-
-  const refreshAllStats = async () => {
-    setAdminLoading(true);
-    // TODO: Implementar lógica de actualización
-    setTimeout(() => setAdminLoading(false), 1000);
-  };
 
   return (
     <section className="mx-auto max-w-6xl px-3 sm:px-4 pb-8 sm:pb-16">

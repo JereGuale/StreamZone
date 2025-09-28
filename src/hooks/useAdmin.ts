@@ -20,7 +20,7 @@ const DEFAULT_ADMIN_USERS: AdminUser[] = [
   }
 ];
 
-export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[]) => void, refreshFromSupabase?: () => Promise<void>) => {
+export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] | ((prev: any[]) => any[])) => void, refreshFromSupabase?: () => Promise<void>) => {
   const [adminUsers, setAdminUsers] = useState(DEFAULT_ADMIN_USERS);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');

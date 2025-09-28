@@ -1,7 +1,7 @@
 import React from 'react';
-import { Login } from '../pages/auth/Login';
-import { Register } from '../pages/auth/Register';
-import { ForgotPassword } from '../pages/auth/ForgotPassword';
+import { UserLoginForm } from '../pages/auth/Login';
+import { UserRegisterForm } from '../pages/auth/Register';
+import { ForgotPasswordForm } from '../pages/auth/ForgotPassword';
 import { Dashboard } from '../pages/user/Dashboard';
 import { Profile } from '../pages/user/Profile';
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
@@ -13,10 +13,10 @@ interface AppRoutesProps {
   user: any;
   adminLogged: boolean;
   // Auth props
-  onLogin: (user: any) => void;
-  onForgotPassword: () => void;
+  onUserLoginForm: (user: any) => void;
+  onForgotPasswordForm: () => void;
   onTokenSent: (email: string, token: string) => void;
-  onRegister: () => void;
+  onUserRegisterForm: () => void;
   onBack: () => void;
   onCodeVerified: (token: string) => void;
   onSuccess: () => void;
@@ -35,7 +35,13 @@ interface AppRoutesProps {
   adminLoading: boolean;
   onRefreshAllStats: () => void;
   onSetMenuOpen: (open: boolean) => void;
-  onSetAdminRegisterPurchaseOpen: (open: boolean) => void;
+  onSetAdminUserRegisterFormPurchaseOpen: (open: boolean) => void;
+  adminUsers: any[];
+  setAdminUsers: (users: any[]) => void;
+  onToggleValidate: (id: string) => void;
+  onDeletePurchase: (id: string) => void;
+  onEditPurchase: (purchase: any) => void;
+  onSetView: (view: string) => void;
   onSetDrawerOpen: (open: boolean) => void;
   onExportCSV: () => void;
   onLogout: () => void;
@@ -51,10 +57,10 @@ export function AppRoutes({
   isDark,
   user,
   adminLogged,
-  onLogin,
-  onForgotPassword,
+  onUserLoginForm,
+  onForgotPasswordForm,
   onTokenSent,
-  onRegister,
+  onUserRegisterForm,
   onBack,
   onCodeVerified,
   onSuccess,
@@ -71,7 +77,7 @@ export function AppRoutes({
   adminLoading,
   onRefreshAllStats,
   onSetMenuOpen,
-  onSetAdminRegisterPurchaseOpen,
+  onSetAdminUserRegisterFormPurchaseOpen,
   onSetDrawerOpen,
   onExportCSV,
   onLogout,
@@ -85,26 +91,26 @@ export function AppRoutes({
     switch (authStep) {
       case 'login':
         return (
-          <Login
+          <UserLoginForm
             isDark={isDark}
-            onLogin={onLogin}
-            onForgotPassword={onForgotPassword}
+            onLogin={onUserLoginForm}
+            onForgotPassword={onForgotPasswordForm}
           />
         );
       case 'register':
         return (
-          <Register
+          <UserRegisterForm
             isDark={isDark}
-            onSubmit={onLogin}
+            onSubmit={onUserLoginForm}
           />
         );
       case 'forgot':
         return (
-          <ForgotPassword
+          <ForgotPasswordForm
             isDark={isDark}
             onBack={onBack}
             onTokenSent={onTokenSent}
-            onRegister={onRegister}
+            onRegister={onUserRegisterForm}
           />
         );
       case 'code':
@@ -133,17 +139,17 @@ export function AppRoutes({
         );
       default:
         return (
-          <Login
+          <UserLoginForm
             isDark={isDark}
-            onLogin={onLogin}
-            onForgotPassword={onForgotPassword}
+            onLogin={onUserLoginForm}
+            onForgotPassword={onForgotPasswordForm}
           />
         );
     }
   }
 
   // Admin login view
-  if (view === 'adminLogin') {
+  if (view === 'adminUserLoginForm') {
     return (
       <section className="min-h-screen relative">
         <div className="absolute inset-0 -z-10">
@@ -181,19 +187,23 @@ export function AppRoutes({
     return (
       <AdminDashboard
         isDark={isDark}
-        adminSub={adminSub}
-        setAdminSub={setAdminSub}
         purchases={purchases}
         pendingPurchases={pendingPurchases}
         expiringServices={expiringServices}
-        adminLoading={adminLoading}
-        onRefreshAllStats={onRefreshAllStats}
-        onSetMenuOpen={onSetMenuOpen}
-        onGoToHome={onGoToHome}
-        onSetAdminRegisterPurchaseOpen={onSetAdminRegisterPurchaseOpen}
-        onSetDrawerOpen={onSetDrawerOpen}
+        loading={adminLoading}
+        adminUsers={adminUsers}
+        setAdminUsers={setAdminUsers}
+        onToggleValidate={onToggleValidate}
+        onDeletePurchase={onDeletePurchase}
+        onEditPurchase={onEditPurchase}
+        onRegisterPurchase={() => onSetAdminUserRegisterFormPurchaseOpen(true)}
         onExportCSV={onExportCSV}
+        refreshAllStats={onRefreshAllStats}
+        onGoToHome={onGoToHome}
+        onSetAdminUserRegisterFormPurchaseOpen={onSetAdminUserRegisterFormPurchaseOpen}
+        onSetDrawerOpen={onSetDrawerOpen}
         onLogout={onLogoutAdmin}
+        onSetView={onSetView}
       />
     );
   }

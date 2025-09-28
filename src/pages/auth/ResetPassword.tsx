@@ -42,7 +42,7 @@ export function ResetPasswordForm({ isDark, email, token, onSuccess }: ResetPass
     
     try {
       // Restablecer contraseña con Supabase
-      const result = await resetPassword(email, token, newPassword);
+      const result = await resetPassword(token, newPassword);
       if (result.data) {
         setMsg('✅ Contraseña restablecida exitosamente');
         setTimeout(() => {
