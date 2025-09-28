@@ -21,6 +21,22 @@ export function ApprovePurchaseModal({ isOpen, onClose, purchase, isDark, onAppr
 
   if (!isOpen || !purchase) return null;
 
+  const handleWhatsApp = () => {
+    const message = `Hola! 👋 
+
+Tu compra de ${purchase.service} ha sido aprobada! 🎉
+
+📧 Email: ${serviceCredentials.email || 'Pendiente'}
+🔑 Contraseña: ${serviceCredentials.password || 'Pendiente'}
+
+${serviceCredentials.notes ? `📝 Notas: ${serviceCredentials.notes}` : ''}
+
+¡Disfruta tu contenido! 🚀`;
+
+    const whatsappUrl = `https://wa.me/${purchase.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   const handleApprove = async () => {
     if (!serviceCredentials.email || !serviceCredentials.password) {
       alert('Por favor completa el email y contraseña del servicio');
@@ -171,17 +187,27 @@ export function ApprovePurchaseModal({ isOpen, onClose, purchase, isDark, onAppr
         
         {/* Botones de acción - Optimizados para móvil */}
         <div className={`p-4 sm:p-6 ${tv(isDark,'bg-gray-50','bg-gray-800')}`}>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <button 
               onClick={onClose}
-              className={`w-full sm:flex-1 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-semibold text-xs sm:text-sm transition-all duration-200 hover:scale-105 ${tv(isDark,'bg-gray-200 text-gray-700 hover:bg-gray-300','bg-gray-700 text-gray-200 hover:bg-gray-600')}`}
+              className={`w-full sm:flex-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 hover:scale-105 ${tv(isDark,'bg-gray-200 text-gray-700 hover:bg-gray-300','bg-gray-700 text-gray-200 hover:bg-gray-600')}`}
             >
               Cancelar
             </button>
+            
+            <button 
+              onClick={handleWhatsApp}
+              disabled={!serviceCredentials.email || !serviceCredentials.password}
+              className={`w-full sm:flex-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 sm:gap-2 ${tv(isDark,'bg-green-500 text-white hover:bg-green-600','bg-green-600 text-white hover:bg-green-700')}`}
+            >
+              <span className="text-sm sm:text-lg">📱</span>
+              <span className="truncate">Enviar por WhatsApp</span>
+            </button>
+            
             <button 
               onClick={handleApprove}
               disabled={loading || !serviceCredentials.email || !serviceCredentials.password}
-              className={`w-full sm:flex-1 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-semibold text-xs sm:text-sm transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${tv(isDark,'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-xl','bg-gradient-to-r from-green-600 to-emerald-700 text-white hover:from-green-700 hover:to-emerald-800 shadow-lg hover:shadow-xl')}`}
+              className={`w-full sm:flex-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${tv(isDark,'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl','bg-gradient-to-r from-blue-600 to-purple-700 text-white hover:from-blue-700 hover:to-purple-800 shadow-lg hover:shadow-xl')}`}
             >
               {loading ? (
                 <div className="flex items-center justify-center gap-1 sm:gap-2">
