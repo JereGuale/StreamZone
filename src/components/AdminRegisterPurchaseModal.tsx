@@ -159,12 +159,12 @@ export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, 
               />
             </div>
 
-            {/* Botones de acción */}
-            <div className="flex gap-4 pt-4">
+            {/* Botones de acción - Optimizados para móvil */}
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-4">
               <button
                 type="button"
                 onClick={onClose}
-                className={`flex-1 px-6 py-3 rounded-xl text-sm font-bold transition-all ${tv(isDark,'bg-gray-200 text-gray-800 hover:bg-gray-300','bg-gray-700 text-gray-200 hover:bg-gray-600')}`}
+                className={`w-full sm:flex-1 px-3 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all ${tv(isDark,'bg-gray-200 text-gray-800 hover:bg-gray-300','bg-gray-700 text-gray-200 hover:bg-gray-600')}`}
               >
                 Cancelar
               </button>
@@ -172,19 +172,18 @@ export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, 
               <button
                 type="button"
                 onClick={handleWhatsApp}
-                className={`flex-1 px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${tv(isDark,'bg-green-500 text-white hover:bg-green-600','bg-green-600 text-white hover:bg-green-700')}`}
+                className={`w-full sm:flex-1 px-3 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1 sm:gap-2 ${tv(isDark,'bg-green-500 text-white hover:bg-green-600','bg-green-600 text-white hover:bg-green-700')}`}
               >
-                <span className="text-lg">📱</span>
-                Enviar por WhatsApp
+                <span className="text-sm sm:text-lg">📱</span>
+                <span className="truncate">Enviar por WhatsApp</span>
               </button>
               
               <button
                 type="submit"
-                className={`flex-1 px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700`}
+                className={`w-full sm:flex-1 px-3 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1 sm:gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700`}
               >
-                <span className="text-lg">💾</span>
-                <span className="text-lg">⭐</span>
-                Guardar Cambios
+                <span className="text-sm sm:text-lg">💾</span>
+                <span className="truncate">Guardar Cambios</span>
               </button>
             </div>
           </form>

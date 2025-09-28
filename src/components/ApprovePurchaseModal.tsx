@@ -169,29 +169,29 @@ export function ApprovePurchaseModal({ isOpen, onClose, purchase, isDark, onAppr
           </div>
         </div>
         
-        {/* Botones de acción */}
-        <div className={`p-6 ${tv(isDark,'bg-gray-50','bg-gray-800')}`}>
-          <div className="flex gap-4">
+        {/* Botones de acción - Optimizados para móvil */}
+        <div className={`p-4 sm:p-6 ${tv(isDark,'bg-gray-50','bg-gray-800')}`}>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             <button 
               onClick={onClose}
-              className={`flex-1 px-6 py-4 rounded-2xl font-semibold text-sm transition-all duration-200 hover:scale-105 ${tv(isDark,'bg-gray-200 text-gray-700 hover:bg-gray-300','bg-gray-700 text-gray-200 hover:bg-gray-600')}`}
+              className={`w-full sm:flex-1 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-semibold text-xs sm:text-sm transition-all duration-200 hover:scale-105 ${tv(isDark,'bg-gray-200 text-gray-700 hover:bg-gray-300','bg-gray-700 text-gray-200 hover:bg-gray-600')}`}
             >
               Cancelar
             </button>
             <button 
               onClick={handleApprove}
               disabled={loading || !serviceCredentials.email || !serviceCredentials.password}
-              className={`flex-1 px-6 py-4 rounded-2xl font-semibold text-sm transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${tv(isDark,'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-xl','bg-gradient-to-r from-green-600 to-emerald-700 text-white hover:from-green-700 hover:to-emerald-800 shadow-lg hover:shadow-xl')}`}
+              className={`w-full sm:flex-1 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-semibold text-xs sm:text-sm transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${tv(isDark,'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-xl','bg-gradient-to-r from-green-600 to-emerald-700 text-white hover:from-green-700 hover:to-emerald-800 shadow-lg hover:shadow-xl')}`}
             >
               {loading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Aprobando...
+                <div className="flex items-center justify-center gap-1 sm:gap-2">
+                  <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span className="truncate">Aprobando...</span>
                 </div>
               ) : (
-                <div className="flex items-center justify-center gap-2">
+                <div className="flex items-center justify-center gap-1 sm:gap-2">
                   <span>✅</span>
-                  Aprobar Compra
+                  <span className="truncate">Aprobar Compra</span>
                 </div>
               )}
             </button>
