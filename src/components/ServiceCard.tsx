@@ -39,7 +39,10 @@ export function ServiceCard({ s, onReserve, isDark }: ServiceCardProps) {
         
         <div className="mb-6 sm:mb-8 space-y-3 sm:space-y-4">
           {/* Nombre del servicio */}
-          <div className={`${tv(isDark,'text-gray-900','text-white')} font-black text-lg sm:text-xl md:text-2xl mb-2 sm:mb-3 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent`}>
+          <div className={`font-black text-lg sm:text-xl md:text-2xl mb-2 sm:mb-3 ${tv(isDark,
+            'text-gray-900 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent',
+            'text-white bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent'
+          )}`}>
             {s.name}
           </div>
           

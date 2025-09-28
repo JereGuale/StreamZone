@@ -29,6 +29,16 @@ html, body, #root { height: 100%; }
   * {
     -webkit-overflow-scrolling: touch;
   }
+  
+  /* Asegurar modo oscuro en móviles */
+  .dark {
+    background-color: #0f172a !important;
+  }
+  
+  /* Forzar modo oscuro para elementos específicos en móvil */
+  .dark .bg-gradient-to-br {
+    background-image: linear-gradient(to bottom right, rgb(30 58 138 / 0.5), rgb(88 28 135 / 0.5), rgb(157 23 77 / 0.5)) !important;
+  }
 }
 
 /* Optimizaciones para pantallas pequeñas */

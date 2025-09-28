@@ -141,7 +141,10 @@ const Home = ({ isDark, onReserve, user, setView }: HomeProps) => {
       {/* Catálogo de Servicios */}
       <section id="catalogo" className="relative py-8 sm:py-12 md:py-16">
         {/* Background Pattern */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-purple-50/50 to-pink-50/50 dark:from-blue-950/50 dark:via-purple-950/50 dark:to-pink-950/50"></div>
+        <div className={`absolute inset-0 ${isDark 
+          ? 'bg-gradient-to-br from-blue-950/50 via-purple-950/50 to-pink-950/50' 
+          : 'bg-gradient-to-br from-blue-50/50 via-purple-50/50 to-pink-50/50'
+        }`}></div>
         
         <div className="relative mx-auto max-w-7xl px-3 sm:px-4">
           <div className="text-center mb-6 sm:mb-8 md:mb-12">
