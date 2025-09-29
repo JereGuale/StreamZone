@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DatabasePurchase } from '../lib/supabase';
+import { DatabasePurchase, updatePurchase } from '../lib/supabase';
 import { supabase } from '../lib/supabase';
 
 interface AdminUser {
@@ -265,16 +265,46 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
     }
   };
 
-  const handleUpdatePurchase = (purchaseId: string, updates: any) => {
-    console.log('🔄 Actualizando compra localmente:', { purchaseId, updates });
-    setPurchases(prev => 
-      prev.map(p => 
-        p.id === purchaseId 
-          ? { ...p, ...updates }
-          : p
-      )
-    );
-    console.log('✅ Compra actualizada localmente');
+  const handleUpdatePurchase = async (purchaseId: string, updates: any) => {
+    console.log('🔄 Actualizando compra:', { purchaseId, updates });
+    
+    try {
+      // Guardar en Supabase
+      console.log('💾 Guardando cambios en Supabase...');
+      const { data, error } = await updatePurchase(purchaseId, updates);
+      
+      if (error) {
+        console.error('❌ Error guardando en Supabase:', error);
+        setMsg('❌ Error al guardar cambios. Inténtalo de nuevo.');
+        setTimeout(() => setMsg(''), 3000);
+        return;
+      }
+      
+      console.log('✅ Cambios guardados en Supabase:', data);
+      
+      // Actualizar estado local
+      setPurchases(prev => 
+        prev.map(p => 
+          p.id === purchaseId 
+            ? { ...p, ...updates }
+            : p
+        )
+      );
+      
+      setMsg('✅ Compra actualizada correctamente');
+      setTimeout(() => setMsg(''), 3000);
+      
+      // Recargar desde Supabase para sincronizar
+      if (refreshFromSupabase) {
+        console.log('🔄 Recargando datos desde Supabase...');
+        await refreshFromSupabase();
+      }
+      
+    } catch (error) {
+      console.error('❌ Error actualizando compra:', error);
+      setMsg('❌ Error al actualizar compra. Inténtalo de nuevo.');
+      setTimeout(() => setMsg(''), 3000);
+    }
   };
   
   const handleExportCSV = () => {
