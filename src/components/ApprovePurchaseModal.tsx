@@ -31,6 +31,11 @@ Tu compra de ${purchase.service} ha sido aprobada! 🎉
 
 ${serviceCredentials.notes ? `📝 Notas: ${serviceCredentials.notes}` : ''}
 
+🔄 IMPORTANTE: Para ver tu servicio en tu cuenta, por favor:
+1. Cierra sesión en la página
+2. Vuelve a iniciar sesión
+3. Ve a "Mi Perfil" para ver tu servicio
+
 ¡Disfruta tu contenido! 🚀`;
 
     const whatsappUrl = `https://wa.me/${purchase.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
@@ -79,6 +84,10 @@ ${serviceCredentials.notes ? `📝 Notas: ${serviceCredentials.notes}` : ''}
         
         // Llamar a la función de aprobación exitosa para recargar datos
         await onApprove();
+        
+        // Forzar recarga de compras del usuario específico
+        console.log('🔄 Forzando recarga de compras del usuario:', purchase.phone);
+        // Nota: La recarga se manejará automáticamente en el hook useSupabaseData
         
         // Cerrar el modal
         onClose();

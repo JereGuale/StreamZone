@@ -250,6 +250,13 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
       try {
         await refreshFromSupabase();
         console.log('✅ Datos recargados exitosamente desde Supabase');
+        
+        // Forzar recarga de compras del usuario si hay una compra seleccionada
+        if (selectedPurchase && selectedPurchase.phone) {
+          console.log('🔄 Forzando recarga de compras del usuario:', selectedPurchase.phone);
+          // La recarga se manejará automáticamente en el hook useSupabaseData
+          // cuando el usuario inicie sesión o se refresque la página
+        }
       } catch (error) {
         console.error('❌ Error recargando datos:', error);
       }

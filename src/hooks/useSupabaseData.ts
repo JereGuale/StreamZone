@@ -164,6 +164,36 @@ export function useSupabaseData(userPhone?: string) {
     }
   }, [userPhone]);
 
+  // Escuchar cambios en localStorage para recargar compras del usuario
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'userPhone' && e.newValue) {
+        console.log('🔄 Teléfono de usuario cambiado, recargando compras...');
+        setLoading(true);
+        loadUserActivePurchases(e.newValue).finally(() => setLoading(false));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Función para forzar recarga de compras del usuario
+  const refreshUserPurchases = async (phone: string) => {
+    console.log('🔄 Forzando recarga de compras del usuario:', phone);
+    setLoading(true);
+    try {
+      const result = await loadUserActivePurchases(phone);
+      console.log('✅ Compras del usuario recargadas:', result?.length || 0);
+      return result;
+    } catch (error) {
+      console.error('❌ Error recargando compras del usuario:', error);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     allPurchases,
     pendingPurchases,
@@ -177,6 +207,7 @@ export function useSupabaseData(userPhone?: string) {
     loadUserActivePurchases,
     loadExpiringServices,
     loadRenewalStats,
-    refreshAllStats
+    refreshAllStats,
+    refreshUserPurchases
   };
 }
