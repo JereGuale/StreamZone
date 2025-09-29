@@ -7,9 +7,10 @@ interface PurchaseCardProps {
   onToggleValidate: () => void;
   onDelete: () => void;
   onEdit: () => void;
+  onReminder?: () => void;
 }
 
-export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit }: PurchaseCardProps) {
+export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit, onReminder }: PurchaseCardProps) {
   const days = daysBetween(new Date().toISOString().slice(0,10), item.end);
   const status = days < 0 ? 'Vencido' : days === 0 ? 'Vence hoy' : `${days} dias`;
   
@@ -205,6 +206,7 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit 
           </button>
           
           <button
+            onClick={onReminder}
             className={`px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold transition-all ${tv(isDark,'bg-green-500 text-white hover:bg-green-600','bg-green-600 text-white hover:bg-green-700')}`}
           >
             📅 Recordatorio

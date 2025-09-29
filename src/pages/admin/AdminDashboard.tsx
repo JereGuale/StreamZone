@@ -17,6 +17,7 @@ interface AdminDashboardProps {
   onToggleValidate: (id: string) => void;
   onDeletePurchase: (id: string) => void;
   onEditPurchase: (purchase: any) => void;
+  onReminderPurchase?: (purchase: any) => void;
   onRegisterPurchase: () => void;
   onExportCSV: () => void;
   refreshAllStats?: () => void;
@@ -40,6 +41,7 @@ export function AdminDashboard({
   onToggleValidate, 
   onDeletePurchase, 
   onEditPurchase,
+  onReminderPurchase,
   onRegisterPurchase,
   onExportCSV,
   refreshAllStats,
@@ -235,6 +237,7 @@ export function AdminDashboard({
                     onToggleValidate={() => onToggleValidate(purchase.id)}
                     onDelete={() => onDeletePurchase(purchase.id)}
                     onEdit={() => onEditPurchase(purchase)}
+                    onReminder={() => onReminderPurchase?.(purchase)}
                   />
                 ))}
               </div>
@@ -267,6 +270,7 @@ export function AdminDashboard({
                     onToggleValidate={() => onToggleValidate(purchase.id)}
                     onDelete={() => onDeletePurchase(purchase.id)}
                     onEdit={() => onEditPurchase(purchase)}
+                    onReminder={() => onReminderPurchase?.(purchase)}
                   />
                 ))}
               </div>

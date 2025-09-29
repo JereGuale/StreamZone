@@ -140,56 +140,72 @@ export function usePurchases() {
       
       console.log('✅ Validaciones básicas pasadas');
       
-      // Intentar guardar en Supabase (opcional, no crítico)
-      try {
-        console.log('💾 Intentando guardar en Supabase (opcional)...');
+      // Guardar en Supabase (CRÍTICO para compras pendientes)
+      console.log('💾 Guardando compra en Supabase...');
+      
+      // Buscar usuario existente
+      const { data: existingUser, error: userError } = await getUserByPhone(purchaseData.phone);
+      if (userError) {
+        console.error('❌ Error buscando usuario:', userError);
+      }
+      
+      let userId = existingUser?.id;
+      
+      // Si no existe usuario, crear uno simple
+      if (!userId) {
+        console.log('👤 Creando nuevo usuario...');
+        const userData = {
+          name: purchaseData.customer,
+          phone: purchaseData.phone,
+          email: purchaseData.email || 'sin-email@temp.com'
+        };
         
-        // Buscar usuario existente
-        const { data: existingUser } = await getUserByPhone(purchaseData.phone);
-        let userId = existingUser?.id;
+        const { data: newUser, error: createError } = await createUser(userData);
+        if (createError) {
+          console.error('❌ Error creando usuario:', createError);
+          throw new Error(`No se pudo crear el usuario: ${createError.message}`);
+        }
+        userId = newUser?.id;
+        console.log('✅ Usuario creado:', userId);
+      } else {
+        console.log('✅ Usuario encontrado:', userId);
+      }
+      
+      // Guardar la compra
+      if (userId) {
+        const purchaseDataForDB: Omit<DatabasePurchase, 'id' | 'created_at'> = {
+          customer: purchaseData.customer,
+          phone: purchaseData.phone,
+          service: purchaseData.service,
+          start: purchaseData.start,
+          end: purchaseData.end,
+          months: purchaseData.duration,
+          validated: false,
+          service_email: undefined,
+          service_password: undefined,
+          admin_notes: purchaseData.notes || '',
+          approved_by: undefined,
+          approved_at: undefined,
+          auto_renewal: false,
+          renewal_reminder_sent: false,
+          renewal_attempts: 0,
+          last_renewal_attempt: undefined,
+          renewal_status: 'none',
+          original_purchase_id: undefined,
+          is_renewal: false
+        };
         
-        // Si no existe usuario, crear uno simple
-        if (!userId) {
-          const userData = {
-            name: purchaseData.customer,
-            phone: purchaseData.phone,
-            email: purchaseData.email || 'sin-email@temp.com'
-          };
-          
-          const { data: newUser } = await createUser(userData);
-          userId = newUser?.id;
+        console.log('💾 Guardando compra en BD:', purchaseDataForDB);
+        const { data: savedPurchase, error: purchaseError } = await createPurchase(purchaseDataForDB);
+        
+        if (purchaseError) {
+          console.error('❌ Error guardando compra:', purchaseError);
+          throw new Error(`No se pudo guardar la compra: ${purchaseError.message}`);
         }
         
-        // Si tenemos userId, guardar la compra
-        if (userId) {
-          const purchaseDataForDB: Omit<DatabasePurchase, 'id' | 'created_at'> = {
-            customer: purchaseData.customer,
-            phone: purchaseData.phone,
-            service: purchaseData.service,
-            start: purchaseData.start,
-            end: purchaseData.end,
-            months: purchaseData.duration,
-            validated: false,
-            service_email: undefined,
-            service_password: undefined,
-            admin_notes: purchaseData.notes || '',
-            approved_by: undefined,
-            approved_at: undefined,
-            auto_renewal: false,
-            renewal_reminder_sent: false,
-            renewal_attempts: 0,
-            last_renewal_attempt: undefined,
-            renewal_status: 'none',
-            original_purchase_id: undefined,
-            is_renewal: false
-          };
-          
-          await createPurchase(purchaseDataForDB);
-          console.log('✅ Compra guardada en Supabase');
-        }
-      } catch (dbError) {
-        console.warn('⚠️ Error guardando en BD (no crítico):', dbError);
-        // No lanzar error, continuar con el proceso
+        console.log('✅ Compra guardada exitosamente:', savedPurchase);
+      } else {
+        throw new Error('No se pudo obtener el ID del usuario');
       }
       
       // SIEMPRE mostrar el panel de agentes, independientemente de la BD
