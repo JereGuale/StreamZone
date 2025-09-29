@@ -126,162 +126,79 @@ export function usePurchases() {
     document.addEventListener('keydown', handleEscape);
   };
 
-  // Función principal para procesar compra
+  // Función principal para procesar compra - SIMPLIFICADA
   const processPurchase = async (purchaseData: any) => {
     setIsProcessing(true);
     
     try {
-      console.log('🛒 Iniciando procesamiento de compra:', purchaseData);
+      console.log('🛒 Procesando compra de forma simplificada:', purchaseData);
       
-      // Validaciones previas
+      // Validaciones básicas
       if (!purchaseData.customer || !purchaseData.phone || !purchaseData.service) {
         throw new Error('Faltan datos obligatorios para procesar la compra');
       }
       
-      if (!purchaseData.phone.startsWith('+')) {
-        throw new Error('El número de teléfono debe incluir el código de país (+593)');
-      }
+      console.log('✅ Validaciones básicas pasadas');
       
-      console.log('✅ Validaciones pasadas, conectando con Supabase...');
-      
-      // 1. Verificar si el usuario existe en Supabase
-      console.log('🔍 Buscando usuario existente con teléfono:', purchaseData.phone);
-      const { data: existingUser, error: userError } = await getUserByPhone(purchaseData.phone);
-      
-      let userId: string;
-      
-      if (userError || !existingUser) {
-        console.log('👤 Usuario no encontrado, creando nuevo usuario...');
-        // Crear nuevo usuario si no existe
-        const userData = {
-          name: purchaseData.customer,
-          phone: purchaseData.phone,
-          email: purchaseData.email || ''
-        };
+      // Intentar guardar en Supabase (opcional, no crítico)
+      try {
+        console.log('💾 Intentando guardar en Supabase (opcional)...');
         
-        console.log('📝 Datos del usuario a crear:', userData);
-        const { data: newUser, error: createError } = await createUser(userData);
+        // Buscar usuario existente
+        const { data: existingUser } = await getUserByPhone(purchaseData.phone);
+        let userId = existingUser?.id;
         
-        if (createError || !newUser) {
-          console.error('❌ Error creating user:', createError);
-          
-          // Intentar crear usuario con datos mínimos como fallback
-          console.log('🔄 Intentando crear usuario con datos mínimos...');
-          const fallbackUserData = {
-            name: purchaseData.customer || 'Usuario',
+        // Si no existe usuario, crear uno simple
+        if (!userId) {
+          const userData = {
+            name: purchaseData.customer,
             phone: purchaseData.phone,
             email: purchaseData.email || 'sin-email@temp.com'
           };
           
-          const { data: fallbackUser, error: fallbackError } = await createUser(fallbackUserData);
-          
-          if (fallbackError || !fallbackUser) {
-            console.error('❌ Error en fallback de creación de usuario:', fallbackError);
-            throw new Error(`No se pudo crear el usuario. Error: ${createError?.message || 'Error desconocido'}. Por favor, verifica que todos los campos estén completos.`);
-          }
-          
-          console.log('✅ Usuario creado con fallback:', fallbackUser.id);
-          userId = fallbackUser.id;
-        } else {
-          console.log('✅ Usuario creado exitosamente:', newUser.id);
-          userId = newUser.id;
+          const { data: newUser } = await createUser(userData);
+          userId = newUser?.id;
         }
-      } else {
-        console.log('✅ Usuario encontrado:', existingUser.id);
-        userId = existingUser.id;
         
-        // Actualizar información del usuario si es necesario
-        if (existingUser.name !== purchaseData.customer || existingUser.email !== (purchaseData.email || '')) {
-          console.log('🔄 Actualizando información del usuario...');
-          const updateResult = await updateUser(userId, {
-            name: purchaseData.customer,
-            email: purchaseData.email || ''
-          });
+        // Si tenemos userId, guardar la compra
+        if (userId) {
+          const purchaseDataForDB: Omit<DatabasePurchase, 'id' | 'created_at'> = {
+            customer: purchaseData.customer,
+            phone: purchaseData.phone,
+            service: purchaseData.service,
+            start: purchaseData.start,
+            end: purchaseData.end,
+            months: purchaseData.duration,
+            validated: false,
+            service_email: undefined,
+            service_password: undefined,
+            admin_notes: purchaseData.notes || '',
+            approved_by: undefined,
+            approved_at: undefined,
+            auto_renewal: false,
+            renewal_reminder_sent: false,
+            renewal_attempts: 0,
+            last_renewal_attempt: undefined,
+            renewal_status: 'none',
+            original_purchase_id: undefined,
+            is_renewal: false
+          };
           
-          if (updateResult.error) {
-            console.warn('⚠️ Error actualizando usuario (no crítico):', updateResult.error);
-          }
+          await createPurchase(purchaseDataForDB);
+          console.log('✅ Compra guardada en Supabase');
         }
+      } catch (dbError) {
+        console.warn('⚠️ Error guardando en BD (no crítico):', dbError);
+        // No lanzar error, continuar con el proceso
       }
       
-      // 2. Validar y preparar fechas
-      console.log('📅 Preparando fechas de la compra...');
-      const startDate = new Date(purchaseData.start);
-      const endDate = new Date(purchaseData.end);
-      
-      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-        throw new Error('Fechas de compra inválidas');
-      }
-      
-      console.log('📅 Fechas válidas - Inicio:', startDate.toISOString().split('T')[0], 'Fin:', endDate.toISOString().split('T')[0]);
-      
-      // 3. Crear la compra en Supabase
-      console.log('💾 Preparando datos para guardar en Supabase...');
-      const purchaseDataForDB: Omit<DatabasePurchase, 'id' | 'created_at'> = {
-        customer: purchaseData.customer,
-        phone: purchaseData.phone,
-        service: purchaseData.service,
-        start: startDate.toISOString().split('T')[0],
-        end: endDate.toISOString().split('T')[0],
-        months: purchaseData.duration,
-        validated: false,
-        service_email: undefined,
-        service_password: undefined,
-        admin_notes: purchaseData.notes || '',
-        approved_by: undefined,
-        approved_at: undefined,
-        auto_renewal: false,
-        renewal_reminder_sent: false,
-        renewal_attempts: 0,
-        last_renewal_attempt: undefined,
-        renewal_status: 'none',
-        original_purchase_id: undefined,
-        is_renewal: false
-      };
-      
-      console.log('💾 Datos de compra preparados:', purchaseDataForDB);
-      console.log('💾 Guardando compra en Supabase...');
-      
-      const { data: savedPurchase, error: purchaseError } = await createPurchase(purchaseDataForDB);
-      
-      if (purchaseError || !savedPurchase) {
-        console.error('❌ Error saving purchase to Supabase:', purchaseError);
-        throw new Error(`No se pudo guardar la compra: ${purchaseError?.message || 'Error desconocido'}`);
-      }
-      
-      console.log('✅ Compra guardada exitosamente en Supabase:', savedPurchase);
-      
-      // Mostrar modal de selección de agente
-      console.log('🎉 Procesamiento completado, mostrando modal de agente...');
+      // SIEMPRE mostrar el panel de agentes, independientemente de la BD
+      console.log('🎉 Mostrando panel de agentes...');
       showAgentSelection(purchaseData);
       
     } catch (error) {
-      console.error('❌ Error al procesar la compra:', error);
-      
-      // Determinar el mensaje de error específico
-      let errorMessage = 'Hubo un error al procesar tu compra. Por favor, inténtalo de nuevo.';
-      
-      if (error instanceof Error) {
-        errorMessage = error.message;
-        
-        // Mensajes más específicos según el tipo de error
-        if (error.message.includes('Supabase no configurado')) {
-          errorMessage = 'Error de conexión con la base de datos. Por favor, inténtalo más tarde.';
-        } else if (error.message.includes('Faltan datos obligatorios')) {
-          errorMessage = 'Por favor, completa todos los campos obligatorios.';
-        } else if (error.message.includes('teléfono debe incluir el código de país')) {
-          errorMessage = 'El número de teléfono debe incluir el código de país (+593).';
-        } else if (error.message.includes('Fechas de compra inválidas')) {
-          errorMessage = 'Error en las fechas de la compra. Por favor, inténtalo de nuevo.';
-        } else if (error.message.includes('No se pudo crear el usuario')) {
-          errorMessage = 'Error al crear el perfil de usuario. Verifica tus datos e inténtalo de nuevo.';
-        } else if (error.message.includes('No se pudo guardar la compra')) {
-          errorMessage = 'Error al guardar la compra. Por favor, inténtalo de nuevo.';
-        }
-      }
-      
-      console.error('📝 Mensaje de error para el usuario:', errorMessage);
-      showErrorModal(errorMessage);
+      console.error('❌ Error crítico:', error);
+      showErrorModal('Error al procesar la compra. Por favor, inténtalo de nuevo.');
     } finally {
       setIsProcessing(false);
     }

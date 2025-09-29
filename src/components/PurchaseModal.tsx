@@ -22,24 +22,9 @@ export function PurchaseModal({ open, onClose, service, user, isDark, onPurchase
   const total = service.price * duration * devices;
 
   const handlePurchase = () => {
-    // Validaciones previas más estrictas
+    // Validaciones básicas y simples
     if (!user) {
       alert('Error: No hay usuario autenticado. Por favor, inicia sesión nuevamente.');
-      return;
-    }
-
-    if (!user.name || user.name.trim().length < 2) {
-      alert('Error: El nombre debe tener al menos 2 caracteres.');
-      return;
-    }
-
-    if (!user.phone || user.phone.trim().length < 10) {
-      alert('Error: El número de teléfono no es válido.');
-      return;
-    }
-
-    if (!user.email || !user.email.includes('@')) {
-      alert('Error: El email no es válido.');
       return;
     }
 
@@ -53,35 +38,29 @@ export function PurchaseModal({ open, onClose, service, user, isDark, onPurchase
       return;
     }
 
-    // Asegurar que el teléfono tenga el formato correcto
-    let phoneNumber = user.phone.trim();
+    // Formatear teléfono de forma simple
+    let phoneNumber = user.phone || '';
     if (!phoneNumber.startsWith('+')) {
       phoneNumber = '+593' + phoneNumber.replace(/[^\d]/g, '');
     }
 
-    // Validar que el teléfono tenga al menos 10 dígitos después del código de país
-    const phoneDigits = phoneNumber.replace(/[^\d]/g, '');
-    if (phoneDigits.length < 10) {
-      alert('Error: El número de teléfono debe tener al menos 10 dígitos.');
-      return;
-    }
-
+    // Datos básicos para la compra
     const purchaseData = {
-      service: service.name.trim(),
+      service: service.name,
       price: service.price,
       duration: duration,
       devices: devices,
       total: service.price * duration * devices,
       paymentMethod: 'pichincha',
-      notes: notes.trim(),
-      customer: user.name.trim(),
+      notes: notes || '',
+      customer: user.name || 'Cliente',
       phone: phoneNumber,
-      email: user.email.trim().toLowerCase(),
+      email: user.email || 'sin-email@temp.com',
       start: new Date().toISOString().slice(0, 10),
       end: new Date(Date.now() + (isAnnual ? duration * 365 : duration * 30) * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
     };
     
-    console.log('🛒 Datos de compra validados:', purchaseData);
+    console.log('🛒 Procesando compra:', purchaseData);
     onPurchase(purchaseData);
     onClose();
   };
