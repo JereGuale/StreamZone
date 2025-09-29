@@ -148,6 +148,7 @@ function App(){
           handleToggleValidate={handleToggleValidate}
           handleDeletePurchase={handleDeletePurchase}
           handleEditPurchase={handleEditPurchase}
+          handleReminderPurchase={handleReminderPurchase}
           handleLogin={handleLogin}
           handleAdminLogin={handleAdminLogin}
           handleAdminLogout={handleAdminLogout}

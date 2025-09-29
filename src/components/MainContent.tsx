@@ -34,6 +34,7 @@ interface MainContentProps {
   handleToggleValidate: (id: string) => void;
   handleDeletePurchase: (id: string) => void;
   handleEditPurchase: (purchase: any) => void;
+  handleReminderPurchase: (purchase: any) => void;
   handleLogin: (userData: any) => void;
   handleAdminLogin: (success: boolean) => void;
   handleAdminLogout: () => void;
@@ -69,6 +70,7 @@ export function MainContent({
   handleToggleValidate,
   handleDeletePurchase,
   handleEditPurchase,
+  handleReminderPurchase,
   handleLogin,
   handleAdminLogin,
   handleAdminLogout,
@@ -114,6 +116,7 @@ export function MainContent({
             onToggleValidate={handleToggleValidate}
             onDeletePurchase={handleDeletePurchase}
             onEditPurchase={handleEditPurchase}
+            onReminderPurchase={handleReminderPurchase}
             onRegisterPurchase={() => setAdminRegisterPurchaseOpen(true)}
             onExportCSV={handleExportCSV}
             refreshAllStats={refreshAllStats}

@@ -481,18 +481,78 @@ export const getUserActivePurchases = async (phone: string) => {
   }
 
   try {
-    const { data, error } = await supabase
+    console.log('🔍 Buscando compras activas para teléfono:', phone);
+    
+    // Normalizar el número de teléfono
+    let normalizedPhone = phone.trim();
+    if (!normalizedPhone.startsWith('+')) {
+      normalizedPhone = '+593' + normalizedPhone.replace(/[^\d]/g, '');
+    }
+    
+    console.log('📞 Teléfono normalizado:', normalizedPhone);
+    
+    // Buscar con el teléfono exacto
+    let { data, error } = await supabase
       .from('purchases')
       .select('*')
-      .eq('phone', phone)
+      .eq('phone', normalizedPhone)
       .eq('validated', true)
-      .gte('end', new Date().toISOString().split('T')[0]) // Solo compras activas
+      .gte('end', new Date().toISOString().split('T')[0])
       .order('end', { ascending: true });
 
     if (error) throw error;
+    
+    console.log('✅ Compras encontradas con teléfono exacto:', data?.length || 0);
+    
+    // Si no se encuentran compras, intentar con diferentes formatos
+    if (!data || data.length === 0) {
+      console.log('🔍 No se encontraron compras, intentando otros formatos...');
+      
+      // Intentar sin el +593
+      const phoneWithoutCountry = phone.replace(/[^\d]/g, '');
+      console.log('📞 Intentando sin código de país:', phoneWithoutCountry);
+      
+      const { data: data2, error: error2 } = await supabase
+        .from('purchases')
+        .select('*')
+        .eq('phone', phoneWithoutCountry)
+        .eq('validated', true)
+        .gte('end', new Date().toISOString().split('T')[0])
+        .order('end', { ascending: true });
+        
+      if (!error2 && data2 && data2.length > 0) {
+        console.log('✅ Compras encontradas sin código de país:', data2.length);
+        data = data2;
+      }
+      
+      // Si aún no se encuentran, intentar con +593 al inicio
+      if (!data || data.length === 0) {
+        const phoneWithCountry = '+593' + phoneWithoutCountry;
+        console.log('📞 Intentando con +593:', phoneWithCountry);
+        
+        const { data: data3, error: error3 } = await supabase
+          .from('purchases')
+          .select('*')
+          .eq('phone', phoneWithCountry)
+          .eq('validated', true)
+          .gte('end', new Date().toISOString().split('T')[0])
+          .order('end', { ascending: true });
+          
+        if (!error3 && data3 && data3.length > 0) {
+          console.log('✅ Compras encontradas con +593:', data3.length);
+          data = data3;
+        }
+      }
+    }
+    
+    console.log('📊 Total de compras activas encontradas:', data?.length || 0);
+    if (data && data.length > 0) {
+      console.log('📋 Compras encontradas:', data.map(p => ({ id: p.id, customer: p.customer, service: p.service, phone: p.phone, end: p.end })));
+    }
+    
     return { data, error: null };
   } catch (error) {
-    console.error('Error getting user active purchases:', error);
+    console.error('❌ Error getting user active purchases:', error);
     return { data: null, error };
   }
 };

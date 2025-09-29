@@ -198,6 +198,48 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
     setEditPurchaseOpen(true);
   };
 
+  const handleReminderPurchase = (purchase: DatabasePurchase) => {
+    // Calcular días restantes
+    const today = new Date();
+    const endDate = new Date(purchase.end);
+    const daysLeft = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Crear mensaje cordial con emojis
+    let message = `¡Hola ${purchase.customer}! 👋\n\n`;
+    
+    if (daysLeft <= 0) {
+      message += `😔 Tu servicio de ${purchase.service} ha vencido el ${purchase.end}.\n\n`;
+      message += `🔄 ¿Te gustaría renovar tu suscripción? ¡Estamos aquí para ayudarte!\n\n`;
+    } else if (daysLeft === 1) {
+      message += `⚠️ Tu servicio de ${purchase.service} vence MAÑANA (${purchase.end}).\n\n`;
+      message += `🔄 ¿Te gustaría renovar para no interrumpir tu entretenimiento?\n\n`;
+    } else if (daysLeft <= 3) {
+      message += `⏰ Tu servicio de ${purchase.service} vence en ${daysLeft} días (${purchase.end}).\n\n`;
+      message += `🔄 ¿Te gustaría renovar para continuar disfrutando?\n\n`;
+    } else {
+      message += `📅 Tu servicio de ${purchase.service} vence en ${daysLeft} días (${purchase.end}).\n\n`;
+      message += `🔄 ¿Te gustaría renovar con anticipación?\n\n`;
+    }
+    
+    message += `💬 Responde a este mensaje para renovar o si tienes alguna pregunta.\n\n`;
+    message += `¡Gracias por confiar en nosotros! 🙏✨`;
+    
+    // Crear URL de WhatsApp
+    const phoneNumber = purchase.phone.replace(/[^\d]/g, '');
+    const whatsappUrl = `https://wa.me/593${phoneNumber}?text=${encodeURIComponent(message)}`;
+    
+    // Abrir WhatsApp
+    try {
+      window.open(whatsappUrl, '_blank');
+      setMsg(`📱 Recordatorio enviado a ${purchase.customer} (${purchase.phone})`);
+      setTimeout(() => setMsg(''), 5000);
+    } catch (error) {
+      console.error('Error abriendo WhatsApp:', error);
+      setMsg('❌ Error al abrir WhatsApp. Por favor, contacta manualmente.');
+      setTimeout(() => setMsg(''), 3000);
+    }
+  };
+
   const handleApproveSuccess = async () => {
     console.log('🎉 handleApproveSuccess called');
     console.log('🔄 refreshFromSupabase function:', refreshFromSupabase);
@@ -259,6 +301,7 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
     handleToggleValidate,
     handleDeletePurchase,
     handleEditPurchase,
+    handleReminderPurchase,
     handleApproveSuccess,
     handleUpdatePurchase,
     handleExportCSV
