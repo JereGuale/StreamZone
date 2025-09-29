@@ -126,15 +126,15 @@ export function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, s
               </div>
             </div>
 
-            {/* Notas del administrador */}
+            {/* Información importante del administrador */}
             <div className={`p-6 rounded-xl border-2 ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-700')}`}>
-              <h4 className={`text-lg font-bold mb-4 ${tv(isDark,'text-gray-900','text-white')}`}>Notas del administrador</h4>
+              <h4 className={`text-lg font-bold mb-4 ${tv(isDark,'text-gray-900','text-white')}`}>Información Importante</h4>
               <textarea
                 value={formData.admin_notes}
                 onChange={(e) => setFormData({...formData, admin_notes: e.target.value})}
                 className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 resize-none ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-600 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/30')}`}
                 rows={6}
-                placeholder="Escribe algo..."
+                placeholder="Escribe información importante para el cliente (puedes usar saltos de línea)..."
               />
             </div>
 
