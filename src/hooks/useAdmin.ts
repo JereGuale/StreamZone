@@ -266,44 +266,76 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
   };
 
   const handleUpdatePurchase = async (purchaseId: string, updates: any) => {
-    console.log('🔄 Actualizando compra:', { purchaseId, updates });
+    console.log('🔄 ===== INICIANDO ACTUALIZACIÓN DE COMPRA =====');
+    console.log('🆔 Purchase ID:', purchaseId);
+    console.log('📝 Updates recibidos:', updates);
+    console.log('📊 Tipo de updates:', typeof updates);
+    console.log('🔍 Keys de updates:', Object.keys(updates));
     
     try {
+      // Validar que tenemos un ID válido
+      if (!purchaseId || purchaseId === 'undefined' || purchaseId === 'null') {
+        throw new Error('ID de compra inválido');
+      }
+      
+      // Validar que tenemos updates
+      if (!updates || Object.keys(updates).length === 0) {
+        throw new Error('No hay datos para actualizar');
+      }
+      
       // Guardar en Supabase
       console.log('💾 Guardando cambios en Supabase...');
+      console.log('📤 Datos enviados a updatePurchase:', { id: purchaseId, updateData: updates });
+      
       const { data, error } = await updatePurchase(purchaseId, updates);
+      
+      console.log('📥 Respuesta de updatePurchase:', { data, error });
       
       if (error) {
         console.error('❌ Error guardando en Supabase:', error);
-        setMsg('❌ Error al guardar cambios. Inténtalo de nuevo.');
-        setTimeout(() => setMsg(''), 3000);
+        console.error('❌ Detalles del error:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        setMsg(`❌ Error al guardar: ${error.message}`);
+        setTimeout(() => setMsg(''), 5000);
         return;
       }
       
-      console.log('✅ Cambios guardados en Supabase:', data);
+      console.log('✅ Cambios guardados exitosamente en Supabase:', data);
       
       // Actualizar estado local
-      setPurchases(prev => 
-        prev.map(p => 
+      console.log('🔄 Actualizando estado local...');
+      setPurchases(prev => {
+        const updated = prev.map(p => 
           p.id === purchaseId 
             ? { ...p, ...updates }
             : p
-        )
-      );
+        );
+        console.log('📊 Estado local actualizado:', updated.find(p => p.id === purchaseId));
+        return updated;
+      });
       
-      setMsg('✅ Compra actualizada correctamente');
-      setTimeout(() => setMsg(''), 3000);
+      setMsg('✅ Compra actualizada correctamente en la base de datos');
+      setTimeout(() => setMsg(''), 5000);
       
       // Recargar desde Supabase para sincronizar
       if (refreshFromSupabase) {
         console.log('🔄 Recargando datos desde Supabase...');
         await refreshFromSupabase();
+        console.log('✅ Datos recargados desde Supabase');
       }
       
+      console.log('🎉 ===== ACTUALIZACIÓN COMPLETADA EXITOSAMENTE =====');
+      
     } catch (error) {
+      console.error('❌ ===== ERROR EN ACTUALIZACIÓN =====');
       console.error('❌ Error actualizando compra:', error);
-      setMsg('❌ Error al actualizar compra. Inténtalo de nuevo.');
-      setTimeout(() => setMsg(''), 3000);
+      console.error('❌ Stack trace:', error.stack);
+      setMsg(`❌ Error: ${error.message}`);
+      setTimeout(() => setMsg(''), 5000);
     }
   };
   

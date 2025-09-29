@@ -279,7 +279,25 @@ export const updatePurchaseValidation = async (id: string, validated: boolean) =
 };
 
 export const updatePurchase = async (id: string, updateData: Partial<DatabasePurchase>) => {
+  console.log('🔧 ===== updatePurchase INICIADO =====');
+  console.log('🆔 ID recibido:', id);
+  console.log('📝 updateData recibido:', updateData);
+  console.log('📊 Tipo de ID:', typeof id);
+  console.log('📊 Tipo de updateData:', typeof updateData);
+  
   try {
+    if (!supabase) {
+      console.error('❌ Supabase no configurado');
+      throw new Error('Supabase no configurado');
+    }
+    
+    console.log('💾 Ejecutando update en Supabase...');
+    console.log('📤 Query:', {
+      table: 'purchases',
+      id: id,
+      updateData: updateData
+    });
+    
     const { data, error } = await supabase
       .from('purchases')
       .update(updateData)
@@ -287,10 +305,26 @@ export const updatePurchase = async (id: string, updateData: Partial<DatabasePur
       .select()
       .single();
 
-    if (error) throw error;
+    console.log('📥 Respuesta de Supabase:', { data, error });
+
+    if (error) {
+      console.error('❌ Error de Supabase:', error);
+      console.error('❌ Detalles del error:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
+      throw error;
+    }
+    
+    console.log('✅ Update exitoso en Supabase:', data);
+    console.log('🎉 ===== updatePurchase COMPLETADO =====');
     return { data, error: null };
   } catch (error) {
-    console.error('Error updating purchase:', error);
+    console.error('❌ ===== ERROR EN updatePurchase =====');
+    console.error('❌ Error updating purchase:', error);
+    console.error('❌ Stack trace:', error.stack);
     return { data: null, error };
   }
 };
