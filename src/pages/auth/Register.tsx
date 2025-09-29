@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { tv, cleanPhone } from '../../utils/helpers';
 import { CountryCodeSelector } from '../../components/CountryCodeSelector';
+import { SuccessModal } from '../../components/SuccessModal';
 
 interface RegisterProps {
   isDark: boolean;
   onSubmit: (profile: any) => void;
   setView?: (view: string) => void;
+  setAuthStep?: (step: string) => void;
 }
 
-export function UserRegisterForm({ isDark, onSubmit, setView }: RegisterProps) {
+export function UserRegisterForm({ isDark, onSubmit, setView, setAuthStep }: RegisterProps) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('+593'); // Ecuador por defecto
@@ -19,6 +21,8 @@ export function UserRegisterForm({ isDark, onSubmit, setView }: RegisterProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [registeredUser, setRegisteredUser] = useState({ name: '', email: '' });
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,17 +72,42 @@ export function UserRegisterForm({ isDark, onSubmit, setView }: RegisterProps) {
         return;
       }
 
-      setMsg('✅ Cuenta creada exitosamente');
+      // Guardar datos del usuario registrado
+      setRegisteredUser({ name, email });
+      setLoading(false);
+      
+      // Mostrar modal de éxito
+      setShowSuccessModal(true);
+      
+      // Llamar onSubmit para actualizar el estado de la aplicación
       onSubmit({ name, phone: cleanPhone(phone), email, password });
-      // Redirigir automáticamente al perfil después del registro exitoso
-      if (setView) {
-        setTimeout(() => {
-          setView('profile');
-        }, 1000); // Esperar 1 segundo para mostrar el mensaje de éxito
-      }
     } catch (error) {
       setMsg('Error al crear la cuenta');
       setLoading(false);
+    }
+  };
+
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
+    // Limpiar el formulario después de cerrar el modal
+    setName('');
+    setPhone('');
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+  };
+
+  const handleContinueToProfile = () => {
+    setShowSuccessModal(false);
+    if (setAuthStep) {
+      setAuthStep('login');
+    }
+  };
+
+  const handleExploreServices = () => {
+    setShowSuccessModal(false);
+    if (setView) {
+      setView('home');
     }
   };
 
@@ -190,6 +219,17 @@ export function UserRegisterForm({ isDark, onSubmit, setView }: RegisterProps) {
       >
         {loading ? '⏳ Creando cuenta...' : '🚀 Crear cuenta'}
       </button>
+
+      {/* Modal de éxito */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={handleSuccessModalClose}
+        userName={registeredUser.name}
+        userEmail={registeredUser.email}
+        isDark={isDark}
+        onContinue={handleContinueToProfile}
+        onExploreServices={handleExploreServices}
+      />
     </form>
   );
 }

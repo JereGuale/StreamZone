@@ -107,16 +107,22 @@ export const createUser = async (userData: Omit<DatabaseUser, 'id' | 'created_at
   }
 
   try {
+    console.log('📝 Creando usuario en Supabase:', userData);
     const { data, error } = await supabase
       .from('users')
       .insert([userData])
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Error de Supabase al crear usuario:', error);
+      throw error;
+    }
+    
+    console.log('✅ Usuario creado exitosamente:', data);
     return { data, error: null };
   } catch (error) {
-    console.error('Error creating user:', error);
+    console.error('❌ Error creating user:', error);
     return { data: null, error };
   }
 };
@@ -128,16 +134,27 @@ export const getUserByPhone = async (phone: string) => {
   }
 
   try {
+    console.log('🔍 Buscando usuario con teléfono:', phone);
     const { data, error } = await supabase
       .from('users')
       .select('*')
       .eq('phone', phone)
       .single();
 
-    if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows returned
+    if (error && error.code !== 'PGRST116') {
+      console.error('❌ Error de Supabase al buscar usuario:', error);
+      throw error;
+    }
+    
+    if (error && error.code === 'PGRST116') {
+      console.log('ℹ️ Usuario no encontrado (esto es normal para nuevos usuarios)');
+      return { data: null, error: null };
+    }
+    
+    console.log('✅ Usuario encontrado:', data);
     return { data, error: null };
   } catch (error) {
-    console.error('Error getting user by phone:', error);
+    console.error('❌ Error getting user by phone:', error);
     return { data: null, error };
   }
 };
@@ -172,16 +189,22 @@ export const createPurchase = async (purchaseData: Omit<DatabasePurchase, 'id' |
   }
 
   try {
+    console.log('💾 Creando compra en Supabase:', purchaseData);
     const { data, error } = await supabase
       .from('purchases')
       .insert([purchaseData])
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Error de Supabase al crear compra:', error);
+      throw error;
+    }
+    
+    console.log('✅ Compra creada exitosamente:', data);
     return { data, error: null };
   } catch (error) {
-    console.error('Error creating purchase:', error);
+    console.error('❌ Error creating purchase:', error);
     return { data: null, error };
   }
 };

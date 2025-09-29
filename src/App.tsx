@@ -9,6 +9,7 @@ import { FloatingChatbot } from "./components/FloatingChatbot";
 import { FloatingThemeToggle } from "./components/FloatingThemeToggle";
 import { ModalsManager } from "./components/ModalsManager";
 import { ApprovePurchaseModal } from "./components/ApprovePurchaseModal";
+import { ErrorModal } from "./components/ErrorModal";
 import { useChatbot } from "./chatbot/useChatbot";
 import { useReservations } from "./hooks/useReservations";
 import { usePurchases } from "./hooks/usePurchases";
@@ -216,6 +217,16 @@ function App(){
         isDark={isDark}
         onApprove={handleApproveSuccess}
         onUpdatePurchase={handleUpdatePurchase}
+      />
+
+      {/* Modal de error para compras */}
+      <ErrorModal
+        isOpen={purchaseHandler.errorModal.isOpen}
+        onClose={purchaseHandler.closeErrorModal}
+        title="Error en la Compra"
+        message={purchaseHandler.errorModal.message}
+        isDark={isDark}
+        showRetry={false}
       />
 
       {/* Componentes flotantes */}

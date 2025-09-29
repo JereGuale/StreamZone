@@ -224,7 +224,8 @@ export function MainContent({
                   <UserRegisterForm 
                     isDark={isDark} 
                     onSubmit={handleLogin}
-                    setView={setView} 
+                    setView={setView}
+                    setAuthStep={setAuthStep}
                   />
                 )}
                 {authStep === 'email' && (
