@@ -271,6 +271,23 @@ export function UserProfile({ isDark, user, purchases, onToggleValidate, onDelet
                           </div>
                         )}
                         
+                        {/* Notas del administrador - Solo si existen */}
+                        {purchase.admin_notes && purchase.admin_notes.trim() && (
+                          <div className={`p-3 sm:p-4 md:p-5 ${tv(isDark,'bg-gradient-to-r from-yellow-50 to-orange-50','bg-gradient-to-r from-yellow-900/20 to-orange-900/20')}`}>
+                            <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                              <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center ${tv(isDark, 'bg-yellow-100', 'bg-yellow-900/30')}`}>
+                                <span className="text-yellow-600 text-xs sm:text-sm">📝</span>
+                              </div>
+                              <h5 className={`font-bold text-sm sm:text-base ${tv(isDark, 'text-yellow-800', 'text-yellow-200')}`}>Notas del Administrador</h5>
+                            </div>
+                            <div className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 ${tv(isDark, 'bg-white border-yellow-200', 'bg-gray-800 border-yellow-600')}`}>
+                              <p className={`text-xs sm:text-sm leading-relaxed ${tv(isDark, 'text-gray-800', 'text-gray-200')}`}>
+                                {purchase.admin_notes}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        
                         {/* Información del servicio elegante - Optimizado para móvil */}
                         <div className={`p-3 sm:p-4 md:p-5 ${tv(isDark,'bg-gradient-to-r from-gray-50 to-gray-100','bg-gradient-to-r from-gray-700 to-gray-800')}`}>
                           <div className="flex items-center gap-2 mb-3">
