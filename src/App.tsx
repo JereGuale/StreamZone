@@ -187,7 +187,11 @@ function App(){
         }}
         onPurchase={handlePurchase}
         onRegister={() => {}}
-        onUpdate={() => {}}
+        onUpdate={(updates) => {
+          if (editingPurchase?.id) {
+            handleUpdatePurchase(editingPurchase.id, updates);
+          }
+        }}
       />
 
       {/* Drawers */}
