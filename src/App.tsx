@@ -54,7 +54,7 @@ function App(){
     setAdminRegisterPurchaseOpen, editPurchaseOpen, setEditPurchaseOpen,
     editingPurchase, setEditingPurchase, approvePurchaseOpen, setApprovePurchaseOpen,
     selectedPurchase, setSelectedPurchase, adminEmails,
-    handleToggleValidate, handleDeletePurchase, handleEditPurchase, handleApproveSuccess, handleUpdatePurchase, handleExportCSV
+    handleToggleValidate, handleDeletePurchase, handleEditPurchase, handleReminderPurchase, handleApproveSuccess, handleUpdatePurchase, handleExportCSV
   } = useAdmin(supabaseData.allPurchases, (newPurchases) => {
     setAllPurchases(newPurchases);
     // También actualizar en Supabase si es necesario
