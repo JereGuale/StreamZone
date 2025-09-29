@@ -164,11 +164,28 @@ export function usePurchases() {
         
         if (createError || !newUser) {
           console.error('❌ Error creating user:', createError);
-          throw new Error(`No se pudo crear el usuario: ${createError?.message || 'Error desconocido'}`);
+          
+          // Intentar crear usuario con datos mínimos como fallback
+          console.log('🔄 Intentando crear usuario con datos mínimos...');
+          const fallbackUserData = {
+            name: purchaseData.customer || 'Usuario',
+            phone: purchaseData.phone,
+            email: purchaseData.email || 'sin-email@temp.com'
+          };
+          
+          const { data: fallbackUser, error: fallbackError } = await createUser(fallbackUserData);
+          
+          if (fallbackError || !fallbackUser) {
+            console.error('❌ Error en fallback de creación de usuario:', fallbackError);
+            throw new Error(`No se pudo crear el usuario. Error: ${createError?.message || 'Error desconocido'}. Por favor, verifica que todos los campos estén completos.`);
+          }
+          
+          console.log('✅ Usuario creado con fallback:', fallbackUser.id);
+          userId = fallbackUser.id;
+        } else {
+          console.log('✅ Usuario creado exitosamente:', newUser.id);
+          userId = newUser.id;
         }
-        
-        console.log('✅ Usuario creado exitosamente:', newUser.id);
-        userId = newUser.id;
       } else {
         console.log('✅ Usuario encontrado:', existingUser.id);
         userId = existingUser.id;

@@ -108,14 +108,35 @@ export const createUser = async (userData: Omit<DatabaseUser, 'id' | 'created_at
 
   try {
     console.log('📝 Creando usuario en Supabase:', userData);
+    
+    // Validar datos antes de enviar
+    if (!userData.name || !userData.phone || !userData.email) {
+      throw new Error('Datos de usuario incompletos');
+    }
+    
+    // Limpiar y formatear datos
+    const cleanUserData = {
+      name: userData.name.trim(),
+      phone: userData.phone.trim(),
+      email: userData.email.trim().toLowerCase()
+    };
+    
+    console.log('📝 Datos limpios para insertar:', cleanUserData);
+    
     const { data, error } = await supabase
       .from('users')
-      .insert([userData])
+      .insert([cleanUserData])
       .select()
       .single();
 
     if (error) {
       console.error('❌ Error de Supabase al crear usuario:', error);
+      console.error('❌ Detalles del error:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
       throw error;
     }
     
@@ -135,14 +156,24 @@ export const getUserByPhone = async (phone: string) => {
 
   try {
     console.log('🔍 Buscando usuario con teléfono:', phone);
+    
+    // Limpiar el número de teléfono
+    const cleanPhone = phone.trim();
+    
     const { data, error } = await supabase
       .from('users')
       .select('*')
-      .eq('phone', phone)
+      .eq('phone', cleanPhone)
       .single();
 
     if (error && error.code !== 'PGRST116') {
       console.error('❌ Error de Supabase al buscar usuario:', error);
+      console.error('❌ Detalles del error:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
       throw error;
     }
     
