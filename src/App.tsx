@@ -64,7 +64,7 @@ function App(){
   const reservations = useReservations();
   
   // Hook para manejar compras
-  const purchaseHandler = usePurchases();
+  const purchaseHandler = usePurchases(setView);
   
   // Chatbot
   const chatbot = useChatbot(SERVICES, COMBOS);

@@ -36,16 +36,16 @@ export function ReserveForm({ service, onClose, onAddPurchase, isDark, user }: R
         price: service.price * months,
         start: new Date().toISOString().split('T')[0],
         end: new Date(Date.now() + months * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        validated: false,
+        validated: false, // ✅ PENDIENTE de aprobación del admin
         payment_method: paymentMethod,
         notes: notes
       };
 
       onAddPurchase(purchaseData);
-      setMsg('✅ Reserva realizada exitosamente');
+      setMsg('✅ ¡Reserva registrada! Selecciona un agente para enviar tu comprobante');
       setTimeout(() => {
         onClose();
-      }, 2000);
+      }, 3000);
     } catch (error) {
       setMsg('❌ Error al realizar la reserva');
     } finally {

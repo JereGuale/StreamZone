@@ -15,6 +15,11 @@ export function PurchaseModal({ open, onClose, service, user, isDark, onPurchase
   const [duration, setDuration] = useState<number>(1);
   const [devices, setDevices] = useState<number>(1);
   const [notes, setNotes] = useState<string>('');
+  
+  // Datos del cliente para compras sin registro
+  const [customerName, setCustomerName] = useState<string>('');
+  const [customerPhone, setCustomerPhone] = useState<string>('');
+  const [customerEmail, setCustomerEmail] = useState<string>('');
 
   if (!open || !service) return null;
 
@@ -66,13 +71,13 @@ export function PurchaseModal({ open, onClose, service, user, isDark, onPurchase
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4" onClick={onClose}>
-      <div className={`w-full max-w-md sm:max-w-lg md:max-w-2xl max-h-[95vh] sm:max-h-[90vh] rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl overflow-y-auto ${tv(isDark,'bg-white','bg-zinc-900 text-zinc-100')}`} onClick={e=>e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-2 sm:p-4" onClick={onClose}>
+      <div className={`w-full max-w-xs sm:max-w-md md:max-w-lg max-h-[95vh] sm:max-h-[90vh] rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-6 shadow-2xl overflow-y-auto border-2 ${tv(isDark,'bg-white border-gray-200','bg-zinc-900 border-zinc-700 text-zinc-100')}`} onClick={e=>e.stopPropagation()}>
         <div className="mb-3 sm:mb-4 md:mb-6 flex items-center justify-between">
-          <h3 className="text-lg sm:text-xl md:text-2xl font-bold">Completar Compra</h3>
+          <h3 className={`text-lg sm:text-xl md:text-2xl font-bold ${tv(isDark,'text-gray-900','text-white')}`}>Completar Compra</h3>
           <button 
             onClick={onClose} 
-            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-lg font-bold transition-colors ${tv(isDark,'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100','text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800')}`}
+            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-lg font-bold transition-colors shadow-md ${tv(isDark,'text-gray-600 hover:text-gray-800 hover:bg-gray-100 border border-gray-300','text-zinc-200 hover:text-white hover:bg-zinc-800 border border-zinc-600')}`}
           >
             ×
           </button>
@@ -80,32 +85,32 @@ export function PurchaseModal({ open, onClose, service, user, isDark, onPurchase
 
         <div className="space-y-6">
 
-          {/* Información del servicio */}
-          <div className={`rounded-2xl p-3 sm:p-4 ${tv(isDark,'bg-zinc-50','bg-zinc-800')}`}>
+          {/* Información del servicio con mejor contraste */}
+          <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 border ${tv(isDark,'bg-gray-50 border-gray-200','bg-zinc-800 border-zinc-600')}`}>
             <div className="flex items-center gap-3 sm:gap-4">
-              <div className={`h-12 w-12 sm:h-16 sm:w-16 ${service.color} rounded-xl text-white grid place-content-center text-lg sm:text-2xl font-bold`}>
+              <div className={`h-12 w-12 sm:h-16 sm:w-16 ${service.color} rounded-xl text-white grid place-content-center text-lg sm:text-2xl font-bold shadow-lg`}>
                 {service.logo}
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className={`text-base sm:text-lg font-bold truncate ${tv(isDark,'text-gray-900','text-white')}`}>{service.name}</h4>
-                <p className={`text-xs sm:text-sm font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>{fmt(service.price)} por {isAnnual ? 'año' : 'mes'}</p>
+                <p className={`text-xs sm:text-sm font-semibold ${tv(isDark,'text-gray-800','text-gray-200')}`}>{fmt(service.price)} por {isAnnual ? 'año' : 'mes'}</p>
               </div>
             </div>
           </div>
 
-          {/* Duración */}
+          {/* Duración con mejor contraste */}
           <div>
-            <label className={`block text-sm font-semibold mb-3 ${tv(isDark,'text-gray-800','text-gray-200')}`}>Duración</label>
+            <label className={`block text-sm sm:text-base font-semibold mb-3 ${tv(isDark,'text-gray-900','text-white')}`}>Duración</label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {[1, 2, 3, 6].map((months) => (
               <button
                   key={months}
                   type="button"
                   onClick={() => setDuration(months)}
-                  className={`px-3 py-2 sm:px-4 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 border-2 ${
+                  className={`px-3 py-2 sm:px-4 sm:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 border-2 shadow-md ${
                     duration === months
-                      ? 'bg-blue-600 text-white border-blue-700 shadow-lg'
-                      : tv(isDark,'bg-gray-100 text-gray-900 border-gray-500 hover:bg-gray-200 hover:border-gray-600','bg-gray-600 text-white border-gray-400 hover:bg-gray-500 hover:border-gray-300')
+                      ? 'bg-blue-600 text-white border-blue-700 shadow-lg transform scale-105'
+                      : tv(isDark,'bg-gray-100 text-gray-800 border-gray-400 hover:bg-gray-200 hover:border-gray-600 hover:shadow-lg','bg-gray-700 text-gray-200 border-gray-500 hover:bg-gray-600 hover:border-gray-400 hover:shadow-lg')
                   }`}
                 >
                   {months} {isAnnual ? (months === 1 ? 'año' : 'años') : (months === 1 ? 'mes' : 'meses')}
@@ -114,25 +119,25 @@ export function PurchaseModal({ open, onClose, service, user, isDark, onPurchase
             </div>
           </div>
 
-          {/* Número de Dispositivos - Centrado */}
+          {/* Número de Dispositivos con mejor contraste */}
           <div className="text-center">
-            <label className={`block text-sm font-semibold mb-3 ${tv(isDark,'text-gray-800','text-gray-200')}`}>Número de Dispositivos</label>
+            <label className={`block text-sm sm:text-base font-semibold mb-3 ${tv(isDark,'text-gray-900','text-white')}`}>Número de Dispositivos</label>
             <div className="flex items-center justify-center gap-3 sm:gap-4">
               <button
                 type="button"
                 onClick={() => devices > 1 && setDevices(devices - 1)}
                 disabled={devices <= 1}
-                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-lg sm:text-xl font-bold transition-all border-2 ${
+                className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center text-lg sm:text-xl font-bold transition-all border-2 shadow-md ${
                   devices <= 1 
                     ? tv(isDark,'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-300','bg-gray-600 text-gray-500 cursor-not-allowed border-gray-500')
-                    : tv(isDark,'bg-blue-200 text-blue-800 hover:bg-blue-300 border-blue-500','bg-blue-700 text-blue-100 hover:bg-blue-600 border-blue-500')
+                    : tv(isDark,'bg-blue-600 text-white hover:bg-blue-700 border-blue-700 shadow-lg','bg-blue-600 text-white hover:bg-blue-700 border-blue-700 shadow-lg')
                 }`}
               >
                 −
               </button>
               
-              <div className={`border-2 rounded-xl px-4 sm:px-6 py-2 sm:py-3 min-w-[100px] sm:min-w-[120px] text-center ${tv(isDark,'bg-blue-200 border-blue-600','bg-blue-800 border-blue-400')}`}>
-                <div className="text-2xl sm:text-3xl font-bold text-blue-900 dark:text-blue-100">{devices}</div>
+              <div className={`border-2 rounded-xl px-4 sm:px-6 py-2 sm:py-3 min-w-[100px] sm:min-w-[120px] text-center shadow-lg ${tv(isDark,'bg-blue-100 border-blue-700','bg-blue-900 border-blue-500')}`}>
+                <div className={`text-2xl sm:text-3xl font-bold ${tv(isDark,'text-blue-900','text-blue-100')}`}>{devices}</div>
                 <div className={`text-xs sm:text-sm font-bold ${tv(isDark,'text-blue-800','text-blue-200')}`}>
                   {devices === 1 ? 'Dispositivo' : 'Dispositivos'}
                 </div>
@@ -142,10 +147,10 @@ export function PurchaseModal({ open, onClose, service, user, isDark, onPurchase
                 type="button"
                 onClick={() => devices < 5 && setDevices(devices + 1)}
                 disabled={devices >= 5}
-                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-lg sm:text-xl font-bold transition-all border-2 ${
+                className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center text-lg sm:text-xl font-bold transition-all border-2 shadow-md ${
                   devices >= 5 
                     ? tv(isDark,'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-300','bg-gray-600 text-gray-500 cursor-not-allowed border-gray-500')
-                    : tv(isDark,'bg-blue-200 text-blue-800 hover:bg-blue-300 border-blue-500','bg-blue-700 text-blue-100 hover:bg-blue-600 border-blue-500')
+                    : tv(isDark,'bg-blue-600 text-white hover:bg-blue-700 border-blue-700 shadow-lg','bg-blue-600 text-white hover:bg-blue-700 border-blue-700 shadow-lg')
                 }`}
               >
                 +
@@ -246,39 +251,39 @@ export function PurchaseModal({ open, onClose, service, user, isDark, onPurchase
             </div>
           </div>
 
-          {/* Notas */}
+          {/* Notas con mejor contraste */}
           <div>
-            <label className={`block text-sm font-semibold mb-2 ${tv(isDark,'text-gray-800','text-gray-200')}`}>Notas adicionales (opcional)</label>
+            <label className={`block text-sm sm:text-base font-semibold mb-2 ${tv(isDark,'text-gray-900','text-white')}`}>Notas adicionales (opcional)</label>
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
               placeholder="Comentarios o instrucciones especiales..."
-              className={`w-full rounded-lg border px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm resize-none ${tv(isDark,'border-gray-300 bg-white text-gray-900','border-gray-600 bg-gray-700 text-gray-100')}`}
+              className={`w-full rounded-lg border-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm resize-none shadow-md ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500','border-gray-500 bg-gray-700 text-gray-100 focus:border-blue-400')}`}
               rows={2}
             />
           </div>
 
-          {/* Total */}
-          <div className={`bg-gradient-to-r border-2 rounded-xl p-4 sm:p-6 ${tv(isDark,'from-blue-200 to-purple-200 border-blue-400','from-blue-800 to-purple-800 border-blue-500')}`}>
+          {/* Total con mejor contraste */}
+          <div className={`bg-gradient-to-r border-2 rounded-xl p-4 sm:p-6 shadow-lg ${tv(isDark,'from-blue-100 to-purple-100 border-blue-600','from-blue-900 to-purple-900 border-blue-500')}`}>
             <div className="flex justify-between items-center">
-              <span className={`text-xl font-bold ${tv(isDark,'text-gray-900','text-white')}`}>Total a pagar:</span>
-              <span className={`text-3xl font-black ${tv(isDark,'text-blue-700','text-blue-200')}`}>{fmt(total)}</span>
+              <span className={`text-lg sm:text-xl font-bold ${tv(isDark,'text-gray-900','text-white')}`}>Total a pagar:</span>
+              <span className={`text-2xl sm:text-3xl font-black ${tv(isDark,'text-blue-800','text-blue-200')}`}>{fmt(total)}</span>
             </div>
           </div>
 
-          {/* Botones */}
+          {/* Botones con mejor contraste */}
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-2">
             <button 
               onClick={onClose} 
-              className={`flex-1 rounded-xl px-4 sm:px-6 py-3 sm:py-4 font-bold transition-all text-sm sm:text-base border-2 ${tv(isDark,'bg-white text-gray-800 hover:bg-gray-50 border-gray-400','bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-500')}`}
+              className={`flex-1 rounded-lg sm:rounded-xl px-4 sm:px-6 py-3 sm:py-4 font-bold transition-all text-sm sm:text-base border-2 shadow-md ${tv(isDark,'bg-gray-100 text-gray-800 hover:bg-gray-200 border-gray-400','bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-500')}`}
             >
               Cancelar
             </button>
             <button 
               onClick={handlePurchase}
-              className="flex-1 rounded-xl px-4 sm:px-6 py-3 sm:py-4 font-bold bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl text-sm sm:text-base border-2 border-blue-700"
+              className="flex-1 rounded-lg sm:rounded-xl px-4 sm:px-6 py-3 sm:py-4 font-bold bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl text-sm sm:text-base border-2 border-blue-700 transform hover:scale-105"
             >
-              Completar Compra
+              🛒 Completar Compra
             </button>
           </div>
         </div>
