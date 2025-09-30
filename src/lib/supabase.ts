@@ -395,7 +395,13 @@ export const syncServices = async (services: any[]) => {
 
 // Función para obtener todas las compras (para admin)
 export const getAllPurchases = async () => {
+  if (!supabase) {
+    console.warn('Supabase no configurado, no se pueden obtener todas las compras');
+    return { data: null, error: new Error('Supabase no configurado') };
+  }
+
   try {
+    console.log('🔍 getAllPurchases: Obteniendo todas las compras...');
     const { data, error } = await supabase
       .from('purchases')
       .select(`
@@ -407,10 +413,15 @@ export const getAllPurchases = async () => {
       `)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Error en getAllPurchases:', error);
+      throw error;
+    }
+    
+    console.log('✅ getAllPurchases: Obtenidas', data?.length || 0, 'compras totales');
     return { data, error: null };
   } catch (error) {
-    console.error('Error getting all purchases:', error);
+    console.error('❌ Error getting all purchases:', error);
     return { data: null, error };
   }
 };

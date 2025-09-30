@@ -16,18 +16,32 @@ export function useSupabaseData(userPhone?: string) {
     setError(null);
     
     try {
+      console.log('🔄 loadAllPurchasesFromSupabase: Iniciando carga...');
       const result = await getAllPurchases();
-      if (result.data) {
+      console.log('🔄 loadAllPurchasesFromSupabase: Resultado recibido:', result);
+      
+      if (result.data && Array.isArray(result.data)) {
         setAllPurchases(result.data);
-        console.log('✅ Todas las compras cargadas desde Supabase:', result.data.length);
+        console.log('✅ loadAllPurchasesFromSupabase: Todas las compras cargadas desde Supabase:', result.data.length);
+        
+        // Debug: mostrar algunas compras para verificar
+        if (result.data.length > 0) {
+          console.log('📋 Primeras 3 compras:', result.data.slice(0, 3).map(p => ({
+            id: p.id,
+            customer: p.customer,
+            validated: p.validated,
+            created_at: p.created_at
+          })));
+        }
+        
         return result.data;
       } else {
-        console.warn('⚠️ No se pudieron cargar las compras desde Supabase');
+        console.warn('⚠️ loadAllPurchasesFromSupabase: No se pudieron cargar las compras desde Supabase');
         setAllPurchases([]);
         return [];
       }
     } catch (error) {
-      console.error('❌ Error cargando compras desde Supabase:', error);
+      console.error('❌ loadAllPurchasesFromSupabase: Error cargando compras desde Supabase:', error);
       setError('Error cargando compras desde la base de datos');
       setAllPurchases([]);
       return [];
@@ -39,17 +53,21 @@ export function useSupabaseData(userPhone?: string) {
   // Cargar compras pendientes (para admin)
   const loadPendingPurchases = async () => {
     try {
+      console.log('🔄 loadPendingPurchases: Iniciando carga...');
       const result = await getPendingPurchases();
-      if (result.data) {
+      console.log('🔄 loadPendingPurchases: Resultado recibido:', result);
+      
+      if (result.data && Array.isArray(result.data)) {
         setPendingPurchases(result.data);
-        console.log('✅ Compras pendientes cargadas:', result.data.length);
+        console.log('✅ loadPendingPurchases: Compras pendientes cargadas:', result.data.length);
         return result.data;
       } else {
+        console.log('⚠️ loadPendingPurchases: No hay datos o no es array, estableciendo array vacío');
         setPendingPurchases([]);
         return [];
       }
     } catch (error) {
-      console.error('❌ Error cargando compras pendientes:', error);
+      console.error('❌ loadPendingPurchases: Error cargando compras pendientes:', error);
       setPendingPurchases([]);
       return [];
     }
