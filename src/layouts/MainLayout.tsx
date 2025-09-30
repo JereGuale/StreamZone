@@ -28,24 +28,35 @@ export function MainLayout({
   onLogoutAdmin
 }: MainLayoutProps) {
   return (
-    <div className={`min-h-screen ${tv(isDark, 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 text-zinc-900', 'bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 text-zinc-100')}`}>
+    <div className={`min-h-screen relative overflow-hidden ${tv(isDark, 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 text-zinc-900', 'bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 text-zinc-100')}`}>
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-blue-500/5 to-purple-600/5 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-72 h-72 bg-gradient-to-br from-purple-500/5 to-pink-600/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-indigo-500/3 to-blue-600/3 rounded-full blur-3xl animate-pulse delay-500"></div>
+      </div>
+
       {/* Navbar moderno y profesional */}
-      <header className={`sticky top-0 z-30 border-b backdrop-blur-xl shadow-xl ${tv(isDark, 'bg-white/95 border-gray-200/50', 'bg-zinc-950/95 border-gray-800/50')}`}>
-        <div className="mx-auto max-w-7xl px-4 py-5">
+      <header className={`relative sticky top-0 z-30 border-b backdrop-blur-xl shadow-2xl ${tv(isDark, 'bg-white/95 border-gray-200/50', 'bg-zinc-950/95 border-gray-800/50')}`}>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent"></div>
+        <div className="relative mx-auto max-w-7xl px-4 py-6">
           {/* Desktop Layout */}
           <div className="hidden md:flex items-center justify-between">
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-6">
               <div className="relative group">
-                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105`}>
-                  <span className="text-white font-bold text-xl">SZ</span>
+                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 flex items-center justify-center shadow-2xl group-hover:shadow-blue-500/25 transition-all duration-500 group-hover:scale-110`}>
+                  <span className="text-white font-bold text-2xl">SZ</span>
                 </div>
-                <div className={`absolute -top-1 -right-1 w-5 h-5 rounded-full ${tv(isDark, 'bg-green-500', 'bg-green-400')} animate-pulse shadow-md`}></div>
+                <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full ${tv(isDark, 'bg-green-500', 'bg-green-400')} animate-bounce shadow-lg`}>
+                  <div className="w-full h-full rounded-full bg-white/30 animate-ping"></div>
+                </div>
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-400 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl"></div>
               </div>
               <div>
-                <h1 className={`text-3xl font-bold bg-gradient-to-r ${tv(isDark, 'from-gray-900 to-gray-700', 'from-white to-gray-300')} bg-clip-text text-transparent`}>
+                <h1 className={`text-4xl font-bold bg-gradient-to-r ${tv(isDark, 'from-gray-900 to-gray-700', 'from-white to-gray-300')} bg-clip-text text-transparent`}>
                   StreamZone
                 </h1>
-                <p className={`text-sm font-medium ${tv(isDark, 'text-gray-600', 'text-gray-400')}`}>
+                <p className={`text-base font-medium ${tv(isDark, 'text-gray-600', 'text-gray-400')}`}>
                   🎬 Tu entretenimiento digital premium
                 </p>
               </div>

@@ -8,10 +8,11 @@ interface FloatingChatbotProps {
 
 export function FloatingChatbot({ answerFn, isDark }: FloatingChatbotProps) {
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([{ role: "bot", text: "¡Hola! 👋 ¡Bienvenido a StreamZone! 🎬✨ Soy tu asistente especializado en streaming. ¿En qué puedo ayudarte hoy?" }]);
+  const [messages, setMessages] = useState([{ role: "bot", text: "¡Hola! 👋 ¡Bienvenido a StreamZone! 🎬✨ Soy tu asistente especializado en streaming. ¿En qué puedo ayudarte hoy?\n\n💡 Si necesitas ayuda directa, puedes preguntarme por 'agentes' o 'contacto' para hablar con nuestros especialistas." }]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [conversationContext, setConversationContext] = useState<string[]>([]);
+  const [showContactButtons, setShowContactButtons] = useState(false);
 
   const send = async () => {
     const q = input.trim();
@@ -25,10 +26,23 @@ export function FloatingChatbot({ answerFn, isDark }: FloatingChatbotProps) {
     // Actualizar contexto de conversación
     setConversationContext(prev => [...prev.slice(-3), q.toLowerCase()]); // Mantener últimas 3 preguntas
 
+    // Detectar si el usuario pregunta por agentes o contacto
+    const isAskingForAgents = q.toLowerCase().includes('agente') || 
+                             q.toLowerCase().includes('contacto') || 
+                             q.toLowerCase().includes('whatsapp') || 
+                             q.toLowerCase().includes('hablar') ||
+                             q.toLowerCase().includes('humano') ||
+                             q.toLowerCase().includes('persona');
+
     try {
       // Obtener respuesta asíncrona
       const a = await answerFn(q, conversationContext);
       setMessages(m => [...m, { role: 'bot', text: a }]);
+      
+      // Mostrar botones de contacto si pregunta por agentes
+      if (isAskingForAgents) {
+        setShowContactButtons(true);
+      }
     } catch (error) {
       console.error('Error en chatbot:', error);
       setMessages(m => [...m, { role: 'bot', text: '❌ Lo siento, hubo un error. Por favor intenta de nuevo.' }]);
@@ -94,6 +108,72 @@ export function FloatingChatbot({ answerFn, isDark }: FloatingChatbotProps) {
             </div>
           )}
 
+          {/* Botones de Contacto con Agentes - Solo cuando se solicite */}
+          {showContactButtons && (
+            <div className={`mt-4 p-4 rounded-xl border border-dashed ${tv(isDark, 'border-blue-300 bg-gradient-to-r from-blue-50 to-purple-50', 'border-blue-600 bg-gradient-to-r from-blue-900/20 to-purple-900/20')}`}>
+              <div className="text-center mb-3">
+                <h4 className={`text-sm font-bold ${tv(isDark, 'text-gray-800', 'text-white')} mb-1`}>
+                  📞 Nuestros Agentes Especializados
+                </h4>
+                <p className={`text-xs ${tv(isDark, 'text-gray-600', 'text-gray-300')}`}>
+                  Selecciona un agente para contactar directamente
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-3">
+                {/* Agente 1 */}
+                <a
+                  href="https://wa.me/593984280334"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`group flex items-center gap-3 p-3 rounded-lg transition-all hover:scale-105 ${tv(isDark, 'bg-white border border-green-200 hover:border-green-300 hover:shadow-md', 'bg-green-900/20 border border-green-600 hover:bg-green-800/30')}`}
+                >
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-md group-hover:shadow-lg transition-all">
+                    <span className="text-white text-lg">👨‍💼</span>
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className={`text-sm font-semibold ${tv(isDark, 'text-gray-800', 'text-white')}`}>
+                      Agente Principal
+                    </div>
+                    <div className={`text-xs ${tv(isDark, 'text-gray-600', 'text-gray-300')}`}>
+                      593984280334
+                    </div>
+                  </div>
+                  <div className="text-green-500 group-hover:scale-110 transition-transform">
+                    <span className="text-lg">💬</span>
+                  </div>
+                </a>
+
+                {/* Agente 2 */}
+                <a
+                  href="https://wa.me/593984280334"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`group flex items-center gap-3 p-3 rounded-lg transition-all hover:scale-105 ${tv(isDark, 'bg-white border border-blue-200 hover:border-blue-300 hover:shadow-md', 'bg-blue-900/20 border border-blue-600 hover:bg-blue-800/30')}`}
+                >
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md group-hover:shadow-lg transition-all">
+                    <span className="text-white text-lg">👩‍💼</span>
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className={`text-sm font-semibold ${tv(isDark, 'text-gray-800', 'text-white')}`}>
+                      Agente Soporte
+                    </div>
+                    <div className={`text-xs ${tv(isDark, 'text-gray-600', 'text-gray-300')}`}>
+                      593984280334
+                    </div>
+                  </div>
+                  <div className="text-blue-500 group-hover:scale-110 transition-transform">
+                    <span className="text-lg">💬</span>
+                  </div>
+                </a>
+              </div>
+
+              <div className={`mt-3 text-center text-xs ${tv(isDark, 'text-gray-500', 'text-gray-400')}`}>
+                ⏰ Disponibles 24/7 • Respuesta inmediata
+              </div>
+            </div>
+          )}
+
           {/* Botones de sugerencias rápidas */}
           {messages.length <= 1 && (
             <div className="flex flex-wrap gap-2 mt-2">
@@ -101,7 +181,8 @@ export function FloatingChatbot({ answerFn, isDark }: FloatingChatbotProps) {
                 "🎯 Recomiéndame algo",
                 "💰 Ver precios",
                 "📺 ¿Qué hay en Netflix?",
-                "🛒 ¿Cómo compro?"
+                "🛒 ¿Cómo compro?",
+                "👨‍💼 Hablar con agente"
               ].map((suggestion, index) => (
                 <button
                   key={index}
