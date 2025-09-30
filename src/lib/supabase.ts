@@ -491,7 +491,9 @@ export const getPendingPurchases = async () => {
 
   try {
     console.log('🔍 getPendingPurchases: Buscando compras con validated: false...');
-    const { data, error } = await supabase
+    
+    // Primero intentar con la relación completa
+    let { data, error } = await supabase
       .from('purchases')
       .select(`
         *,
@@ -503,12 +505,33 @@ export const getPendingPurchases = async () => {
       .eq('validated', false)
       .order('created_at', { ascending: false });
 
+    // Si hay error con la relación, intentar sin relación
     if (error) {
-      console.error('❌ Error en getPendingPurchases:', error);
-      throw error;
+      console.warn('⚠️ Error con relación users, intentando sin relación:', error);
+      const { data: simpleData, error: simpleError } = await supabase
+        .from('purchases')
+        .select('*')
+        .eq('validated', false)
+        .order('created_at', { ascending: false });
+      
+      if (simpleError) {
+        console.error('❌ Error también sin relación:', simpleError);
+        throw simpleError;
+      }
+      
+      data = simpleData;
+      error = null;
     }
     
     console.log('✅ getPendingPurchases: Encontradas', data?.length || 0, 'compras pendientes');
+    if (data && data.length > 0) {
+      console.log('📋 Primeras compras pendientes:', data.slice(0, 2).map(p => ({
+        id: p.id,
+        customer: p.customer,
+        validated: p.validated,
+        created_at: p.created_at
+      })));
+    }
     return { data, error: null };
   } catch (error) {
     console.error('❌ Error getting pending purchases:', error);
