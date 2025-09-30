@@ -242,21 +242,22 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
 
   const handleApproveSuccess = async () => {
     console.log('🎉 handleApproveSuccess called');
-    console.log('🔄 refreshFromSupabase function:', refreshFromSupabase);
+    console.log('🎯 selectedPurchase:', selectedPurchase);
     
     // 🔄 ACTUALIZAR ESTADO LOCAL INMEDIATAMENTE
     console.log('🔄 Actualizando estado local inmediatamente...');
-    setPurchases(prev => prev.map(p => 
-      p.id === selectedPurchase?.id 
-        ? { ...p, validated: true }
-        : p
-    ));
+    setPurchases(prev => {
+      const updated = prev.map(p => 
+        p.id === selectedPurchase?.id 
+          ? { ...p, validated: true }
+          : p
+      );
+      console.log('📋 Estado actualizado:', updated);
+      return updated;
+    });
     
     // 🔄 FORZAR RE-RENDER INMEDIATO
     console.log('🔄 Forzando re-render del componente...');
-    setTimeout(() => {
-      console.log('✅ Re-render completado');
-    }, 100);
     
     // Recargar desde Supabase para asegurar sincronización
     if (refreshFromSupabase) {

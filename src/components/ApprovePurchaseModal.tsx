@@ -43,6 +43,12 @@ ${serviceCredentials.notes ? `📝 Notas: ${serviceCredentials.notes}` : ''}
   };
 
   const handleApprove = async () => {
+    console.log('🚀 ===== INICIANDO APROBACIÓN DE COMPRA =====');
+    console.log('📋 purchase:', purchase);
+    console.log('📋 serviceCredentials:', serviceCredentials);
+    console.log('📋 onApprove function:', onApprove);
+    console.log('📋 onUpdatePurchase function:', onUpdatePurchase);
+    
     if (!serviceCredentials.email || !serviceCredentials.password) {
       alert('Por favor completa el email y contraseña del servicio');
       return;
@@ -80,20 +86,31 @@ ${serviceCredentials.notes ? `📝 Notas: ${serviceCredentials.notes}` : ''}
           });
         }
 
-        alert('✅ Compra guardada en la base de datos');
+        console.log('✅ Compra guardada en la base de datos exitosamente');
         
-        // Llamar a la función de aprobación exitosa para recargar datos
+        // 🔄 ACTUALIZAR ESTADO LOCAL PRIMERO (SIN ESPERAR)
+        console.log('🔄 Actualizando estado local inmediatamente...');
+        if (onUpdatePurchase) {
+          onUpdatePurchase(purchase.id, {
+            validated: true,
+            service_email: serviceCredentials.email,
+            service_password: serviceCredentials.password,
+            admin_notes: serviceCredentials.notes
+          });
+        }
+        
+        // 🔄 LLAMAR A onApprove PARA RECARGAR DATOS
+        console.log('🔄 Llamando a onApprove para recargar datos...');
         await onApprove();
         
-        // Forzar recarga de compras del usuario específico
-        console.log('🔄 Forzando recarga de compras del usuario:', purchase.phone);
-        // Nota: La recarga se manejará automáticamente en el hook useSupabaseData
+        // ⏳ ESPERAR UN MOMENTO ANTES DE CERRAR EL MODAL
+        setTimeout(() => {
+          console.log('🔄 Cerrando modal después de actualización...');
+          onClose();
+          setServiceCredentials({ email: '', password: '', notes: '' });
+        }, 500);
         
-        // Cerrar el modal
-        onClose();
-        
-        // Limpiar el formulario
-        setServiceCredentials({ email: '', password: '', notes: '' });
+        alert('✅ Compra aprobada y actualizada correctamente');
       } else {
         throw new Error('No se pudo guardar en la base de datos');
       }
@@ -214,7 +231,14 @@ ${serviceCredentials.notes ? `📝 Notas: ${serviceCredentials.notes}` : ''}
             </button>
             
             <button 
-              onClick={handleApprove}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🚀 BOTÓN APROBAR CLICKEADO');
+                console.log('🔍 loading:', loading);
+                console.log('🔍 serviceCredentials:', serviceCredentials);
+                handleApprove();
+              }}
               disabled={loading || !serviceCredentials.email || !serviceCredentials.password}
               className={`w-full sm:flex-1 px-2 sm:px-3 py-2 sm:py-2.5 rounded-md sm:rounded-lg font-semibold text-xs transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${tv(isDark,'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl','bg-gradient-to-r from-blue-600 to-purple-700 text-white hover:from-blue-700 hover:to-purple-800 shadow-lg hover:shadow-xl')}`}
             >
