@@ -220,7 +220,9 @@ export const createPurchase = async (purchaseData: Omit<DatabasePurchase, 'id' |
   }
 
   try {
-    console.log('💾 Creando compra en Supabase:', purchaseData);
+    console.log('💾 createPurchase: Creando compra en Supabase:', purchaseData);
+    console.log('💾 createPurchase: validated =', purchaseData.validated);
+    
     const { data, error } = await supabase
       .from('purchases')
       .insert([purchaseData])
@@ -232,7 +234,8 @@ export const createPurchase = async (purchaseData: Omit<DatabasePurchase, 'id' |
       throw error;
     }
     
-    console.log('✅ Compra creada exitosamente:', data);
+    console.log('✅ createPurchase: Compra creada exitosamente con ID:', data?.id);
+    console.log('✅ createPurchase: Compra validated =', data?.validated);
     return { data, error: null };
   } catch (error) {
     console.error('❌ Error creating purchase:', error);
@@ -487,6 +490,7 @@ export const getPendingPurchases = async () => {
   }
 
   try {
+    console.log('🔍 getPendingPurchases: Buscando compras con validated: false...');
     const { data, error } = await supabase
       .from('purchases')
       .select(`
@@ -499,10 +503,15 @@ export const getPendingPurchases = async () => {
       .eq('validated', false)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Error en getPendingPurchases:', error);
+      throw error;
+    }
+    
+    console.log('✅ getPendingPurchases: Encontradas', data?.length || 0, 'compras pendientes');
     return { data, error: null };
   } catch (error) {
-    console.error('Error getting pending purchases:', error);
+    console.error('❌ Error getting pending purchases:', error);
     return { data: null, error };
   }
 };
