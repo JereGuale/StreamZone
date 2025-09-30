@@ -171,6 +171,38 @@ export function useSupabaseData(userPhone?: string) {
     }
   }, [userPhone]);
 
+  // ✅ CARGAR COMPRAS PENDIENTES AUTOMÁTICAMENTE AL INICIO
+  useEffect(() => {
+    console.log('🔄 useSupabaseData: Cargando compras pendientes al inicio...');
+    const loadOnMount = async () => {
+      const result = await loadPendingPurchases();
+      console.log('🎯 RESULTADO INICIAL loadPendingPurchases:', result);
+    };
+    loadOnMount();
+  }, []); // Solo al montar el componente
+
+  // 🔄 ACTUALIZACIÓN AUTOMÁTICA EN TIEMPO REAL (solo para admin)
+  useEffect(() => {
+    if (!userPhone) { // Solo en modo admin
+      console.log('🔄 useSupabaseData: Iniciando actualización automática cada 5 segundos...');
+      
+      const interval = setInterval(async () => {
+        console.log('🔄 ACTUALIZACIÓN AUTOMÁTICA: Recargando compras pendientes...');
+        try {
+          const result = await loadPendingPurchases();
+          console.log('🔄 ACTUALIZACIÓN AUTOMÁTICA: Compras pendientes:', result?.length || 0);
+        } catch (error) {
+          console.error('❌ Error en actualización automática:', error);
+        }
+      }, 5000); // Cada 5 segundos
+
+      return () => {
+        console.log('🛑 useSupabaseData: Deteniendo actualización automática...');
+        clearInterval(interval);
+      };
+    }
+  }, [userPhone]);
+
   // Cargar compras del usuario cuando cambie el teléfono
   useEffect(() => {
     if (userPhone) {

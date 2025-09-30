@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AGENTE_1_WHATSAPP, AGENTE_2_WHATSAPP, PAYMENT_METHODS } from '../constants/agents';
-import { createUser, getUserByPhone, updateUser, createPurchase, DatabasePurchase } from '../lib/supabase';
+import { createUser, getUserByPhone, getUserByEmail, updateUser, createPurchase, DatabasePurchase } from '../lib/supabase';
 
 export function usePurchases(onSetView?: (view: string) => void) {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -163,66 +163,99 @@ export function usePurchases(onSetView?: (view: string) => void) {
       try {
         console.log('💾 Intentando guardar en BD en segundo plano...');
         
-        // Buscar usuario existente
-        const { data: existingUser, error: userError } = await getUserByPhone(purchaseData.phone);
-        if (userError) {
-          console.warn('⚠️ Error buscando usuario:', userError);
-        }
+        // Buscar usuario existente por email PRIMERO (más confiable)
+        console.log('🔍 Buscando usuario existente por email:', purchaseData.email);
+        const { data: userByEmail } = await getUserByEmail(purchaseData.email);
         
-        let userId = existingUser?.id;
+        let userId = userByEmail?.id;
+        let userPhone = userByEmail?.phone;
         
-        // Si no existe usuario, crear uno simple
-        if (!userId) {
-          console.log('👤 Creando nuevo usuario...');
-          const userData = {
-            name: purchaseData.customer,
-            phone: purchaseData.phone,
-            email: purchaseData.email || 'sin-email@temp.com'
-          };
-          
-          const { data: newUser, error: createError } = await createUser(userData);
-          if (createError) {
-            console.warn('⚠️ Error creando usuario:', createError);
-          } else {
-            userId = newUser?.id;
-            console.log('✅ Usuario creado:', userId);
-          }
-        } else {
-          console.log('✅ Usuario encontrado:', userId);
-        }
-        
-        // Guardar la compra (pendiente de aprobación)
         if (userId) {
+          console.log('✅ Usuario encontrado por email:', userId);
+          console.log('📱 Teléfono del usuario en BD:', userPhone);
+        } else {
+          // Si no se encuentra por email, buscar por teléfono
+          console.log('🔍 Usuario no encontrado por email, buscando por teléfono:', purchaseData.phone);
+          const { data: existingUser, error: userError } = await getUserByPhone(purchaseData.phone);
+          
+          if (existingUser?.id) {
+            userId = existingUser.id;
+            userPhone = existingUser.phone;
+            console.log('✅ Usuario encontrado por teléfono:', userId);
+          } else {
+            // Si no se encuentra, intentar crear uno nuevo
+            console.log('👤 Usuario no encontrado, creando nuevo usuario...');
+            const userData = {
+              name: purchaseData.customer,
+              phone: purchaseData.phone,
+              email: purchaseData.email || 'sin-email@temp.com'
+            };
+            
+            const { data: newUser, error: createError } = await createUser(userData);
+            if (createError) {
+              console.warn('⚠️ Error creando usuario:', createError);
+              // Si falla, no podemos continuar
+              console.error('❌ NO SE PUEDE CONTINUAR SIN USUARIO VÁLIDO');
+              return;
+            } else {
+              userId = newUser?.id;
+              userPhone = newUser?.phone;
+              console.log('✅ Usuario creado exitosamente:', userId);
+            }
+          }
+        }
+        
+        // Guardar la compra (pendiente de aprobación) - SOLO campos que existen en la BD
+        if (userId) {
+          console.log('🎯 TENEMOS userId:', userId);
+          
+          // ✅ USAR EL TELÉFONO DEL USUARIO EN BD (NO el del formulario)
           const purchaseDataForDB: Omit<DatabasePurchase, 'id' | 'created_at'> = {
             customer: purchaseData.customer,
-            phone: purchaseData.phone,
+            phone: userPhone || purchaseData.phone, // ✅ Usar teléfono de BD
             service: purchaseData.service,
             start: purchaseData.start,
             end: purchaseData.end,
             months: purchaseData.duration,
-            validated: false, // ✅ PENDIENTE de aprobación del admin
-            service_email: undefined,
-            service_password: undefined,
-            admin_notes: purchaseData.notes || '',
-            approved_by: undefined,
-            approved_at: undefined,
-            auto_renewal: false,
-            renewal_reminder_sent: false,
-            renewal_attempts: 0,
-            last_renewal_attempt: undefined,
-            renewal_status: 'none',
-            original_purchase_id: undefined,
-            is_renewal: false
+            validated: false // ✅ PENDIENTE de aprobación del admin
+            // ✅ SOLO campos que realmente existen en la tabla purchases
           };
           
-          console.log('💾 Guardando compra pendiente en BD:', purchaseDataForDB);
+          console.log('📱 Teléfono del formulario:', purchaseData.phone);
+          console.log('📱 Teléfono de la BD (usado):', userPhone || purchaseData.phone);
+          
+          console.log('💾 Guardando compra pendiente en BD (campos correctos):', purchaseDataForDB);
+          console.log('🔍 Llamando a createPurchase con:', JSON.stringify(purchaseDataForDB, null, 2));
+          
           const { data: savedPurchase, error: purchaseError } = await createPurchase(purchaseDataForDB);
           
           if (purchaseError) {
-            console.warn('⚠️ Error guardando compra:', purchaseError);
+            console.error('❌ Error guardando compra:', purchaseError);
+            console.error('❌ Detalles del error:', JSON.stringify(purchaseError, null, 2));
+            console.error('❌ Tipo de error:', typeof purchaseError);
+            console.error('❌ Mensaje del error:', purchaseError.message);
           } else {
             console.log('✅ Compra guardada como pendiente:', savedPurchase);
+            console.log('✅ ID de la compra guardada:', savedPurchase?.id);
+            console.log('✅ Validated status:', savedPurchase?.validated);
+            console.log('🎯 ¡COMPRA GUARDADA EXITOSAMENTE! Debería aparecer en admin.');
+            
+            // 🔄 FORZAR RECARGA INMEDIATA DE COMPRAS PENDIENTES
+            console.log('🔄 Forzando recarga inmediata de compras pendientes...');
+            setTimeout(async () => {
+              try {
+                const { getPendingPurchases } = await import('../lib/supabase');
+                const result = await getPendingPurchases();
+                console.log('🔄 RESULTADO INMEDIATO de getPendingPurchases:', result);
+                console.log('🔄 Compras pendientes encontradas:', result.data?.length || 0);
+              } catch (error) {
+                console.error('❌ Error en recarga inmediata:', error);
+              }
+            }, 1000);
           }
+        } else {
+          console.error('❌ NO HAY userId - NO SE PUEDE GUARDAR LA COMPRA');
+          console.error('❌ purchaseData:', purchaseData);
         }
       } catch (dbError) {
         console.warn('⚠️ Error en BD (no crítico):', dbError);

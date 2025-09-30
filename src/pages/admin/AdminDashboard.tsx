@@ -3,6 +3,7 @@ import { fmt, tv } from '../../utils/helpers';
 import { PurchaseCard } from '../../components/PurchaseCard';
 import { AdminDrawer } from '../../components/admin/AdminDrawer';
 import { AdminMenuDrawer } from '../../components/admin/AdminMenuDrawer';
+import { testDatabaseConnection, createTestPurchase, testConnection } from '../../lib/supabase';
 
 interface AdminDashboardProps {
   isDark: boolean;
@@ -57,10 +58,6 @@ export function AdminDashboard({
   const [adminPurchaseView, setAdminPurchaseView] = useState<'pending' | 'active'>('pending');
   const [adminLoading, setAdminLoading] = useState(false);
 
-  // Debug: Log purchases
-  console.log('🏢 AdminDashboard received purchases:', purchases);
-  console.log('🔍 onToggleValidate function:', onToggleValidate);
-  console.log('🗑️ onDeletePurchase function:', onDeletePurchase);
 
   // Estadísticas
   const totalPurchases = purchases.length;
@@ -69,11 +66,11 @@ export function AdminDashboard({
 
   return (
     <section className="mx-auto max-w-6xl px-3 sm:px-4 pb-8 sm:pb-16">
-      <div className="mb-4 sm:mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
+      <div className="mb-3 sm:mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
           <div>
-            <h3 className="text-2xl sm:text-3xl font-bold">🔧 Panel Administrador</h3>
-            <p className={`text-sm sm:text-base ${tv(isDark,'text-zinc-600','text-zinc-300')}`}>Gestiona compras, administradores y configuración</p>
+            <h3 className="text-xl sm:text-2xl font-bold">🔧 Panel Administrador</h3>
+            <p className={`text-xs sm:text-sm ${tv(isDark,'text-zinc-600','text-zinc-300')}`}>Gestiona compras, administradores y configuración</p>
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             <button 
@@ -84,10 +81,10 @@ export function AdminDashboard({
             </button>
             <button 
                onClick={refreshAllStats}
-               disabled={adminLoading}
+               disabled={loading}
                className={`rounded-xl px-3 sm:px-4 py-2 text-xs sm:text-sm hover:scale-105 transition-transform disabled:opacity-50 ${tv(isDark,'bg-blue-600 text-white hover:bg-blue-700','bg-blue-500 text-white hover:bg-blue-600')}`}
             >
-               {adminLoading ? '⏳ Cargando...' : '🔄 Actualizar Todo'}
+               {loading ? '⏳ Cargando...' : '🔄 Actualizar Todo'}
             </button>
             <button 
                onClick={() => onSetView('home')}
@@ -99,109 +96,109 @@ export function AdminDashboard({
         </div>
       </div>
 
-      {/* DASHBOARD COMPLETO - Optimizado para móviles */}
-      <div className="grid gap-3 sm:gap-6 grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
-        <div className={`rounded-xl p-3 sm:p-6 shadow-lg border-2 ${tv(isDark,'bg-white border-zinc-300','bg-zinc-800 border-zinc-600')}`}>
+      {/* DASHBOARD COMPLETO - Más compacto */}
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
+        <div className={`rounded-xl p-3 sm:p-4 shadow-lg border ${tv(isDark,'bg-gradient-to-br from-white to-gray-50 border-gray-300 shadow-gray-200/50','bg-gradient-to-br from-gray-800 to-gray-900 border-gray-600 shadow-gray-900/50')}`}>
           <div className="flex items-center justify-between">
             <div>
-              <div className={`text-xs sm:text-sm font-semibold mb-1 ${tv(isDark,'text-zinc-700','text-zinc-300')}`}>Total Compras</div>
-              <div className={`text-xl sm:text-3xl font-bold ${tv(isDark,'text-zinc-900','text-white')}`}>{totalPurchases}</div>
+              <div className={`text-xs font-bold mb-1 ${tv(isDark,'text-gray-800','text-gray-200')}`}>TOTAL COMPRAS</div>
+              <div className={`text-xl sm:text-2xl font-black ${tv(isDark,'text-gray-900','text-white')}`}>{totalPurchases}</div>
             </div>
-            <div className="text-xl sm:text-3xl">📊</div>
+            <div className={`text-2xl sm:text-3xl p-2 rounded-lg ${tv(isDark,'bg-blue-100 text-blue-600','bg-blue-900 text-blue-300')}`}>📊</div>
           </div>
         </div>
-        <div className={`rounded-xl p-3 sm:p-6 shadow-lg border-2 ${tv(isDark,'bg-white border-zinc-300','bg-zinc-800 border-zinc-600')}`}>
+        <div className={`rounded-xl p-3 sm:p-4 shadow-lg border ${tv(isDark,'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300 shadow-amber-200/50','bg-gradient-to-br from-amber-900 to-orange-900 border-amber-600 shadow-amber-900/50')}`}>
           <div className="flex items-center justify-between">
             <div>
-              <div className={`text-xs sm:text-sm font-semibold mb-1 ${tv(isDark,'text-zinc-700','text-zinc-300')}`}>Pendientes</div>
-              <div className="text-xl sm:text-3xl font-bold text-amber-700 dark:text-amber-400">{pendingPurchases.length}</div>
+              <div className={`text-xs font-bold mb-1 ${tv(isDark,'text-amber-800','text-amber-200')}`}>PENDIENTES</div>
+              <div className={`text-xl sm:text-2xl font-black ${tv(isDark,'text-amber-900','text-amber-100')}`}>{pendingPurchases.length}</div>
             </div>
-            <div className="text-xl sm:text-3xl">⏳</div>
+            <div className={`text-2xl sm:text-3xl p-2 rounded-lg ${tv(isDark,'bg-amber-200 text-amber-700','bg-amber-800 text-amber-300')}`}>⏳</div>
           </div>
         </div>
-        <div className={`rounded-xl p-3 sm:p-6 shadow-lg border-2 ${tv(isDark,'bg-white border-zinc-300','bg-zinc-800 border-zinc-600')}`}>
+        <div className={`rounded-xl p-3 sm:p-4 shadow-lg border ${tv(isDark,'bg-gradient-to-br from-green-50 to-emerald-50 border-green-300 shadow-green-200/50','bg-gradient-to-br from-green-900 to-emerald-900 border-green-600 shadow-green-900/50')}`}>
           <div className="flex items-center justify-between">
             <div>
-              <div className={`text-xs sm:text-sm font-semibold mb-1 ${tv(isDark,'text-zinc-700','text-zinc-300')}`}>Validadas</div>
-              <div className="text-xl sm:text-3xl font-bold text-green-700 dark:text-green-400">{activePurchases.length}</div>
+              <div className={`text-xs font-bold mb-1 ${tv(isDark,'text-green-800','text-green-200')}`}>VALIDADAS</div>
+              <div className={`text-xl sm:text-2xl font-black ${tv(isDark,'text-green-900','text-green-100')}`}>{activePurchases.length}</div>
             </div>
-            <div className="text-xl sm:text-3xl">✅</div>
+            <div className={`text-2xl sm:text-3xl p-2 rounded-lg ${tv(isDark,'bg-green-200 text-green-700','bg-green-800 text-green-300')}`}>✅</div>
           </div>
         </div>
-        <div className={`rounded-xl p-3 sm:p-6 shadow-lg border-2 ${tv(isDark,'bg-white border-zinc-300','bg-zinc-800 border-zinc-600')}`}>
+        <div className={`rounded-xl p-3 sm:p-4 shadow-lg border ${tv(isDark,'bg-gradient-to-br from-red-50 to-rose-50 border-red-300 shadow-red-200/50','bg-gradient-to-br from-red-900 to-rose-900 border-red-600 shadow-red-900/50')}`}>
           <div className="flex items-center justify-between">
             <div>
-              <div className={`text-xs sm:text-sm font-semibold mb-1 ${tv(isDark,'text-zinc-700','text-zinc-300')}`}>Vencen Hoy</div>
-              <div className="text-xl sm:text-3xl font-bold text-red-700 dark:text-red-400">{expiringServices.filter(s => s.days_remaining === 0).length}</div>
+              <div className={`text-xs font-bold mb-1 ${tv(isDark,'text-red-800','text-red-200')}`}>VENCEN HOY</div>
+              <div className={`text-xl sm:text-2xl font-black ${tv(isDark,'text-red-900','text-red-100')}`}>{expiringServices.filter(s => s.days_remaining === 0).length}</div>
             </div>
-            <div className="text-xl sm:text-3xl">⚠️</div>
+            <div className={`text-2xl sm:text-3xl p-2 rounded-lg ${tv(isDark,'bg-red-200 text-red-700','bg-red-800 text-red-300')}`}>⚠️</div>
           </div>
         </div>
       </div>
 
-      {/* BOTONES DE ACCIÓN - Optimizados para móviles */}
-      <div className="grid gap-3 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
+      {/* BOTONES DE ACCIÓN - Más compactos */}
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
         <button 
           onClick={()=>setAdminView('purchases')} 
-          className={`rounded-xl p-4 sm:p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
+          className={`rounded-xl p-3 sm:p-4 text-left transition-all hover:scale-105 shadow-lg border ${tv(isDark,'bg-gradient-to-br from-blue-600 to-blue-700 text-white border-blue-500 shadow-blue-600/30','bg-gradient-to-br from-blue-600 to-blue-700 text-white border-blue-400 shadow-blue-600/30')}`}
         >
           <div className="text-xl sm:text-2xl mb-2">🛒</div>
-          <div className="text-lg sm:text-xl font-bold mb-2">Gestionar Compras</div>
-          <div className="text-xs sm:text-sm opacity-70">Revisa, valida y notifica por WhatsApp</div>
+          <div className="text-sm sm:text-base font-bold mb-1">GESTIONAR COMPRAS</div>
+          <div className="text-xs opacity-90">Revisa, valida y notifica por WhatsApp</div>
         </button>
         
         <button 
           onClick={onRegisterPurchase} 
-          className={`rounded-xl p-4 sm:p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-blue-600 text-white shadow-lg','bg-blue-600 text-white shadow-lg')}`}
+          className={`rounded-xl p-3 sm:p-4 text-left transition-all hover:scale-105 shadow-lg border ${tv(isDark,'bg-gradient-to-br from-green-600 to-green-700 text-white border-green-500 shadow-green-600/30','bg-gradient-to-br from-green-600 to-green-700 text-white border-green-400 shadow-green-600/30')}`}
         >
           <div className="text-xl sm:text-2xl mb-2">➕</div>
-          <div className="text-lg sm:text-xl font-bold mb-2">Registrar Compra</div>
-          <div className="text-xs sm:text-sm opacity-70">Crear compra manual para un usuario</div>
+          <div className="text-sm sm:text-base font-bold mb-1">REGISTRAR COMPRA</div>
+          <div className="text-xs opacity-90">Crear compra manual para un usuario</div>
         </button>
         
         <button 
           onClick={()=>setAdminDrawerOpen(true)} 
-          className={`rounded-xl p-4 sm:p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
+          className={`rounded-xl p-3 sm:p-4 text-left transition-all hover:scale-105 shadow-lg border ${tv(isDark,'bg-gradient-to-br from-purple-600 to-purple-700 text-white border-purple-500 shadow-purple-600/30','bg-gradient-to-br from-purple-600 to-purple-700 text-white border-purple-400 shadow-purple-600/30')}`}
         >
           <div className="text-xl sm:text-2xl mb-2">👥</div>
-          <div className="text-lg sm:text-xl font-bold mb-2">Administradores</div>
-          <div className="text-xs sm:text-sm opacity-70">Agregar o quitar correos con acceso</div>
+          <div className="text-sm sm:text-base font-bold mb-1">ADMINISTRADORES</div>
+          <div className="text-xs opacity-90">Agregar o quitar correos con acceso</div>
         </button>
         
         <button 
           onClick={onExportCSV} 
-          className={`rounded-xl p-4 sm:p-6 text-left transition-all hover:scale-105 ${tv(isDark,'bg-zinc-900 text-white shadow-lg','bg-white text-zinc-900 shadow-lg')}`}
+          className={`rounded-xl p-3 sm:p-4 text-left transition-all hover:scale-105 shadow-lg border ${tv(isDark,'bg-gradient-to-br from-orange-600 to-orange-700 text-white border-orange-500 shadow-orange-600/30','bg-gradient-to-br from-orange-600 to-orange-700 text-white border-orange-400 shadow-orange-600/30')}`}
         >
           <div className="text-xl sm:text-2xl mb-2">📊</div>
-          <div className="text-lg sm:text-xl font-bold mb-2">Exportar Datos</div>
-          <div className="text-xs sm:text-sm opacity-70">Descargar reporte en formato CSV</div>
+          <div className="text-sm sm:text-base font-bold mb-1">EXPORTAR DATOS</div>
+          <div className="text-xs opacity-90">Descargar reporte en formato CSV</div>
         </button>
       </div>
 
-      {/* GESTIÓN DE COMPRAS - Optimizada para móviles */}
-      <div className={`rounded-xl p-3 sm:p-6 shadow-lg mb-4 sm:mb-6 border-2 ${tv(isDark,'bg-white border-zinc-300','bg-zinc-800 border-zinc-600')}`}>
-        {/* Navegación por pestañas - Responsiva */}
+      {/* GESTIÓN DE COMPRAS - Más compacta */}
+      <div className={`rounded-xl p-4 sm:p-6 shadow-lg mb-4 sm:mb-6 border backdrop-blur-sm ${tv(isDark,'bg-gradient-to-br from-white to-gray-50 border-gray-300 shadow-gray-200/50','bg-gradient-to-br from-gray-800 to-gray-900 border-gray-600 shadow-gray-900/50')}`}>
+        {/* Navegación por pestañas - Más compacta */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row gap-2">
             <button
               onClick={() => setAdminPurchaseView('pending')}
-              className={`px-4 py-3 rounded-xl font-semibold transition-all text-sm border-2 ${
+              className={`px-4 py-2 rounded-xl font-bold transition-all text-xs border shadow-md ${
                 adminPurchaseView === 'pending' 
-                  ? tv(isDark,'bg-amber-200 text-amber-900 border-amber-400','bg-amber-800 text-amber-100 border-amber-500')
-                  : tv(isDark,'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 border-zinc-300','bg-zinc-700 text-zinc-300 hover:bg-zinc-600 border-zinc-500')
+                  ? tv(isDark,'bg-gradient-to-r from-amber-400 to-orange-500 text-amber-900 border-amber-500 shadow-amber-400/30','bg-gradient-to-r from-amber-600 to-orange-600 text-amber-100 border-amber-500 shadow-amber-600/30')
+                  : tv(isDark,'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-gray-200 hover:to-gray-300 border-gray-300 shadow-gray-200/30','bg-gradient-to-r from-gray-700 to-gray-600 text-gray-300 hover:from-gray-600 hover:to-gray-500 border-gray-500 shadow-gray-700/30')
               }`}
             >
-              ⏳ Pendientes ({pendingPurchases.length})
+              ⏳ PENDIENTES ({pendingPurchases.length})
             </button>
             <button
               onClick={() => setAdminPurchaseView('active')}
-              className={`px-4 py-3 rounded-xl font-semibold transition-all text-sm border-2 ${
+              className={`px-4 py-2 rounded-xl font-bold transition-all text-xs border shadow-md ${
                 adminPurchaseView === 'active' 
-                  ? tv(isDark,'bg-green-200 text-green-900 border-green-400','bg-green-800 text-green-100 border-green-500')
-                  : tv(isDark,'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 border-zinc-300','bg-zinc-700 text-zinc-300 hover:bg-zinc-600 border-zinc-500')
+                  ? tv(isDark,'bg-gradient-to-r from-green-400 to-emerald-500 text-green-900 border-green-500 shadow-green-400/30','bg-gradient-to-r from-green-600 to-emerald-600 text-green-100 border-green-500 shadow-green-600/30')
+                  : tv(isDark,'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-gray-200 hover:to-gray-300 border-gray-300 shadow-gray-200/30','bg-gradient-to-r from-gray-700 to-gray-600 text-gray-300 hover:from-gray-600 hover:to-gray-500 border-gray-500 shadow-gray-700/30')
               }`}
             >
-              ✅ Activas ({activePurchases.length})
+              ✅ ACTIVAS ({activePurchases.length})
             </button>
           </div>
         </div>
@@ -216,7 +213,7 @@ export function AdminDashboard({
               </span>
             </div>
             
-            {adminLoading ? (
+            {loading ? (
               <div className="text-center py-8">
                 <div className="text-2xl mb-2">⏳</div>
                 <p className={`text-sm font-medium ${tv(isDark,'text-zinc-700','text-zinc-300')}`}>Cargando compras...</p>

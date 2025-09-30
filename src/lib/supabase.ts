@@ -493,6 +493,149 @@ export const approvePurchase = async (
   }
 };
 
+// Función simple para probar la conexión
+export const testConnection = async () => {
+  if (!supabase) {
+    console.warn('❌ Supabase no configurado');
+    return { success: false, error: 'Supabase no configurado' };
+  }
+
+  try {
+    console.log('🔍 testConnection: Probando conexión básica...');
+    
+    // Probar una consulta simple
+    const { data, error } = await supabase
+      .from('purchases')
+      .select('count')
+      .limit(1);
+    
+    console.log('🔍 testConnection: Resultado:', { data, error });
+    
+    if (error) {
+      console.error('❌ Error en testConnection:', error);
+      return { success: false, error };
+    }
+    
+    console.log('✅ testConnection: Conexión exitosa');
+    return { success: true, data };
+  } catch (error) {
+    console.error('❌ Error en testConnection:', error);
+    return { success: false, error };
+  }
+};
+
+// Función para crear una compra de prueba
+export const createTestPurchase = async () => {
+  if (!supabase) {
+    console.warn('Supabase no configurado');
+    return { success: false, error: 'Supabase no configurado' };
+  }
+
+  try {
+    console.log('🧪 createTestPurchase: Creando compra de prueba...');
+    console.log('🧪 createTestPurchase: Supabase configurado:', !!supabase);
+    
+    // ✅ USAR COLUMNAS CORRECTAS SEGÚN LA ESTRUCTURA REAL DE LA BD
+    const testPurchaseData = {
+      customer: 'Cliente Prueba',
+      phone: '+593999999999',
+      service: 'Netflix Premium',
+      start: new Date().toISOString().slice(0, 10),
+      end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+      months: 1,
+      validated: false, // ✅ IMPORTANTE: Como pendiente
+      service_email: null,
+      service_password: null,
+      admin_notes: 'Compra de prueba creada desde admin',
+      approved_by: null,
+      approved_at: null,
+      auto_renewal: false,
+      renewal_reminder_sent: false,
+      renewal_attempts: 0,
+      last_renewal_attempt: null,
+      renewal_status: 'none',
+      original_purchase_id: null,
+      is_renewal: false
+    };
+    
+    console.log('🧪 createTestPurchase: Datos a insertar:', testPurchaseData);
+    
+    const { data, error } = await supabase
+      .from('purchases')
+      .insert([testPurchaseData])
+      .select()
+      .single();
+    
+    console.log('🧪 createTestPurchase: Resultado de insert:', { data, error });
+    
+    if (error) {
+      console.error('❌ Error creando compra de prueba:', error);
+      console.error('❌ Detalles del error:', JSON.stringify(error, null, 2));
+      return { success: false, error };
+    }
+    
+    console.log('✅ Compra de prueba creada:', data);
+    return { success: true, data };
+  } catch (error) {
+    console.error('❌ Error en createTestPurchase:', error);
+    return { success: false, error };
+  }
+};
+
+// Función de prueba para verificar la base de datos
+export const testDatabaseConnection = async () => {
+  if (!supabase) {
+    console.warn('Supabase no configurado');
+    return { success: false, error: 'Supabase no configurado' };
+  }
+
+  try {
+    console.log('🧪 testDatabaseConnection: Probando conexión a la BD...');
+    
+    // Probar tabla purchases
+    const { data: purchasesData, error: purchasesError } = await supabase
+      .from('purchases')
+      .select('id, customer, validated, created_at')
+      .limit(5);
+    
+    console.log('🧪 testDatabaseConnection: Resultado tabla purchases:', { purchasesData, purchasesError });
+    
+    // Probar tabla users
+    const { data: usersData, error: usersError } = await supabase
+      .from('users')
+      .select('id, name, phone, email')
+      .limit(5);
+    
+    console.log('🧪 testDatabaseConnection: Resultado tabla users:', { usersData, usersError });
+    
+    // Contar compras totales
+    const { count: totalCount, error: countError } = await supabase
+      .from('purchases')
+      .select('*', { count: 'exact', head: true });
+    
+    console.log('🧪 testDatabaseConnection: Total compras:', totalCount);
+    
+    // Contar compras pendientes
+    const { count: pendingCount, error: pendingCountError } = await supabase
+      .from('purchases')
+      .select('*', { count: 'exact', head: true })
+      .eq('validated', false);
+    
+    console.log('🧪 testDatabaseConnection: Compras pendientes:', pendingCount);
+    
+    return { 
+      success: true, 
+      totalPurchases: totalCount,
+      pendingPurchases: pendingCount,
+      samplePurchases: purchasesData,
+      sampleUsers: usersData
+    };
+  } catch (error) {
+    console.error('❌ testDatabaseConnection: Error:', error);
+    return { success: false, error };
+  }
+};
+
 // Función para obtener compras pendientes (para admin)
 export const getPendingPurchases = async () => {
   if (!supabase) {
@@ -501,48 +644,74 @@ export const getPendingPurchases = async () => {
   }
 
   try {
-    console.log('🔍 getPendingPurchases: Buscando compras con validated: false...');
+    console.log('🔍 getPendingPurchases: DIAGNÓSTICO COMPLETO...');
     
-    // Primero intentar con la relación completa
+    // 🔍 PASO 1: Contar TODAS las compras
+    const { count: totalCount, error: countError } = await supabase
+      .from('purchases')
+      .select('*', { count: 'exact', head: true });
+    
+    console.log('📊 Total compras en BD:', totalCount);
+    
+    // 🔍 PASO 2: Contar compras pendientes
+    const { count: pendingCount, error: pendingCountError } = await supabase
+      .from('purchases')
+      .select('*', { count: 'exact', head: true })
+      .eq('validated', false);
+    
+    console.log('⏳ Compras pendientes en BD:', pendingCount);
+    
+    // 🔍 PASO 3: Obtener todas las compras (últimas 10)
+    const { data: allPurchases, error: allError } = await supabase
+      .from('purchases')
+      .select('id, customer, validated, created_at')
+      .order('created_at', { ascending: false })
+      .limit(10);
+    
+    console.log('📋 Últimas 10 compras:', allPurchases?.map(p => ({
+      id: p.id,
+      customer: p.customer,
+      validated: p.validated,
+      created_at: p.created_at
+    })));
+    
+    // 🔍 PASO 4: Obtener compras pendientes
     let { data, error } = await supabase
       .from('purchases')
-      .select(`
-        *,
-        users!purchases_phone_fkey (
-          name,
-          email
-        )
-      `)
+      .select('*')
       .eq('validated', false)
       .order('created_at', { ascending: false });
 
-    // Si hay error con la relación, intentar sin relación
+    // Si hay error, intentar con consulta básica
     if (error) {
-      console.warn('⚠️ Error con relación users, intentando sin relación:', error);
-      const { data: simpleData, error: simpleError } = await supabase
+      console.warn('⚠️ Error en consulta principal, intentando consulta básica:', error);
+      const { data: basicData, error: basicError } = await supabase
         .from('purchases')
-        .select('*')
+        .select('id, customer, phone, service, validated, created_at, start, end, months')
         .eq('validated', false)
         .order('created_at', { ascending: false });
       
-      if (simpleError) {
-        console.error('❌ Error también sin relación:', simpleError);
-        throw simpleError;
+      if (basicError) {
+        console.error('❌ Error también en consulta básica:', basicError);
+        throw basicError;
       }
       
-      data = simpleData;
+      data = basicData;
       error = null;
     }
     
-    console.log('✅ getPendingPurchases: Encontradas', data?.length || 0, 'compras pendientes');
+    console.log('✅ getPendingPurchases: RESULTADO FINAL - Encontradas', data?.length || 0, 'compras pendientes');
     if (data && data.length > 0) {
-      console.log('📋 Primeras compras pendientes:', data.slice(0, 2).map(p => ({
+      console.log('📋 Compras pendientes encontradas:', data.map(p => ({
         id: p.id,
         customer: p.customer,
         validated: p.validated,
         created_at: p.created_at
       })));
+    } else {
+      console.log('❌ NO SE ENCONTRARON COMPRAS PENDIENTES');
     }
+    
     return { data, error: null };
   } catch (error) {
     console.error('❌ Error getting pending purchases:', error);
