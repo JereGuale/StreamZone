@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { fmt, daysBetween, tv } from '../utils/helpers';
 
 interface PurchaseCardProps {
@@ -11,8 +11,27 @@ interface PurchaseCardProps {
 }
 
 export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit, onReminder }: PurchaseCardProps) {
-  const days = daysBetween(new Date().toISOString().slice(0,10), item.end);
-  const status = days < 0 ? 'Vencido' : days === 0 ? 'Vence hoy' : `${days} dias`;
+  const [currentDate, setCurrentDate] = useState(new Date().toISOString().slice(0,10));
+  
+  // 🔄 ACTUALIZAR FECHA CADA HORA PARA DESCONTAR DÍAS EN TIEMPO REAL
+  useEffect(() => {
+    const updateDate = () => {
+      const newDate = new Date().toISOString().slice(0,10);
+      setCurrentDate(newDate);
+      console.log('🔄 PurchaseCard: Fecha actualizada para días restantes:', newDate);
+    };
+    
+    // Actualizar inmediatamente
+    updateDate();
+    
+    // Actualizar cada hora (3600000 ms) para mayor precisión
+    const interval = setInterval(updateDate, 3600000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  const days = daysBetween(currentDate, item.end);
+  const status = days < 0 ? 'Vencido' : days === 0 ? 'Vence hoy' : `${days} días`;
   
   // Si es una compra pendiente, mostrar diseño simple
   if (!item.validated) {
@@ -136,11 +155,17 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
               ✅ Validada
             </span>
             
-            <span className={`px-2 py-1 text-xs rounded-full font-medium ${days<=0? 
-              tv(isDark,'bg-red-100 text-red-800','bg-red-800 text-red-100') : 
-              tv(isDark,'bg-gray-100 text-gray-800','bg-gray-700 text-gray-200')
+            {/* 🔥 DÍAS RESTANTES MÁS PROMINENTES */}
+            <span className={`px-3 py-2 text-sm font-bold rounded-full border-2 shadow-lg ${
+              days <= 0 
+                ? tv(isDark,'bg-red-200 text-red-900 border-red-400 shadow-red-300/50','bg-red-900 text-red-100 border-red-500 shadow-red-900/50')
+                : days <= 3
+                ? tv(isDark,'bg-orange-200 text-orange-900 border-orange-400 shadow-orange-300/50','bg-orange-900 text-orange-100 border-orange-500 shadow-orange-900/50')
+                : days <= 7
+                ? tv(isDark,'bg-yellow-200 text-yellow-900 border-yellow-400 shadow-yellow-300/50','bg-yellow-900 text-yellow-100 border-yellow-500 shadow-yellow-900/50')
+                : tv(isDark,'bg-blue-200 text-blue-900 border-blue-400 shadow-blue-300/50','bg-blue-900 text-blue-100 border-blue-500 shadow-blue-900/50')
             }`}>
-              {status}
+              {days <= 0 ? '⚠️ VENCIDO' : days === 1 ? '🔥 VENCE MAÑANA' : days === 0 ? '🔥 VENCE HOY' : `📅 ${days} días`}
             </span>
           </div>
         </div>
@@ -220,8 +245,17 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
           </button>
         </div>
         
-        <div className={`text-xs sm:text-sm font-semibold ${tv(isDark,'text-gray-300','text-gray-400')}`}>
-          {status}
+        {/* 🔥 DÍAS RESTANTES PROMINENTES EN LA PARTE INFERIOR */}
+        <div className={`px-3 py-2 text-sm font-bold rounded-full border-2 shadow-lg ${
+          days <= 0 
+            ? tv(isDark,'bg-red-200 text-red-900 border-red-400 shadow-red-300/50','bg-red-900 text-red-100 border-red-500 shadow-red-900/50')
+            : days <= 3
+            ? tv(isDark,'bg-orange-200 text-orange-900 border-orange-400 shadow-orange-300/50','bg-orange-900 text-orange-100 border-orange-500 shadow-orange-900/50')
+            : days <= 7
+            ? tv(isDark,'bg-yellow-200 text-yellow-900 border-yellow-400 shadow-yellow-300/50','bg-yellow-900 text-yellow-100 border-yellow-500 shadow-yellow-900/50')
+            : tv(isDark,'bg-blue-200 text-blue-900 border-blue-400 shadow-blue-300/50','bg-blue-900 text-blue-100 border-blue-500 shadow-blue-900/50')
+        }`}>
+          {days <= 0 ? '⚠️ VENCIDO' : days === 1 ? '🔥 VENCE MAÑANA' : days === 0 ? '🔥 VENCE HOY' : `📅 ${days} días`}
         </div>
       </div>
     </details>
