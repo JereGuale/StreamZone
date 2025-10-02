@@ -204,25 +204,26 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
     const endDate = new Date(purchase.end);
     const daysLeft = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     
-    // Crear mensaje cordial con emojis
-    let message = `¡Hola ${purchase.customer}! 👋\n\n`;
+    // Crear mensaje formal y conciso con emojis
+    let message = `🎬 *StreamZone* - Renovación de Servicio\n\n`;
+    message += `Estimado/a ${purchase.customer},\n\n`;
     
     if (daysLeft <= 0) {
-      message += `😔 Tu servicio de ${purchase.service} ha vencido el ${purchase.end}.\n\n`;
-      message += `🔄 ¿Te gustaría renovar tu suscripción? ¡Estamos aquí para ayudarte!\n\n`;
+      message += `⚠️ Su servicio *${purchase.service}* venció el ${purchase.end}.\n\n`;
+      message += `🔄 Para reactivar su cuenta, responda este mensaje.\n\n`;
     } else if (daysLeft === 1) {
-      message += `⚠️ Tu servicio de ${purchase.service} vence MAÑANA (${purchase.end}).\n\n`;
-      message += `🔄 ¿Te gustaría renovar para no interrumpir tu entretenimiento?\n\n`;
+      message += `⏰ Su servicio *${purchase.service}* vence mañana (${purchase.end}).\n\n`;
+      message += `🔄 Renueve ahora para evitar interrupciones.\n\n`;
     } else if (daysLeft <= 3) {
-      message += `⏰ Tu servicio de ${purchase.service} vence en ${daysLeft} días (${purchase.end}).\n\n`;
-      message += `🔄 ¿Te gustaría renovar para continuar disfrutando?\n\n`;
+      message += `📅 Su servicio *${purchase.service}* vence en ${daysLeft} días (${purchase.end}).\n\n`;
+      message += `🔄 Renueve con anticipación para continuar sin interrupciones.\n\n`;
     } else {
-      message += `📅 Tu servicio de ${purchase.service} vence en ${daysLeft} días (${purchase.end}).\n\n`;
-      message += `🔄 ¿Te gustaría renovar con anticipación?\n\n`;
+      message += `📋 Recordatorio: Su servicio *${purchase.service}* vence en ${daysLeft} días (${purchase.end}).\n\n`;
+      message += `🔄 Puede renovar cuando guste respondiendo este mensaje.\n\n`;
     }
     
-    message += `💬 Responde a este mensaje para renovar o si tienes alguna pregunta.\n\n`;
-    message += `¡Gracias por confiar en nosotros! 🙏✨`;
+    message += `💬 Responda para proceder con la renovación.\n\n`;
+    message += `Atentamente,\n*Equipo StreamZone* 🎯`;
     
     // Crear URL de WhatsApp
     const phoneNumber = purchase.phone.replace(/[^\d]/g, '');

@@ -55,20 +55,17 @@ export function usePurchases(onSetView?: (view: string) => void) {
           <h3 class="text-xl font-bold text-gray-800">¡Compra Registrada! 🎉</h3>
           <button id="closeModal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
         </div>
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-          <p class="text-blue-800 text-sm font-medium">📋 Tu compra ha sido registrada correctamente</p>
-          <p class="text-blue-700 text-xs mt-1">Selecciona un agente para enviar tu comprobante y recibir aprobación</p>
+        <div class="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+          <p class="text-orange-800 text-sm font-medium">⚠️ PASO OBLIGATORIO</p>
+          <p class="text-orange-700 text-xs mt-1">Debes contactar por WhatsApp para confirmar tu compra y recibir las credenciales</p>
         </div>
-        <p class="text-gray-600 mb-6">Selecciona un agente para enviar tu comprobante de pago:</p>
+        <p class="text-gray-600 mb-6">Selecciona un agente para continuar con tu compra:</p>
         <div class="space-y-3">
           <button id="agent1" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-semibold transition-colors">
             👨‍💼 Agente 1 (+593 98 428 0334)
           </button>
           <button id="agent2" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold transition-colors">
             👨‍💼 Agente 2 (+593 99 879 9579)
-          </button>
-          <button id="cancel" class="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg font-semibold transition-colors">
-            ❌ Cancelar
           </button>
         </div>
       </div>
@@ -111,23 +108,6 @@ export function usePurchases(onSetView?: (view: string) => void) {
     });
     
     document.getElementById('closeModal')?.addEventListener('click', closeModal);
-    document.getElementById('cancel')?.addEventListener('click', closeModal);
-    
-    // Cerrar al hacer clic fuera del modal
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        closeModal();
-      }
-    });
-    
-    // Cerrar con tecla Escape
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        closeModal();
-        document.removeEventListener('keydown', handleEscape);
-      }
-    };
-    document.addEventListener('keydown', handleEscape);
   };
 
   // Función principal para procesar compra - 100% GARANTIZADA
