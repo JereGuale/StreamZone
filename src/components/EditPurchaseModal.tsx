@@ -12,6 +12,40 @@ interface EditPurchaseModalProps {
 }
 
 export function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPrefersDark }: EditPurchaseModalProps) {
+  // Detectar si es un combo y qué servicios incluye
+  const serviceName = purchase?.service || '';
+  const isCombo = serviceName.includes('+') || serviceName.includes('Netflix') && serviceName.includes('Disney');
+  
+  // DETECTAR TODOS LOS COMBOS POSIBLES
+  let services = [serviceName];
+  if (isCombo) {
+    if (serviceName.includes('Netflix') && serviceName.includes('Disney')) {
+      services = ['Netflix', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar'];
+    } else if (serviceName.includes('Max') && serviceName.includes('Prime')) {
+      services = ['Max', 'Prime Video'];
+    } else if (serviceName.includes('Netflix') && serviceName.includes('Max')) {
+      services = ['Netflix', 'Max'];
+    } else if (serviceName.includes('Netflix') && serviceName.includes('Prime')) {
+      services = ['Netflix', 'Prime Video'];
+    } else if (serviceName.includes('Prime') && serviceName.includes('Disney')) {
+      services = ['Prime Video', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar'];
+    } else if (serviceName.includes('Disney') && serviceName.includes('Max')) {
+      services = [serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar', 'Max'];
+    } else if (serviceName.includes('Spotify') && serviceName.includes('Netflix')) {
+      services = ['Spotify', 'Netflix'];
+    } else if (serviceName.includes('Spotify') && serviceName.includes('Disney')) {
+      services = ['Spotify', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar'];
+    } else if (serviceName.includes('Spotify') && serviceName.includes('Prime')) {
+      services = ['Spotify', 'Prime Video'];
+    } else if (serviceName.includes('Paramount') && serviceName.includes('Max') && serviceName.includes('Prime')) {
+      services = ['Paramount+', 'Max', 'Prime Video'];
+    } else if (serviceName.includes('Netflix') && serviceName.includes('Max') && serviceName.includes('Disney')) {
+      services = ['Netflix', 'Max', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar', 'Prime Video', 'Paramount+'];
+    } else {
+      services = serviceName.split(/\s*\+\s*/).map(s => s.trim()).filter(s => s.length > 0);
+    }
+  }
+
   const [formData, setFormData] = useState({
     customer: '',
     phone: '',
@@ -23,6 +57,9 @@ export function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, s
     service_password: '',
     admin_notes: ''
   });
+  
+  // Para combos, manejar múltiples credenciales
+  const [multiCredentials, setMultiCredentials] = useState<{[key: string]: {email: string, password: string}}>({});
 
   useEffect(() => {
     if (purchase) {
@@ -37,14 +74,54 @@ export function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, s
         service_password: purchase.service_password || '',
         admin_notes: purchase.admin_notes || ''
       });
+      
+      // Si es combo, parsear las credenciales existentes
+      if (isCombo && purchase.service_password) {
+        const credentials: {[key: string]: {email: string, password: string}} = {};
+        
+        // Intentar parsear el formato: "Servicio:\nEmail: xxx\nContraseña: xxx"
+        const sections = purchase.service_password.split('\n\n');
+        sections.forEach(section => {
+          const lines = section.split('\n');
+          if (lines.length >= 3) {
+            const serviceName = lines[0].replace(':', '').trim();
+            const email = lines[1].replace('Email: ', '').trim();
+            const password = lines[2].replace('Contraseña: ', '').trim();
+            
+            if (serviceName && email && password) {
+              credentials[serviceName] = { email, password };
+            }
+          }
+        });
+        
+        setMultiCredentials(credentials);
+        console.log('📋 Credenciales parseadas:', credentials);
+      }
     }
-  }, [purchase]);
+  }, [purchase, isCombo]);
 
   if (!open || !purchase) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onUpdate(formData);
+    
+    let finalFormData = { ...formData };
+    
+    // Si es combo, concatenar las credenciales múltiples
+    if (isCombo) {
+      const credentialsText = services.map(service => {
+        const creds = multiCredentials[service];
+        if (creds?.email && creds?.password) {
+          return `${service}:\nEmail: ${creds.email}\nContraseña: ${creds.password}`;
+        }
+        return '';
+      }).filter(text => text.length > 0).join('\n\n');
+      
+      finalFormData.service_email = `COMBO: ${services.join(' + ')}`;
+      finalFormData.service_password = credentialsText;
+    }
+    
+    onUpdate(finalFormData);
     onClose();
   };
 
@@ -97,9 +174,61 @@ export function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, s
                 <h4 className={`text-xl font-bold ${tv(isDark,'text-gray-900','text-white')}`}>Credenciales del Servicio</h4>
               </div>
               
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className={`block text-sm font-bold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+              {isCombo ? (
+                // Para combos: mostrar campos para cada servicio
+                <div className="space-y-4">
+                  <div className={`p-3 rounded-lg ${tv(isDark,'bg-orange-50 border border-orange-200','bg-orange-900/20 border border-orange-600')}`}>
+                    <p className={`text-sm font-semibold ${tv(isDark,'text-orange-800','text-orange-300')}`}>
+                      🎁 Combo detectado: Edita las credenciales para cada servicio
+                    </p>
+                  </div>
+                  {services.map((service, index) => (
+                    <div key={service} className={`p-4 rounded-lg border ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-600')}`}>
+                      <h5 className={`text-lg font-bold mb-3 ${tv(isDark,'text-gray-800','text-white')}`}>
+                        {service} {index === 0 ? '🎬' : index === 1 ? '🎭' : index === 2 ? '🎪' : '🎯'}
+                      </h5>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <label className={`block text-sm font-bold mb-2 ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                            📧 Email del {service}
+                          </label>
+                          <input
+                            type="email"
+                            value={multiCredentials[service]?.email || ''}
+                            onChange={(e) => setMultiCredentials(prev => ({
+                              ...prev,
+                              [service]: { ...prev[service], email: e.target.value, password: prev[service]?.password || '' }
+                            }))}
+                            className={`w-full rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500','border-gray-600 bg-gray-700 text-white focus:border-blue-400')}`}
+                            placeholder={`usuario@${service.toLowerCase().replace(/[^a-z]/g, '')}.com`}
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className={`block text-sm font-bold mb-2 ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                            🔑 Contraseña del {service}
+                          </label>
+                          <input
+                            type="password"
+                            value={multiCredentials[service]?.password || ''}
+                            onChange={(e) => setMultiCredentials(prev => ({
+                              ...prev,
+                              [service]: { ...prev[service], password: e.target.value, email: prev[service]?.email || '' }
+                            }))}
+                            className={`w-full rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-amber-500/20 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-amber-500','border-gray-600 bg-gray-700 text-white focus:border-amber-400')}`}
+                            placeholder="••••••••"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                // Para servicios individuales: formulario original
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className={`block text-sm font-bold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
                     Email del servicio *
                   </label>
                   <input
@@ -123,7 +252,8 @@ export function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, s
                     required
                   />
                 </div>
-              </div>
+                </div>
+              )}
             </div>
 
             {/* Información importante del administrador */}

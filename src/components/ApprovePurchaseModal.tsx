@@ -12,11 +12,57 @@ interface ApprovePurchaseModalProps {
 }
 
 export function ApprovePurchaseModal({ isOpen, onClose, purchase, isDark, onApprove, onUpdatePurchase }: ApprovePurchaseModalProps) {
+  // Detectar si es un combo y qué servicios incluye - FORZAR DETECCIÓN
+  const serviceName = purchase?.service || '';
+  console.log('🔍 DEBUGGING - Servicio completo:', serviceName);
+  
+  const isCombo = serviceName.includes('+') || serviceName.includes('Netflix') && serviceName.includes('Disney');
+  console.log('🔍 DEBUGGING - Es combo?:', isCombo);
+  
+  // DETECTAR TODOS LOS COMBOS POSIBLES
+  let services = [serviceName];
+  if (isCombo) {
+    if (serviceName.includes('Netflix') && serviceName.includes('Disney')) {
+      services = ['Netflix', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar'];
+    } else if (serviceName.includes('Max') && serviceName.includes('Prime')) {
+      services = ['Max', 'Prime Video'];
+    } else if (serviceName.includes('Netflix') && serviceName.includes('Max')) {
+      services = ['Netflix', 'Max'];
+    } else if (serviceName.includes('Netflix') && serviceName.includes('Prime')) {
+      services = ['Netflix', 'Prime Video'];
+    } else if (serviceName.includes('Prime') && serviceName.includes('Disney')) {
+      services = ['Prime Video', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar'];
+    } else if (serviceName.includes('Disney') && serviceName.includes('Max')) {
+      services = [serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar', 'Max'];
+    } else if (serviceName.includes('Spotify') && serviceName.includes('Netflix')) {
+      services = ['Spotify', 'Netflix'];
+    } else if (serviceName.includes('Spotify') && serviceName.includes('Disney')) {
+      services = ['Spotify', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar'];
+    } else if (serviceName.includes('Spotify') && serviceName.includes('Prime')) {
+      services = ['Spotify', 'Prime Video'];
+    } else if (serviceName.includes('Paramount') && serviceName.includes('Max') && serviceName.includes('Prime')) {
+      services = ['Paramount+', 'Max', 'Prime Video'];
+    } else if (serviceName.includes('Netflix') && serviceName.includes('Max') && serviceName.includes('Disney')) {
+      // Mega combo
+      services = ['Netflix', 'Max', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar', 'Prime Video', 'Paramount+'];
+    } else {
+      // Fallback: split por + y limpiar
+      services = serviceName.split(/\s*\+\s*/).map(s => s.trim()).filter(s => s.length > 0);
+    }
+    console.log('🎯 COMBO DETECTADO - Servicios separados:', services);
+  }
+  
+  console.log('🎯 FINAL - isCombo:', isCombo, 'services:', services);
+  
   const [serviceCredentials, setServiceCredentials] = useState({
     email: '',
     password: '',
     notes: ''
   });
+  
+  // Para combos, manejar múltiples credenciales
+  const [multiCredentials, setMultiCredentials] = useState<{[key: string]: {email: string, password: string}}>({});
+  
   const [loading, setLoading] = useState(false);
 
   if (!isOpen || !purchase) return null;
@@ -41,30 +87,67 @@ Ve los datos completos de tu compra en nuestra página web 💻
   const handleApprove = async () => {
     console.log('🚀 ===== INICIANDO APROBACIÓN DE COMPRA =====');
     console.log('📋 purchase:', purchase);
+    console.log('📋 isCombo:', isCombo);
+    console.log('📋 services:', services);
     console.log('📋 serviceCredentials:', serviceCredentials);
+    console.log('📋 multiCredentials:', multiCredentials);
     console.log('📋 onApprove function:', onApprove);
     console.log('📋 onUpdatePurchase function:', onUpdatePurchase);
     
-    if (!serviceCredentials.email || !serviceCredentials.password) {
-      alert('Por favor completa el email y contraseña del servicio');
-      return;
+    // Validar credenciales según si es combo o no
+    if (isCombo) {
+      // Para combos, verificar que todos los servicios tengan credenciales
+      const missingCredentials = services.some(service => 
+        !multiCredentials[service]?.email || !multiCredentials[service]?.password
+      );
+      if (missingCredentials) {
+        alert('Por favor completa el email y contraseña para todos los servicios del combo');
+        return;
+      }
+    } else {
+      // Para servicios individuales
+      if (!serviceCredentials.email || !serviceCredentials.password) {
+        alert('Por favor completa el email y contraseña del servicio');
+        return;
+      }
     }
 
     setLoading(true);
     try {
+      // Preparar credenciales según si es combo o no
+      let emailToSave, passwordToSave, notesToSave;
+      
+      if (isCombo) {
+        // Para combos, concatenar todas las credenciales
+        const credentialsText = services.map(service => {
+          const creds = multiCredentials[service];
+          return `${service}:\nEmail: ${creds.email}\nContraseña: ${creds.password}`;
+        }).join('\n\n');
+        
+        emailToSave = `COMBO: ${services.join(' + ')}`;
+        passwordToSave = credentialsText;
+        notesToSave = serviceCredentials.notes;
+      } else {
+        // Para servicios individuales
+        emailToSave = serviceCredentials.email;
+        passwordToSave = serviceCredentials.password;
+        notesToSave = serviceCredentials.notes;
+      }
+      
       console.log('🔄 Modal: Iniciando aprobación...', {
         purchaseId: purchase.id,
-        email: serviceCredentials.email,
-        password: serviceCredentials.password ? '***' : 'undefined',
-        notes: serviceCredentials.notes
+        isCombo,
+        emailToSave,
+        passwordToSave: passwordToSave ? '***' : 'undefined',
+        notesToSave
       });
 
       // Usar la función original approvePurchase
       const result = await approvePurchase(
         purchase.id,
-        serviceCredentials.email,
-        serviceCredentials.password,
-        serviceCredentials.notes,
+        emailToSave,
+        passwordToSave,
+        notesToSave,
         'admin' // Por ahora hardcodeado
       );
 
@@ -76,9 +159,9 @@ Ve los datos completos de tu compra en nuestra página web 💻
         if (onUpdatePurchase) {
           onUpdatePurchase(purchase.id, {
             validated: true,
-            service_email: serviceCredentials.email,
-            service_password: serviceCredentials.password,
-            admin_notes: serviceCredentials.notes
+            service_email: emailToSave,
+            service_password: passwordToSave,
+            admin_notes: notesToSave
           });
         }
 
@@ -89,9 +172,9 @@ Ve los datos completos de tu compra en nuestra página web 💻
         if (onUpdatePurchase) {
           onUpdatePurchase(purchase.id, {
             validated: true,
-            service_email: serviceCredentials.email,
-            service_password: serviceCredentials.password,
-            admin_notes: serviceCredentials.notes
+            service_email: emailToSave,
+            service_password: passwordToSave,
+            admin_notes: notesToSave
           });
         }
         
@@ -104,6 +187,7 @@ Ve los datos completos de tu compra en nuestra página web 💻
           console.log('🔄 Cerrando modal después de actualización...');
           onClose();
           setServiceCredentials({ email: '', password: '', notes: '' });
+          setMultiCredentials({});
         }, 500);
         
         alert('✅ Compra aprobada y actualizada correctamente');
@@ -119,138 +203,190 @@ Ve los datos completos de tu compra en nuestra página web 💻
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-1 sm:p-2 z-50">
-      <div className={`w-full max-w-sm sm:max-w-md rounded-xl sm:rounded-2xl shadow-2xl border-2 overflow-hidden max-h-[98vh] overflow-y-auto ${tv(isDark,'bg-white border-gray-200','bg-gray-900 border-gray-700')}`}>
-        {/* Header con gradiente - Super compacto */}
-        <div className={`relative p-2 sm:p-3 md:p-4 ${tv(isDark,'bg-gradient-to-r from-green-500 to-emerald-600','bg-gradient-to-r from-green-600 to-emerald-700')}`}>
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className={`w-full max-w-2xl rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto ${tv(isDark,'bg-white','bg-gray-900')}`} onClick={e=>e.stopPropagation()}>
+        {/* Header */}
+        <div className={`relative p-6 border-b-2 ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-700')}`}>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-md sm:rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <span className="text-sm sm:text-lg md:text-xl">✅</span>
+            <h3 className={`text-2xl font-bold ${tv(isDark,'text-gray-900','text-white')}`}>Aprobar Compra</h3>
+            <button 
+              onClick={onClose} 
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-xl font-bold transition-all ${tv(isDark,'text-gray-500 hover:bg-gray-100','text-gray-400 hover:bg-gray-700')}`}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <form className="space-y-6">
+            {/* Información del cliente */}
+            <div className={`p-6 rounded-xl border-2 ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-700')}`}>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h4 className={`text-xl font-bold ${tv(isDark,'text-gray-900','text-white')}`}>{purchase.customer}</h4>
+                  <p className={`text-lg font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                    {purchase.service} • {purchase.months} {purchase.months === 1 ? 'mes' : 'meses'}
+                  </p>
+                </div>
+                <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tv(isDark,'bg-blue-100','bg-blue-900/30')}`}>
+                  <span className="text-lg">📱</span>
+                  <span className={`font-semibold ${tv(isDark,'text-blue-800','text-blue-200')}`}>{purchase.phone}</span>
+                </div>
               </div>
-              <div>
-                <h3 className="text-base sm:text-lg md:text-xl font-bold text-white">Aprobar Compra</h3>
-                <p className="text-green-100 text-xs">Completar credenciales</p>
+            </div>
+
+            {/* Credenciales del servicio */}
+            <div className={`p-6 rounded-xl border-2 ${tv(isDark,'bg-purple-50 border-purple-200','bg-purple-900/20 border-purple-700')}`}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tv(isDark,'bg-yellow-100','bg-yellow-900/30')}`}>
+                  🔑
+                </div>
+                <h4 className={`text-xl font-bold ${tv(isDark,'text-gray-900','text-white')}`}>Credenciales del Servicio</h4>
               </div>
-            </div>
-            <button 
-              onClick={onClose}
-              className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-md sm:rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200"
-            >
-              <span className="text-sm sm:text-lg">×</span>
-            </button>
-          </div>
-        </div>
-        
-        {/* Información del cliente - Super compacto */}
-        <div className={`p-2 sm:p-3 md:p-4 border-b ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-700')}`}>
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <div className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-lg sm:rounded-xl flex items-center justify-center text-base sm:text-lg md:text-xl ${tv(isDark,'bg-blue-100 text-blue-600','bg-blue-900/30 text-blue-400')}`}>
-              🎬
-            </div>
-            <div>
-              <h4 className={`text-sm sm:text-base md:text-lg font-bold ${tv(isDark,'text-gray-900','text-white')}`}>{purchase.customer}</h4>
-              <p className={`text-xs font-medium ${tv(isDark,'text-gray-600','text-gray-400')}`}>
-                {purchase.service} • {purchase.months} {purchase.months === 1 ? 'mes' : 'meses'}
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        {/* Formulario de credenciales - Super compacto */}
-        <div className="p-2 sm:p-3 md:p-4 space-y-2 sm:space-y-3 md:space-y-4">
-          <div>
-            <label className={`flex items-center gap-1 sm:gap-1.5 text-xs font-semibold mb-1 sm:mb-2 ${tv(isDark,'text-gray-700','text-gray-300')}`}>
-              <span className="w-4 h-4 sm:w-5 sm:h-5 rounded bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-xs">📧</span>
-              Email del Servicio
-            </label>
-            <div className="relative">
-              <input
-                type="email"
-                value={serviceCredentials.email}
-                onChange={(e) => setServiceCredentials(prev => ({...prev, email: e.target.value}))}
-                className={`w-full rounded-lg sm:rounded-xl border-2 px-2 sm:px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500','border-gray-600 bg-gray-800 text-white focus:border-blue-400')}`}
-                placeholder="usuario@netflix.com"
-              />
-            </div>
-          </div>
-          
-          <div>
-            <label className={`flex items-center gap-1 sm:gap-1.5 text-xs font-semibold mb-1 sm:mb-2 ${tv(isDark,'text-gray-700','text-gray-300')}`}>
-              <span className="w-4 h-4 sm:w-5 sm:h-5 rounded bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-xs">🔑</span>
-              Contraseña del Servicio
-            </label>
-            <div className="relative">
-              <input
-                type="password"
-                value={serviceCredentials.password}
-                onChange={(e) => setServiceCredentials(prev => ({...prev, password: e.target.value}))}
-                className={`w-full rounded-lg sm:rounded-xl border-2 px-2 sm:px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-amber-500/20 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-amber-500','border-gray-600 bg-gray-800 text-white focus:border-amber-400')}`}
-                placeholder="••••••••"
-              />
-            </div>
-          </div>
-          
-          <div>
-            <label className={`flex items-center gap-1 sm:gap-1.5 text-xs font-semibold mb-1 sm:mb-2 ${tv(isDark,'text-gray-700','text-gray-300')}`}>
-              <span className="w-4 h-4 sm:w-5 sm:h-5 rounded bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-xs">📝</span>
-              Notas Adicionales
-              <span className="text-xs text-gray-500">(opcional)</span>
-            </label>
-            <textarea
-              value={serviceCredentials.notes}
-              onChange={(e) => setServiceCredentials(prev => ({...prev, notes: e.target.value}))}
-              className={`w-full rounded-lg sm:rounded-xl border-2 px-2 sm:px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-purple-500/20 resize-none ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500','border-gray-600 bg-gray-800 text-white focus:border-purple-400')}`}
-              rows={2}
-              placeholder="Notas adicionales sobre esta compra..."
-            />
-          </div>
-        </div>
-        
-        {/* Botones de acción - Super compactos */}
-        <div className={`p-2 sm:p-3 md:p-4 ${tv(isDark,'bg-gray-50','bg-gray-800')}`}>
-          <div className="flex flex-col sm:flex-row gap-1.5 sm:gap-2">
-            <button 
-              onClick={onClose}
-              className={`w-full sm:flex-1 px-2 sm:px-3 py-2 sm:py-2.5 rounded-md sm:rounded-lg font-semibold text-xs transition-all duration-200 hover:scale-105 ${tv(isDark,'bg-gray-200 text-gray-700 hover:bg-gray-300','bg-gray-700 text-gray-200 hover:bg-gray-600')}`}
-            >
-              Cancelar
-            </button>
-            
-            <button 
-              onClick={handleWhatsApp}
-              disabled={!serviceCredentials.email || !serviceCredentials.password}
-              className={`w-full sm:flex-1 px-2 sm:px-3 py-2 sm:py-2.5 rounded-md sm:rounded-lg font-semibold text-xs transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 ${tv(isDark,'bg-green-500 text-white hover:bg-green-600','bg-green-600 text-white hover:bg-green-700')}`}
-            >
-              <span className="text-sm">📱</span>
-              <span className="truncate">Enviar por WhatsApp</span>
-            </button>
-            
-            <button 
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('🚀 BOTÓN APROBAR CLICKEADO');
-                console.log('🔍 loading:', loading);
-                console.log('🔍 serviceCredentials:', serviceCredentials);
-                handleApprove();
-              }}
-              disabled={loading || !serviceCredentials.email || !serviceCredentials.password}
-              className={`w-full sm:flex-1 px-2 sm:px-3 py-2 sm:py-2.5 rounded-md sm:rounded-lg font-semibold text-xs transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${tv(isDark,'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl','bg-gradient-to-r from-blue-600 to-purple-700 text-white hover:from-blue-700 hover:to-purple-800 shadow-lg hover:shadow-xl')}`}
-            >
-              {loading ? (
-                <div className="flex items-center justify-center gap-1">
-                  <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  <span className="truncate">Aprobando...</span>
+              
+              {isCombo ? (
+                <div className="space-y-4">
+                  <div className={`p-3 rounded-lg ${tv(isDark,'bg-orange-50 border border-orange-200','bg-orange-900/20 border border-orange-600')}`}>
+                    <p className={`text-sm font-semibold ${tv(isDark,'text-orange-800','text-orange-300')}`}>
+                      🎁 Combo detectado: Ingresa las credenciales para cada servicio
+                    </p>
+                  </div>
+                  {services.map((service, index) => (
+                    <div key={service} className={`p-4 rounded-lg border ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-600')}`}>
+                      <h5 className={`text-lg font-bold mb-3 ${tv(isDark,'text-gray-800','text-white')}`}>
+                        {service} {index === 0 ? '🎬' : index === 1 ? '🎭' : index === 2 ? '🎪' : '🎯'}
+                      </h5>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <label className={`block text-sm font-bold mb-2 ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                            📧 Email del {service}
+                          </label>
+                          <input
+                            type="email"
+                            value={multiCredentials[service]?.email || ''}
+                            onChange={(e) => setMultiCredentials(prev => ({
+                              ...prev,
+                              [service]: { ...prev[service], email: e.target.value, password: prev[service]?.password || '' }
+                            }))}
+                            className={`w-full rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500','border-gray-600 bg-gray-700 text-white focus:border-blue-400')}`}
+                            placeholder={`usuario@${service.toLowerCase().replace(/[^a-z]/g, '')}.com`}
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className={`block text-sm font-bold mb-2 ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                            🔑 Contraseña del {service}
+                          </label>
+                          <input
+                            type="password"
+                            value={multiCredentials[service]?.password || ''}
+                            onChange={(e) => setMultiCredentials(prev => ({
+                              ...prev,
+                              [service]: { ...prev[service], password: e.target.value, email: prev[service]?.email || '' }
+                            }))}
+                            className={`w-full rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-amber-500/20 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-amber-500','border-gray-600 bg-gray-700 text-white focus:border-amber-400')}`}
+                            placeholder="••••••••"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
-                <div className="flex items-center justify-center gap-1">
-                  <span>✅</span>
-                  <span className="truncate">Aprobar Compra</span>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className={`block text-sm font-bold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                      Email del servicio *
+                    </label>
+                    <input
+                      type="email"
+                      value={serviceCredentials.email}
+                      onChange={(e) => setServiceCredentials(prev => ({...prev, email: e.target.value}))}
+                      className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200','border-gray-600 bg-gray-700 text-white focus:border-purple-400 focus:ring-purple-800/30')}`}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className={`block text-sm font-bold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                      Contraseña del servicio *
+                    </label>
+                    <input
+                      type="text"
+                      value={serviceCredentials.password}
+                      onChange={(e) => setServiceCredentials(prev => ({...prev, password: e.target.value}))}
+                      className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200','border-gray-600 bg-gray-700 text-white focus:border-purple-400 focus:ring-purple-800/30')}`}
+                      required
+                    />
+                  </div>
                 </div>
               )}
-            </button>
-          </div>
+            </div>
+
+            {/* Información importante del administrador */}
+            <div className={`p-6 rounded-xl border-2 ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-700')}`}>
+              <h4 className={`text-lg font-bold mb-4 ${tv(isDark,'text-gray-900','text-white')}`}>Información Importante</h4>
+              <textarea
+                value={serviceCredentials.notes}
+                onChange={(e) => setServiceCredentials(prev => ({...prev, notes: e.target.value}))}
+                placeholder="Notas adicionales sobre esta compra..."
+                className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 resize-none ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-gray-500 focus:ring-gray-200','border-gray-600 bg-gray-700 text-white focus:border-gray-400 focus:ring-gray-800/30')}`}
+                rows={3}
+              />
+            </div>
+
+            {/* Botones de acción */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <button 
+                onClick={onClose}
+                className={`w-full sm:flex-1 px-6 py-3 rounded-xl font-bold transition-all duration-200 hover:scale-105 ${tv(isDark,'bg-gray-200 text-gray-700 hover:bg-gray-300','bg-gray-700 text-gray-200 hover:bg-gray-600')}`}
+              >
+                Cancelar
+              </button>
+              
+              <button 
+                onClick={handleWhatsApp}
+                disabled={isCombo ? 
+                  services.some(service => !multiCredentials[service]?.email || !multiCredentials[service]?.password) :
+                  (!serviceCredentials.email || !serviceCredentials.password)
+                }
+                className={`w-full sm:flex-1 px-6 py-3 rounded-xl font-bold transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${tv(isDark,'bg-green-500 text-white hover:bg-green-600','bg-green-600 text-white hover:bg-green-700')}`}
+              >
+                <span className="text-lg">📱</span>
+                <span className="truncate">Enviar por WhatsApp</span>
+              </button>
+              
+              <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('🚀 BOTÓN APROBAR CLICKEADO');
+                  console.log('🔍 loading:', loading);
+                  console.log('🔍 serviceCredentials:', serviceCredentials);
+                  handleApprove();
+                }}
+                disabled={loading || (isCombo ? 
+                  services.some(service => !multiCredentials[service]?.email || !multiCredentials[service]?.password) :
+                  (!serviceCredentials.email || !serviceCredentials.password)
+                )}
+                className={`w-full sm:flex-1 px-6 py-3 rounded-xl font-bold transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${tv(isDark,'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl','bg-gradient-to-r from-blue-600 to-purple-700 text-white hover:from-blue-700 hover:to-purple-800 shadow-lg hover:shadow-xl')}`}
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span className="truncate">Aprobando...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-2">
+                    <span>✅</span>
+                    <span className="truncate">Aprobar Compra</span>
+                  </div>
+                )}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

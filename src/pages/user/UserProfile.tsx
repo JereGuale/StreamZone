@@ -234,42 +234,151 @@ export function UserProfile({ isDark, user, purchases, onToggleValidate, onDelet
                         </div>
                         
                         {/* Credenciales elegantes - Optimizado para móvil */}
-                        {purchase.service_email && purchase.service_password && (
+                        {purchase.service_email && purchase.service_password && (() => {
+                          // Detectar si es un combo
+                          const serviceName = purchase.service || '';
+                          const isCombo = serviceName.includes('+') || serviceName.includes('Netflix') && serviceName.includes('Disney');
+                          
+                          // Detectar servicios del combo
+                          let services = [serviceName];
+                          if (isCombo) {
+                            if (serviceName.includes('Netflix') && serviceName.includes('Disney')) {
+                              services = ['Netflix', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar'];
+                            } else if (serviceName.includes('Max') && serviceName.includes('Prime')) {
+                              services = ['Max', 'Prime Video'];
+                            } else if (serviceName.includes('Netflix') && serviceName.includes('Max')) {
+                              services = ['Netflix', 'Max'];
+                            } else if (serviceName.includes('Netflix') && serviceName.includes('Prime')) {
+                              services = ['Netflix', 'Prime Video'];
+                            } else if (serviceName.includes('Prime') && serviceName.includes('Disney')) {
+                              services = ['Prime Video', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar'];
+                            } else if (serviceName.includes('Disney') && serviceName.includes('Max')) {
+                              services = [serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar', 'Max'];
+                            } else if (serviceName.includes('Spotify') && serviceName.includes('Netflix')) {
+                              services = ['Spotify', 'Netflix'];
+                            } else if (serviceName.includes('Spotify') && serviceName.includes('Disney')) {
+                              services = ['Spotify', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar'];
+                            } else if (serviceName.includes('Spotify') && serviceName.includes('Prime')) {
+                              services = ['Spotify', 'Prime Video'];
+                            } else if (serviceName.includes('Paramount') && serviceName.includes('Max') && serviceName.includes('Prime')) {
+                              services = ['Paramount+', 'Max', 'Prime Video'];
+                            } else if (serviceName.includes('Netflix') && serviceName.includes('Max') && serviceName.includes('Disney')) {
+                              services = ['Netflix', 'Max', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar', 'Prime Video', 'Paramount+'];
+                            } else {
+                              services = serviceName.split(/\s*\+\s*/).map(s => s.trim()).filter(s => s.length > 0);
+                            }
+                          }
+                          
+                          // Parsear credenciales si es combo
+                          let credentials: {[key: string]: {email: string, password: string}} = {};
+                          if (isCombo && purchase.service_password) {
+                            const sections = purchase.service_password.split('\n\n');
+                            sections.forEach(section => {
+                              const lines = section.split('\n');
+                              if (lines.length >= 3) {
+                                const serviceName = lines[0].replace(':', '').trim();
+                                const email = lines[1].replace('Email: ', '').trim();
+                                const password = lines[2].replace('Contraseña: ', '').trim();
+                                
+                                if (serviceName && email && password) {
+                                  credentials[serviceName] = { email, password };
+                                }
+                              }
+                            });
+                          }
+                          
+                          return (
                           <div className={`p-3 sm:p-4 md:p-5 ${tv(isDark,'bg-gradient-to-r from-blue-50 to-indigo-50','bg-gradient-to-r from-blue-900/20 to-indigo-900/20')}`}>
                             <div className="flex items-center gap-2 mb-3 sm:mb-4">
                               <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center ${tv(isDark, 'bg-blue-100', 'bg-blue-900/30')}`}>
                                 <span className="text-blue-600 text-xs sm:text-sm">🔑</span>
                               </div>
-                              <h5 className={`font-bold text-sm sm:text-base ${tv(isDark, 'text-blue-900', 'text-blue-200')}`}>Credenciales</h5>
+                              <h5 className={`font-bold text-sm sm:text-base ${tv(isDark, 'text-blue-900', 'text-blue-200')}`}>
+                                {isCombo ? 'Credenciales del Combo' : 'Credenciales'}
+                              </h5>
                             </div>
-                            <div className="space-y-3 sm:space-y-4">
-                              <div>
-                                <p className={`text-xs sm:text-sm font-semibold mb-2 ${tv(isDark, 'text-blue-700', 'text-blue-300')}`}>Email</p>
-                                <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl border-2 ${tv(isDark, 'bg-white border-blue-200', 'bg-gray-800 border-blue-600')}`}>
-                                  <p className={`text-xs sm:text-sm font-mono ${tv(isDark, 'text-gray-900', 'text-white')}`}>
-                                    {purchase.service_email}
+                            
+                            {isCombo ? (
+                              // Para combos: mostrar credenciales separadas por servicio
+                              <div className="space-y-3 sm:space-y-4">
+                                <div className={`p-2 rounded-lg ${tv(isDark,'bg-orange-50 border border-orange-200','bg-orange-900/20 border border-orange-600')}`}>
+                                  <p className={`text-xs font-semibold ${tv(isDark,'text-orange-800','text-orange-300')}`}>
+                                    🎁 Combo: Credenciales separadas por servicio
                                   </p>
                                 </div>
+                                {services.map((service, index) => {
+                                  const serviceCreds = credentials[service];
+                                  if (!serviceCreds) return null;
+                                  
+                                  return (
+                                    <div key={service} className={`p-3 rounded-lg border ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-600')}`}>
+                                      <h6 className={`text-sm font-bold mb-2 ${tv(isDark,'text-gray-800','text-white')}`}>
+                                        {service} {index === 0 ? '🎬' : index === 1 ? '🎭' : index === 2 ? '🎪' : '🎯'}
+                                      </h6>
+                                      
+                                      <div className="space-y-2">
+                                        <div>
+                                          <p className={`text-xs font-semibold mb-1 ${tv(isDark, 'text-blue-700', 'text-blue-300')}`}>📧 Email</p>
+                                          <div className={`p-2 rounded-lg border ${tv(isDark, 'bg-white border-blue-200', 'bg-gray-700 border-blue-600')}`}>
+                                            <p className={`text-xs font-mono ${tv(isDark, 'text-gray-900', 'text-white')}`}>
+                                              {serviceCreds.email}
+                                            </p>
+                                          </div>
+                                        </div>
+                                        
+                                        <div>
+                                          <p className={`text-xs font-semibold mb-1 ${tv(isDark, 'text-blue-700', 'text-blue-300')}`}>🔑 Contraseña</p>
+                                          <div className="flex items-center gap-2">
+                                            <div className={`p-2 rounded-lg border flex-1 ${tv(isDark, 'bg-white border-blue-200', 'bg-gray-700 border-blue-600')}`}>
+                                              <p className={`text-xs font-mono ${tv(isDark, 'text-gray-900', 'text-white')}`}>
+                                                {showPasswords[`${purchase.id}_${service}`] ? serviceCreds.password : '•'.repeat(12)}
+                                              </p>
+                                            </div>
+                                            <button 
+                                              onClick={() => setShowPasswords(prev => ({ ...prev, [`${purchase.id}_${service}`]: !prev[`${purchase.id}_${service}`] }))}
+                                              className={`px-2 py-2 rounded-lg text-xs font-bold border transition-all ${tv(isDark, 'border-blue-500 text-blue-600 hover:bg-blue-50', 'border-blue-500 text-blue-400 hover:bg-blue-900/20')}`}
+                                            >
+                                              {showPasswords[`${purchase.id}_${service}`] ? '👁️' : '👁️'}
+                                            </button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
                               </div>
-                              <div>
-                                <p className={`text-xs sm:text-sm font-semibold mb-2 ${tv(isDark, 'text-blue-700', 'text-blue-300')}`}>Contraseña</p>
-                                <div className="flex items-center gap-2 sm:gap-3">
-                                  <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl border-2 flex-1 ${tv(isDark, 'bg-white border-blue-200', 'bg-gray-800 border-blue-600')}`}>
+                            ) : (
+                              // Para servicios individuales: vista original
+                              <div className="space-y-3 sm:space-y-4">
+                                <div>
+                                  <p className={`text-xs sm:text-sm font-semibold mb-2 ${tv(isDark, 'text-blue-700', 'text-blue-300')}`}>Email</p>
+                                  <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl border-2 ${tv(isDark, 'bg-white border-blue-200', 'bg-gray-800 border-blue-600')}`}>
                                     <p className={`text-xs sm:text-sm font-mono ${tv(isDark, 'text-gray-900', 'text-white')}`}>
-                                      {showPasswords[purchase.id] ? purchase.service_password : '•'.repeat(16)}
+                                      {purchase.service_email}
                                     </p>
                                   </div>
-                                  <button 
-                                    onClick={() => setShowPasswords(prev => ({ ...prev, [purchase.id]: !prev[purchase.id] }))}
-                                    className={`px-2 sm:px-3 md:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold border-2 transition-all hover:scale-105 ${tv(isDark, 'border-blue-500 text-blue-600 hover:bg-blue-50', 'border-blue-500 text-blue-400 hover:bg-blue-900/20')}`}
-                                  >
-                                    {showPasswords[purchase.id] ? '👁️ Ocultar' : '👁️ Mostrar'}
-                                  </button>
+                                </div>
+                                <div>
+                                  <p className={`text-xs sm:text-sm font-semibold mb-2 ${tv(isDark, 'text-blue-700', 'text-blue-300')}`}>Contraseña</p>
+                                  <div className="flex items-center gap-2 sm:gap-3">
+                                    <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl border-2 flex-1 ${tv(isDark, 'bg-white border-blue-200', 'bg-gray-800 border-blue-600')}`}>
+                                      <p className={`text-xs sm:text-sm font-mono ${tv(isDark, 'text-gray-900', 'text-white')}`}>
+                                        {showPasswords[purchase.id] ? purchase.service_password : '•'.repeat(16)}
+                                      </p>
+                                    </div>
+                                    <button 
+                                      onClick={() => setShowPasswords(prev => ({ ...prev, [purchase.id]: !prev[purchase.id] }))}
+                                      className={`px-2 sm:px-3 md:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold border-2 transition-all hover:scale-105 ${tv(isDark, 'border-blue-500 text-blue-600 hover:bg-blue-50', 'border-blue-500 text-blue-400 hover:bg-blue-900/20')}`}
+                                    >
+                                      {showPasswords[purchase.id] ? '👁️ Ocultar' : '👁️ Mostrar'}
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
+                            )}
                           </div>
-                        )}
+                          );
+                        })()}
                         
                         {/* Información importante del administrador - Solo si existe */}
                         {purchase.admin_notes && purchase.admin_notes.trim() && (
@@ -294,29 +403,13 @@ export function UserProfile({ isDark, user, purchases, onToggleValidate, onDelet
                           </div>
                         )}
                         
-                        {/* Información del servicio elegante - Optimizado para móvil */}
-                        <div className={`p-3 sm:p-4 md:p-5 ${tv(isDark,'bg-gradient-to-r from-gray-50 to-gray-100','bg-gradient-to-r from-gray-700 to-gray-800')}`}>
-                          <div className="flex items-center gap-2 mb-3">
-                            <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center ${tv(isDark, 'bg-gray-200', 'bg-gray-600')}`}>
-                              <span className="text-gray-600 text-xs sm:text-sm">ℹ️</span>
-                            </div>
-                            <h5 className={`font-bold text-sm sm:text-base ${tv(isDark, 'text-gray-900', 'text-white')}`}>Información</h5>
-                          </div>
-                          <div className={`text-xs sm:text-sm space-y-2 ${tv(isDark, 'text-gray-700', 'text-gray-300')}`}>
-                            <div className="flex justify-between">
-                              <span className="font-medium">Duración:</span>
-                              <span className="font-bold">{purchase.months} {purchase.months === 1 ? 'mes' : 'meses'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-medium">Total días:</span>
-                              <span className="font-bold">{serviceDays} días</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-medium">Estado:</span>
-                              <span className={`font-bold ${daysRemaining <= 7 ? 'text-red-600' : daysRemaining <= 30 ? 'text-yellow-600' : 'text-green-600'}`}>
-                                {daysRemaining <= 7 ? 'Vence pronto' : daysRemaining <= 30 ? 'Por vencer' : 'Activo'}
-                              </span>
-                            </div>
+                        {/* Estado del servicio - Compacto */}
+                        <div className={`px-3 py-2 sm:px-4 sm:py-3 ${tv(isDark,'bg-gradient-to-r from-gray-50 to-gray-100','bg-gradient-to-r from-gray-700 to-gray-800')}`}>
+                          <div className="flex justify-between items-center">
+                            <span className={`font-medium text-xs sm:text-sm ${tv(isDark, 'text-gray-700', 'text-gray-300')}`}>Estado:</span>
+                            <span className={`font-bold text-xs sm:text-sm ${daysRemaining <= 5 ? 'text-red-600' : 'text-green-600'}`}>
+                              {daysRemaining <= 5 ? 'Por vencer' : 'Activa'}
+                            </span>
                           </div>
                         </div>
                       </div>

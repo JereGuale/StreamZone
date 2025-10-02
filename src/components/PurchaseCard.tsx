@@ -12,6 +12,60 @@ interface PurchaseCardProps {
 
 export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit, onReminder }: PurchaseCardProps) {
   const [currentDate, setCurrentDate] = useState(new Date().toISOString().slice(0,10));
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswords, setShowPasswords] = useState<{[key: string]: boolean}>({});
+  
+  // Detectar si es un combo y qué servicios incluye
+  const serviceName = item?.service || '';
+  const isCombo = serviceName.includes('+') || serviceName.includes('Netflix') && serviceName.includes('Disney');
+  
+  // DETECTAR TODOS LOS COMBOS POSIBLES
+  let services = [serviceName];
+  if (isCombo) {
+    if (serviceName.includes('Netflix') && serviceName.includes('Disney')) {
+      services = ['Netflix', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar'];
+    } else if (serviceName.includes('Max') && serviceName.includes('Prime')) {
+      services = ['Max', 'Prime Video'];
+    } else if (serviceName.includes('Netflix') && serviceName.includes('Max')) {
+      services = ['Netflix', 'Max'];
+    } else if (serviceName.includes('Netflix') && serviceName.includes('Prime')) {
+      services = ['Netflix', 'Prime Video'];
+    } else if (serviceName.includes('Prime') && serviceName.includes('Disney')) {
+      services = ['Prime Video', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar'];
+    } else if (serviceName.includes('Disney') && serviceName.includes('Max')) {
+      services = [serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar', 'Max'];
+    } else if (serviceName.includes('Spotify') && serviceName.includes('Netflix')) {
+      services = ['Spotify', 'Netflix'];
+    } else if (serviceName.includes('Spotify') && serviceName.includes('Disney')) {
+      services = ['Spotify', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar'];
+    } else if (serviceName.includes('Spotify') && serviceName.includes('Prime')) {
+      services = ['Spotify', 'Prime Video'];
+    } else if (serviceName.includes('Paramount') && serviceName.includes('Max') && serviceName.includes('Prime')) {
+      services = ['Paramount+', 'Max', 'Prime Video'];
+    } else if (serviceName.includes('Netflix') && serviceName.includes('Max') && serviceName.includes('Disney')) {
+      services = ['Netflix', 'Max', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar', 'Prime Video', 'Paramount+'];
+    } else {
+      services = serviceName.split(/\s*\+\s*/).map(s => s.trim()).filter(s => s.length > 0);
+    }
+  }
+  
+  // Parsear credenciales si es combo
+  let credentials: {[key: string]: {email: string, password: string}} = {};
+  if (isCombo && item.service_password) {
+    const sections = item.service_password.split('\n\n');
+    sections.forEach(section => {
+      const lines = section.split('\n');
+      if (lines.length >= 3) {
+        const serviceName = lines[0].replace(':', '').trim();
+        const email = lines[1].replace('Email: ', '').trim();
+        const password = lines[2].replace('Contraseña: ', '').trim();
+        
+        if (serviceName && email && password) {
+          credentials[serviceName] = { email, password };
+        }
+      }
+    });
+  }
   
   // 🔄 ACTUALIZAR FECHA CADA HORA PARA DESCONTAR DÍAS EN TIEMPO REAL
   useEffect(() => {
@@ -79,7 +133,6 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
   }
 
   // Si es una compra activa, mostrar diseño expandible con details/summary
-  const [showPassword, setShowPassword] = useState(false);
   
   return (
     <details className={`relative group rounded-xl border-2 shadow-sm hover:shadow-md transition-all duration-200 ${tv(isDark,'border-gray-200 bg-white hover:border-gray-300','border-gray-700 bg-gray-800 hover:border-gray-600')}`}>
@@ -178,39 +231,93 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
             🔑
           </div>
           <h5 className={`font-bold text-base sm:text-lg ${tv(isDark,'text-gray-800','text-white')}`}>
-            Credenciales del Servicio
+            {isCombo ? 'Credenciales del Combo' : 'Credenciales del Servicio'}
           </h5>
         </div>
         
-        <div className="space-y-3 sm:space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-            <span className={`text-xs sm:text-sm font-semibold w-16 sm:w-20 ${tv(isDark,'text-gray-700','text-gray-300')}`}>Email:</span> 
-            <input 
-              type="text" 
-              value={item.service_email || 'No disponible'} 
-              readOnly
-              className={`text-xs sm:text-sm font-mono px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 flex-1 ${tv(isDark,'bg-white text-gray-800 border-gray-300','bg-gray-800 text-gray-200 border-gray-600')}`}
-            />
+        {isCombo ? (
+          // Para combos: mostrar credenciales separadas por servicio
+          <div className="space-y-3 sm:space-y-4">
+            <div className={`p-2 rounded-lg ${tv(isDark,'bg-orange-50 border border-orange-200','bg-orange-900/20 border border-orange-600')}`}>
+              <p className={`text-xs font-semibold ${tv(isDark,'text-orange-800','text-orange-300')}`}>
+                🎁 Combo: Credenciales separadas por servicio
+              </p>
+            </div>
+            {services.map((service, index) => {
+              const serviceCreds = credentials[service];
+              if (!serviceCreds) return null;
+              
+              return (
+                <div key={service} className={`p-3 rounded-lg border ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-600')}`}>
+                  <h6 className={`text-sm font-bold mb-2 ${tv(isDark,'text-gray-800','text-white')}`}>
+                    {service} {index === 0 ? '🎬' : index === 1 ? '🎭' : index === 2 ? '🎪' : '🎯'}
+                  </h6>
+                  
+                  <div className="space-y-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                      <span className={`text-xs font-semibold w-16 sm:w-20 ${tv(isDark,'text-gray-700','text-gray-300')}`}>📧 Email:</span> 
+                      <input 
+                        type="text" 
+                        value={serviceCreds.email} 
+                        readOnly
+                        className={`text-xs font-mono px-3 py-2 rounded-lg border flex-1 ${tv(isDark,'bg-white text-gray-800 border-gray-300','bg-gray-700 text-gray-200 border-gray-600')}`}
+                      />
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                      <span className={`text-xs font-semibold w-16 sm:w-20 ${tv(isDark,'text-gray-700','text-gray-300')}`}>🔑 Pass:</span> 
+                      <div className="flex items-center gap-2 flex-1">
+                        <input 
+                          type={showPasswords[service] ? 'text' : 'password'} 
+                          value={serviceCreds.password} 
+                          readOnly
+                          className={`text-xs font-mono px-3 py-2 rounded-lg border flex-1 ${tv(isDark,'bg-white text-gray-800 border-gray-300','bg-gray-700 text-gray-200 border-gray-600')}`}
+                        />
+                        <button
+                          onClick={() => setShowPasswords(prev => ({ ...prev, [service]: !prev[service] }))}
+                          className={`px-2 py-2 rounded-lg text-xs font-medium transition-colors ${tv(isDark,'bg-blue-100 text-blue-700 hover:bg-blue-200','bg-blue-900 text-blue-300 hover:bg-blue-800')}`}
+                          title={showPasswords[service] ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                        >
+                          {showPasswords[service] ? '👁️' : '🔒'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-            <span className={`text-xs sm:text-sm font-semibold w-16 sm:w-20 ${tv(isDark,'text-gray-700','text-gray-300')}`}>Password:</span> 
-            <div className="flex items-center gap-2 flex-1">
+        ) : (
+          // Para servicios individuales: vista original
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <span className={`text-xs sm:text-sm font-semibold w-16 sm:w-20 ${tv(isDark,'text-gray-700','text-gray-300')}`}>Email:</span> 
               <input 
-                type={showPassword ? 'text' : 'password'} 
-                value={item.service_password || 'No disponible'} 
+                type="text" 
+                value={item.service_email || 'No disponible'} 
                 readOnly
                 className={`text-xs sm:text-sm font-mono px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 flex-1 ${tv(isDark,'bg-white text-gray-800 border-gray-300','bg-gray-800 text-gray-200 border-gray-600')}`}
               />
-              <button
-                onClick={() => setShowPassword(!showPassword)}
-                className={`px-2 sm:px-3 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${tv(isDark,'bg-blue-100 text-blue-700 hover:bg-blue-200','bg-blue-900 text-blue-300 hover:bg-blue-800')}`}
-                title={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-              >
-                {showPassword ? '👁️' : '🔒'}
-              </button>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <span className={`text-xs sm:text-sm font-semibold w-16 sm:w-20 ${tv(isDark,'text-gray-700','text-gray-300')}`}>Password:</span> 
+              <div className="flex items-center gap-2 flex-1">
+                <input 
+                  type={showPassword ? 'text' : 'password'} 
+                  value={item.service_password || 'No disponible'} 
+                  readOnly
+                  className={`text-xs sm:text-sm font-mono px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 flex-1 ${tv(isDark,'bg-white text-gray-800 border-gray-300','bg-gray-800 text-gray-200 border-gray-600')}`}
+                />
+                <button
+                  onClick={() => setShowPassword(!showPassword)}
+                  className={`px-2 sm:px-3 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${tv(isDark,'bg-blue-100 text-blue-700 hover:bg-blue-200','bg-blue-900 text-blue-300 hover:bg-blue-800')}`}
+                  title={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                >
+                  {showPassword ? '👁️' : '🔒'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
       
       {/* Barra de botones de acción en la parte inferior */}
