@@ -223,20 +223,53 @@ export const createPurchase = async (purchaseData: Omit<DatabasePurchase, 'id' |
     console.log('💾 createPurchase: Creando compra en Supabase:', purchaseData);
     console.log('💾 createPurchase: validated =', purchaseData.validated);
     
+    // Limpiar datos para evitar problemas con campos undefined
+    const cleanPurchaseData = {
+      customer: purchaseData.customer || '',
+      phone: purchaseData.phone || '',
+      service: purchaseData.service || '',
+      start: purchaseData.start || new Date().toISOString().split('T')[0],
+      end: purchaseData.end || new Date().toISOString().split('T')[0],
+      months: purchaseData.months || 1,
+      validated: purchaseData.validated !== undefined ? purchaseData.validated : false,
+      service_email: purchaseData.service_email || null,
+      service_password: purchaseData.service_password || null,
+      admin_notes: purchaseData.admin_notes || null,
+      approved_by: purchaseData.approved_by || null,
+      approved_at: purchaseData.approved_at || null,
+      auto_renewal: purchaseData.auto_renewal || false,
+      renewal_reminder_sent: purchaseData.renewal_reminder_sent || false,
+      renewal_attempts: purchaseData.renewal_attempts || 0,
+      last_renewal_attempt: purchaseData.last_renewal_attempt || null,
+      renewal_status: purchaseData.renewal_status || 'none',
+      original_purchase_id: purchaseData.original_purchase_id || null,
+      is_renewal: purchaseData.is_renewal || false
+    };
+    
+    console.log('💾 createPurchase: Datos limpios:', cleanPurchaseData);
+    
+    // Intentar inserción con manejo de errores más detallado
     const { data, error } = await supabase
       .from('purchases')
-      .insert([purchaseData])
+      .insert([cleanPurchaseData])
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('❌ Error de Supabase al crear compra:', error);
+      console.error('❌ Detalles del error:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
+      console.error('❌ Datos que causaron el error:', cleanPurchaseData);
+      console.error('❌ Stack trace completo:', error.stack);
       throw error;
     }
     
-    console.log('✅ createPurchase: Compra creada exitosamente con ID:', data?.id);
-    console.log('✅ createPurchase: Compra validated =', data?.validated);
-    return { data, error: null };
+    console.log('✅ createPurchase: Compra creada exitosamente:', data);
+    return { data: data?.[0] || data, error: null };
   } catch (error) {
     console.error('❌ Error creating purchase:', error);
     return { data: null, error };

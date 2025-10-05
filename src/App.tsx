@@ -189,23 +189,35 @@ function App(){
         onRegister={async (purchaseData) => {
           console.log('🛒 Registrando compra manual:', purchaseData);
           try {
+            // Validar datos requeridos
+            if (!purchaseData.name || !purchaseData.phone || !purchaseData.service) {
+              throw new Error('Faltan datos requeridos: nombre, teléfono o servicio');
+            }
+            
             // Preparar datos para la base de datos
             const purchaseToCreate = {
-              customer: purchaseData.name,
-              phone: purchaseData.phone,
-              service: purchaseData.service,
-              start: purchaseData.startDate,
-              end: purchaseData.endDate,
-              months: purchaseData.months,
+              customer: purchaseData.name.trim(),
+              phone: purchaseData.phone.trim(),
+              service: purchaseData.service.trim(),
+              start: purchaseData.startDate || new Date().toISOString().split('T')[0],
+              end: purchaseData.endDate || new Date().toISOString().split('T')[0],
+              months: purchaseData.months || 1,
               validated: true, // Las compras manuales se crean ya validadas
-              service_email: purchaseData.service_email,
-              service_password: purchaseData.service_password,
-              admin_notes: purchaseData.admin_notes,
+              service_email: purchaseData.service_email ? `${purchaseData.service_email}_${Date.now()}` : null,
+              service_password: purchaseData.service_password || null,
+              admin_notes: purchaseData.admin_notes || null,
               approved_by: 'admin',
               approved_at: new Date().toISOString()
             };
             
             console.log('💾 Datos a guardar:', purchaseToCreate);
+            console.log('💾 Validación de datos:', {
+              customer: !!purchaseToCreate.customer,
+              phone: !!purchaseToCreate.phone,
+              service: !!purchaseToCreate.service,
+              start: !!purchaseToCreate.start,
+              end: !!purchaseToCreate.end
+            });
             
             // Crear la compra en Supabase
             const result = await createPurchase(purchaseToCreate);
@@ -219,11 +231,13 @@ function App(){
                 await supabaseData.refreshAllStats();
               }
             } else {
-              throw new Error('No se pudo crear la compra');
+              console.error('❌ Resultado de createPurchase:', result);
+              throw new Error('No se pudo crear la compra - resultado vacío');
             }
           } catch (error) {
             console.error('❌ Error registrando compra manual:', error);
-            alert('❌ Error al registrar la compra manual: ' + error.message);
+            console.error('❌ Stack trace:', error.stack);
+            alert('❌ Error al registrar la compra manual: ' + (error.message || 'Error desconocido'));
           }
         }}
         onUpdate={(updates) => {
