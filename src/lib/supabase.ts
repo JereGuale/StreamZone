@@ -437,13 +437,7 @@ export const getAllPurchases = async () => {
     console.log('🔍 getAllPurchases: Obteniendo todas las compras...');
     const { data, error } = await supabase
       .from('purchases')
-      .select(`
-        *,
-        users!purchases_phone_fkey (
-          name,
-          email
-        )
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (error) {
