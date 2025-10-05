@@ -186,7 +186,46 @@ function App(){
           setView('auth');
         }}
         onPurchase={handlePurchase}
-        onRegister={() => {}}
+        onRegister={async (purchaseData) => {
+          console.log('🛒 Registrando compra manual:', purchaseData);
+          try {
+            // Preparar datos para la base de datos
+            const purchaseToCreate = {
+              customer: purchaseData.name,
+              phone: purchaseData.phone,
+              service: purchaseData.service,
+              start: purchaseData.startDate,
+              end: purchaseData.endDate,
+              months: purchaseData.months,
+              validated: true, // Las compras manuales se crean ya validadas
+              service_email: purchaseData.service_email,
+              service_password: purchaseData.service_password,
+              admin_notes: purchaseData.admin_notes,
+              approved_by: 'admin',
+              approved_at: new Date().toISOString()
+            };
+            
+            console.log('💾 Datos a guardar:', purchaseToCreate);
+            
+            // Crear la compra en Supabase
+            const result = await createPurchase(purchaseToCreate);
+            
+            if (result.data) {
+              console.log('✅ Compra manual registrada exitosamente:', result.data);
+              alert('✅ Compra manual registrada exitosamente');
+              
+              // Recargar datos para mostrar la nueva compra
+              if (supabaseData.refreshAllStats) {
+                await supabaseData.refreshAllStats();
+              }
+            } else {
+              throw new Error('No se pudo crear la compra');
+            }
+          } catch (error) {
+            console.error('❌ Error registrando compra manual:', error);
+            alert('❌ Error al registrar la compra manual: ' + error.message);
+          }
+        }}
         onUpdate={(updates) => {
           if (editingPurchase?.id) {
             handleUpdatePurchase(editingPurchase.id, updates);
