@@ -68,17 +68,31 @@ export function ApprovePurchaseModal({ isOpen, onClose, purchase, isDark, onAppr
   if (!isOpen || !purchase) return null;
 
   const handleWhatsApp = () => {
-    const message = `🎬 *StreamZone* - Compra Aprobada ✅
+    const message = `🎬✨ *StreamZone* ✨🎬
+🌟 *¡COMPRA APROBADA!* 🌟
 
-¡Hola ${purchase.customer}! 
+👋 ¡Hola ${purchase.customer}! 👋
 
-Tu compra de *${purchase.service}* ha sido aprobada exitosamente 🎉
+🎉✨ ¡FELICIDADES! ✨🎉
+Tu compra de *${purchase.service}* ha sido aprobada exitosamente 🎊
 
-Ve los datos completos de tu compra en nuestra página web 💻
+🎯 *Detalles de tu compra:*
+📱 Servicio: *${purchase.service}*
+📅 Duración: *${purchase.months} meses*
+💰 Estado: *ACTIVO* ✅
 
-🌟 No olvides que tu recomendación me ayuda a seguir creciendo.
+💻 Puedes ver todos los detalles en nuestra página web 💻
 
-¡Muchas gracias por confiar en mí! 🙏✨`;
+🎁 *Beneficios que obtienes:*
+✅ Acceso inmediato al servicio
+✅ Soporte técnico 24/7
+✅ Actualizaciones automáticas
+✅ Calidad premium garantizada
+
+🌟 *¡Tu recomendación nos ayuda a crecer!* 🌟
+💝 ¡Muchas gracias por confiar en StreamZone! 💝
+
+🎬✨ *¡Disfruta tu entretenimiento!* ✨🎬`;
 
     const whatsappUrl = `https://wa.me/${purchase.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');

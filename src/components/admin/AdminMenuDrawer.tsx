@@ -75,8 +75,8 @@ export function AdminMenuDrawer({ open, onClose, isDark, setSubView, openAdmins,
             className={`w-full rounded-2xl p-5 text-left transition-all hover:scale-105 shadow-lg border-2 ${tv(isDark,'bg-gradient-to-r from-teal-500 to-teal-600 text-white border-teal-400 hover:from-teal-600 hover:to-teal-700','bg-gradient-to-r from-teal-600 to-teal-700 text-white border-teal-500 hover:from-teal-700 hover:to-teal-800')}`}
           >
             <div className="flex items-center gap-4">
-              <div className="text-2xl">📊</div>
-              <span className="font-bold text-lg">EXPORTAR CSV</span>
+              <div className="text-2xl">📄</div>
+              <span className="font-bold text-lg">EXPORTAR PDF</span>
             </div>
           </button>
           

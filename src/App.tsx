@@ -224,7 +224,7 @@ function App(){
             
             if (result.data) {
               console.log('✅ Compra manual registrada exitosamente:', result.data);
-              alert('✅ Compra manual registrada exitosamente');
+              alert('🎉✨ ¡Compra manual registrada exitosamente! ✨🎉\n💫 El cliente ya puede disfrutar de su servicio 💫');
               
               // Recargar datos para mostrar la nueva compra
               if (supabaseData.refreshAllStats) {
@@ -237,7 +237,7 @@ function App(){
           } catch (error) {
             console.error('❌ Error registrando compra manual:', error);
             console.error('❌ Stack trace:', error.stack);
-            alert('❌ Error al registrar la compra manual: ' + (error.message || 'Error desconocido'));
+            alert('😔❌ Error al registrar la compra manual ❌😔\n🔄 Por favor, intenta nuevamente: ' + (error.message || 'Error desconocido') + ' 🔄');
           }
         }}
         onUpdate={(updates) => {

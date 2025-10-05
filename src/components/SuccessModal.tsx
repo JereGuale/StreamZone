@@ -88,13 +88,13 @@ export function SuccessModal({
               <h2 className={`text-2xl font-bold mb-2 ${
                 isDark ? 'text-white' : 'text-white'
               }`}>
-                ¡Bienvenido a StreamZone!
+                🎉✨ ¡Bienvenido a StreamZone! ✨🎉
               </h2>
               
               <p className={`text-lg ${
                 isDark ? 'text-white/90' : 'text-white/90'
               }`}>
-                Tu cuenta ha sido creada exitosamente
+                🎬 Tu cuenta ha sido creada exitosamente 🎬
               </p>
             </div>
           </div>
@@ -106,13 +106,13 @@ export function SuccessModal({
               <h3 className={`text-xl font-semibold mb-2 ${
                 isDark ? 'text-white' : 'text-gray-900'
               }`}>
-                ¡Hola, {userName}! 👋
+                👋 ¡Hola, {userName}! 👋
               </h3>
               
               <p className={`text-sm ${
                 isDark ? 'text-gray-300' : 'text-gray-600'
               }`}>
-                Tu cuenta ha sido creada con éxito. Ahora puedes iniciar sesión.
+                🎊 ¡Tu cuenta ha sido creada con éxito! 🎊\n💫 Ahora puedes iniciar sesión y disfrutar de nuestros servicios 💫
               </p>
             </div>
 
@@ -126,7 +126,7 @@ export function SuccessModal({
                     : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
                 }`}
               >
-                🔐 Iniciar sesión
+                🔐✨ Iniciar sesión ✨🔐
               </button>
               
               {onExploreServices && (
@@ -138,7 +138,7 @@ export function SuccessModal({
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
                   }`}
                 >
-                  🎬 Explorar servicios
+                  🎬✨ Explorar servicios ✨🎬
                 </button>
               )}
               

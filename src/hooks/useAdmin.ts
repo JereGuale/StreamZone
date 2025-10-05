@@ -102,7 +102,7 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
         )
       );
 
-      setMsg(`✅ Compra invalidada exitosamente`);
+      setMsg(`✅✨ Compra invalidada exitosamente ✨✅\n🔄 El cliente puede volver a solicitar cuando guste 🔄`);
       setTimeout(() => setMsg(''), 3000);
       
       // Recargar desde Supabase para asegurar sincronización
@@ -176,7 +176,7 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
       // Actualizar estado local
       setPurchases(prev => prev.filter(p => p.id !== purchaseId));
 
-      setMsg(`✅ Compra ${purchase.validated ? 'eliminada' : 'rechazada'} exitosamente`);
+      setMsg(`✅✨ Compra ${purchase.validated ? 'eliminada' : 'rechazada'} exitosamente ✨✅\n🗑️ La compra ha sido removida del sistema 🗑️`);
       setTimeout(() => setMsg(''), 3000);
       
       // Recargar desde Supabase para asegurar sincronización
@@ -204,26 +204,38 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
     const endDate = new Date(purchase.end);
     const daysLeft = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     
-    // Crear mensaje formal y conciso con emojis
-    let message = `🎬 *StreamZone* - Renovación de Servicio\n\n`;
-    message += `Estimado/a ${purchase.customer},\n\n`;
+    // Crear mensaje cálido y atractivo con muchos emojis
+    let message = `🎬✨ *StreamZone* ✨🎬\n`;
+    message += `🌟 *Recordatorio de Renovación* 🌟\n\n`;
+    message += `👋 ¡Hola *${purchase.customer}*! 👋\n\n`;
+    message += `💝 Esperamos que estés disfrutando de nuestros servicios 💝\n\n`;
     
     if (daysLeft <= 0) {
-      message += `⚠️ Su servicio *${purchase.service}* venció el ${purchase.end}.\n\n`;
-      message += `🔄 Para reactivar su cuenta, responda este mensaje.\n\n`;
+      message += `😔 ¡Ups! Su servicio *${purchase.service}* venció el ${purchase.end} 😔\n\n`;
+      message += `🔄✨ ¡No te preocupes! Podemos reactivarlo fácilmente ✨🔄\n\n`;
+      message += `💬📱 Solo responde este mensaje y te ayudamos al instante 📱💬\n\n`;
     } else if (daysLeft === 1) {
-      message += `⏰ Su servicio *${purchase.service}* vence mañana (${purchase.end}).\n\n`;
-      message += `🔄 Renueve ahora para evitar interrupciones.\n\n`;
+      message += `⏰🚨 Su servicio *${purchase.service}* vence *MAÑANA* (${purchase.end}) 🚨⏰\n\n`;
+      message += `🔥 ¡Renueva ahora y sigue disfrutando sin interrupciones! 🔥\n\n`;
+      message += `💬📱 Responde este mensaje para renovar al instante 📱💬\n\n`;
     } else if (daysLeft <= 3) {
-      message += `📅 Su servicio *${purchase.service}* vence en ${daysLeft} días (${purchase.end}).\n\n`;
-      message += `🔄 Renueve con anticipación para continuar sin interrupciones.\n\n`;
+      message += `📅⏳ Su servicio *${purchase.service}* vence en *${daysLeft} días* (${purchase.end}) ⏳📅\n\n`;
+      message += `🎯 ¡Renueva con anticipación y mantén tu entretenimiento continuo! 🎯\n\n`;
+      message += `💬📱 Responde este mensaje cuando quieras renovar 📱💬\n\n`;
     } else {
-      message += `📋 Recordatorio: Su servicio *${purchase.service}* vence en ${daysLeft} días (${purchase.end}).\n\n`;
-      message += `🔄 Puede renovar cuando guste respondiendo este mensaje.\n\n`;
+      message += `📋💌 Recordatorio amigable: Su servicio *${purchase.service}* vence en *${daysLeft} días* (${purchase.end}) 💌📋\n\n`;
+      message += `😊 ¡Tienes tiempo! Renueva cuando te sea conveniente 😊\n\n`;
+      message += `💬📱 Responde este mensaje cuando quieras proceder 📱💬\n\n`;
     }
     
-    message += `💬 Responda para proceder con la renovación.\n\n`;
-    message += `Atentamente,\n*Equipo StreamZone* 🎯`;
+    message += `🎁 *Beneficios de renovar con nosotros:*\n`;
+    message += `✅ Atención personalizada 24/7\n`;
+    message += `✅ Precios competitivos\n`;
+    message += `✅ Activación inmediata\n`;
+    message += `✅ Soporte técnico incluido\n\n`;
+    message += `🤝 *¡Gracias por confiar en StreamZone!* 🤝\n`;
+    message += `💖 *Equipo StreamZone* 💖\n`;
+    message += `🎬✨ *Tu entretenimiento es nuestra pasión* ✨🎬`;
     
     // Crear URL de WhatsApp
     const phoneNumber = purchase.phone.replace(/[^\d]/g, '');
@@ -232,7 +244,7 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
     // Abrir WhatsApp
     try {
       window.open(whatsappUrl, '_blank');
-      setMsg(`📱 Recordatorio enviado a ${purchase.customer} (${purchase.phone})`);
+      setMsg(`📱✨ Recordatorio enviado exitosamente a ${purchase.customer} ✨📱\n💬 El cliente recibirá un mensaje cálido y atractivo 💬`);
       setTimeout(() => setMsg(''), 5000);
     } catch (error) {
       console.error('Error abriendo WhatsApp:', error);
@@ -355,8 +367,129 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
     }
   };
   
-  const handleExportCSV = () => {
-    // Lógica de export CSV
+  const handleExportCSV = async () => {
+    try {
+      // Importar dinámicamente las librerías de PDF
+      const jsPDF = (await import('jspdf')).default;
+      const autoTable = (await import('jspdf-autotable')).default;
+      
+      // Crear nuevo documento PDF
+      const doc = new jsPDF();
+      
+      // Configurar fuente y título
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text('📊 REPORTE DE COMPRAS - StreamZone', 20, 30);
+      
+      // Información de la empresa
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Sistema de Gestión de Servicios de Streaming', 20, 45);
+      doc.text(`Fecha de generación: ${new Date().toLocaleDateString('es-ES')}`, 20, 55);
+      doc.text(`Hora de generación: ${new Date().toLocaleTimeString('es-ES')}`, 20, 65);
+      
+      // Preparar datos reales de compras
+      const header = ['Cliente', 'Teléfono', 'Servicio', 'Inicio', 'Fin', 'Estado', 'Creado'];
+      const purchasesData = [header];
+      
+      // Agregar datos reales de compras
+      purchases.forEach(purchase => {
+        const isActive = new Date(purchase.end) >= new Date();
+        const status = purchase.validated ? (isActive ? 'Activo' : 'Vencido') : 'Pendiente';
+        const createdDate = new Date(purchase.created_at).toLocaleDateString('es-ES');
+        
+        purchasesData.push([
+          purchase.customer || 'N/A',
+          purchase.phone || 'N/A',
+          purchase.service || 'N/A',
+          purchase.start || 'N/A',
+          purchase.end || 'N/A',
+          status,
+          createdDate
+        ]);
+      });
+      
+      // Si no hay compras, agregar mensaje
+      if (purchases.length === 0) {
+        purchasesData.push(['No hay compras registradas', '', '', '', '', '', '']);
+      }
+      
+      // Agregar tabla de compras
+      autoTable(doc, {
+        head: [purchasesData[0]],
+        body: purchasesData.slice(1),
+        startY: 80,
+        styles: {
+          fontSize: 10,
+          cellPadding: 3,
+        },
+        headStyles: {
+          fillColor: [41, 128, 185],
+          textColor: 255,
+          fontStyle: 'bold',
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245],
+        },
+        margin: { top: 80, left: 20, right: 20 },
+      });
+      
+      // Agregar estadísticas al final
+      const finalY = (doc as any).lastAutoTable.finalY + 20;
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('📈 ESTADÍSTICAS', 20, finalY);
+      
+      // Calcular estadísticas reales
+      const totalPurchases = purchases.length;
+      const activePurchases = purchases.filter(p => p.validated && new Date(p.end) >= new Date()).length;
+      const pendingPurchases = purchases.filter(p => !p.validated).length;
+      const expiredPurchases = purchases.filter(p => p.validated && new Date(p.end) < new Date()).length;
+      
+      // Estadísticas por servicio
+      const serviceStats = purchases.reduce((acc, purchase) => {
+        const service = purchase.service || 'Desconocido';
+        acc[service] = (acc[service] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`• Total de compras: ${totalPurchases}`, 20, finalY + 15);
+      doc.text(`• Compras activas: ${activePurchases}`, 20, finalY + 25);
+      doc.text(`• Compras pendientes: ${pendingPurchases}`, 20, finalY + 35);
+      doc.text(`• Compras vencidas: ${expiredPurchases}`, 20, finalY + 45);
+      
+      // Estadísticas por servicio
+      doc.text('• Servicios más populares:', 20, finalY + 60);
+      Object.entries(serviceStats)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 3)
+        .forEach(([service, count], index) => {
+          doc.text(`  ${index + 1}. ${service}: ${count} compras`, 25, finalY + 70 + (index * 10));
+        });
+      
+      // Pie de página
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.text(`Página ${i} de ${pageCount}`, 20, doc.internal.pageSize.height - 10);
+        doc.text('Generado por StreamZone', doc.internal.pageSize.width - 60, doc.internal.pageSize.height - 10);
+      }
+      
+      // Descargar el PDF
+      const fileName = `reporte-compras-${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+      
+      setMsg('📄 Reporte PDF generado exitosamente');
+      setTimeout(() => setMsg(''), 3000);
+      
+    } catch (error) {
+      console.error('Error generando PDF:', error);
+      setMsg('❌ Error al generar el reporte PDF');
+      setTimeout(() => setMsg(''), 3000);
+    }
   };
   
   return {

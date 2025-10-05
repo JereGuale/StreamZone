@@ -19,13 +19,16 @@ export function usePurchases(onSetView?: (view: string) => void) {
   const generateWhatsAppMessage = (purchaseData: any) => {
     const { service, price, duration, devices, customer, phone, email, paymentMethod, notes } = purchaseData;
     
-    return `🎬 *Nueva Compra - StreamZone*
+    return `🎬✨ *Nueva Compra - StreamZone* ✨🎬
+
+👋 ¡Hola! Tenemos una nueva compra registrada 👋
 
 👤 *Cliente:* ${customer}
 📱 *WhatsApp:* ${phone}
 📧 *Email:* ${email || 'No proporcionado'}
 
-🎯 *Servicio:* ${service}
+🎯 *Detalles del Servicio:*
+🎬 *Servicio:* ${service}
 💰 *Precio:* $${price}
 ⏱️ *Duración:* ${duration} ${duration === 1 ? 'mes' : 'meses'}
 📱 *Dispositivos:* ${devices}
@@ -33,12 +36,13 @@ export function usePurchases(onSetView?: (view: string) => void) {
 📝 *Notas:* ${notes || 'Ninguna'}
 
 💳 *Datos para transferencia:*
-🏦 Pichincha: ${PAYMENT_METHODS.PICHINCHA}
-🏛️ Guayaquil: ${PAYMENT_METHODS.GUAYAQUIL}
-🌊 Pacífico: ${PAYMENT_METHODS.PACIFICO}
-💳 PayPal: ${PAYMENT_METHODS.PAYPAL}
+🏦 *Pichincha:* ${PAYMENT_METHODS.PICHINCHA}
+🏛️ *Guayaquil:* ${PAYMENT_METHODS.GUAYAQUIL}
+🌊 *Pacífico:* ${PAYMENT_METHODS.PACIFICO}
+💳 *PayPal:* ${PAYMENT_METHODS.PAYPAL}
 
-¡Gracias por tu compra! 🎉`;
+🎉✨ ¡Gracias por tu compra! ✨🎉
+💝 ¡Esperamos que disfrutes tu servicio! 💝`;
   };
 
   // Función para mostrar modal de selección de agente
