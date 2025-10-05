@@ -25,7 +25,7 @@ export function daysBetween(a: string, b: string){
   const date1 = new Date(a);
   const date2 = new Date(b);
   const diffTime = date2.getTime() - date1.getTime();
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
 }
 
 export function whatsappLink(to: string, text: string){ 

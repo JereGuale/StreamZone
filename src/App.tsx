@@ -203,7 +203,7 @@ function App(){
               end: purchaseData.endDate || new Date().toISOString().split('T')[0],
               months: purchaseData.months || 1,
               validated: true, // Las compras manuales se crean ya validadas
-              service_email: purchaseData.service_email ? `${purchaseData.service_email}_${Date.now()}` : null,
+              service_email: purchaseData.service_email || null,
               service_password: purchaseData.service_password || null,
               admin_notes: purchaseData.admin_notes || null,
               approved_by: 'admin',

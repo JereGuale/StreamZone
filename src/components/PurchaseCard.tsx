@@ -15,9 +15,19 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswords, setShowPasswords] = useState<{[key: string]: boolean}>({});
   
+  // Debug: Log para verificar las credenciales
+  console.log('🔍 PurchaseCard - Item completo:', item);
+  console.log('🔍 PurchaseCard - service_email:', item?.service_email);
+  console.log('🔍 PurchaseCard - service_password:', item?.service_password);
+  
   // Detectar si es un combo y qué servicios incluye
   const serviceName = item?.service || '';
-  const isCombo = serviceName.includes('+') || serviceName.includes('Netflix') && serviceName.includes('Disney');
+  // Solo detectar como combo si realmente contiene múltiples servicios separados por +
+  const isCombo = serviceName.includes('+') && (
+    serviceName.includes('Netflix') && serviceName.includes('Disney') ||
+    serviceName.includes('Max') && serviceName.includes('Prime') ||
+    serviceName.includes('Spotify') && (serviceName.includes('Netflix') || serviceName.includes('Disney'))
+  );
   
   // DETECTAR TODOS LOS COMBOS POSIBLES
   let services = [serviceName];
@@ -234,6 +244,15 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
             {isCombo ? 'Credenciales del Combo' : 'Credenciales del Servicio'}
           </h5>
         </div>
+        
+        {/* Debug: Mostrar estado de credenciales */}
+        {(!item.service_email || !item.service_password) && (
+          <div className={`p-3 rounded-lg border-2 ${tv(isDark,'bg-red-50 border-red-200','bg-red-900/20 border-red-600')}`}>
+            <p className={`text-sm font-semibold ${tv(isDark,'text-red-800','text-red-300')}`}>
+              ⚠️ Sin credenciales: Email: {item.service_email ? '✅' : '❌'}, Password: {item.service_password ? '✅' : '❌'}
+            </p>
+          </div>
+        )}
         
         {isCombo ? (
           // Para combos: mostrar credenciales separadas por servicio

@@ -69,7 +69,8 @@ export function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, s
     if (!startDate) return '';
     const start = new Date(startDate);
     const end = new Date(start);
-    end.setMonth(end.getMonth() + months);
+    // Calcular fecha de fin con días exactos (30 días por mes)
+    end.setDate(end.getDate() + (months * 30));
     return end.toISOString().split('T')[0];
   };
   

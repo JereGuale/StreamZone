@@ -41,9 +41,16 @@ export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validar que todos los campos requeridos estén llenos
+    if (!formData.name || !formData.phone || !formData.service || !formData.service_email || !formData.service_password) {
+      alert('⚠️ Por favor completa todos los campos requeridos, incluyendo las credenciales del servicio');
+      return;
+    }
+    
     const endDate = new Date(formData.startDate);
     const monthsToAdd = formData.isAnnual ? formData.duration * 12 : formData.duration;
-    endDate.setMonth(endDate.getMonth() + monthsToAdd);
+    // Calcular fecha de fin con días exactos (30 días por mes)
+    endDate.setDate(endDate.getDate() + (monthsToAdd * 30));
 
     onRegister({
       ...formData,
