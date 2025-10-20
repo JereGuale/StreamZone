@@ -84,7 +84,13 @@ export function AppRoutes({
   onLogoutAdmin,
   adminEmails,
   resetEmail,
-  resetToken
+  resetToken,
+  adminUsers,
+  setAdminUsers,
+  onToggleValidate,
+  onDeletePurchase,
+  onEditPurchase,
+  onSetView
 }: AppRoutesProps) {
   // Auth views
   if (view === 'auth') {

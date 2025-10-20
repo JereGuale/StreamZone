@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { SERVICES } from "../constants/services_original";
-import { fmt, tv } from "../utils/helpers";
+import { SERVICES, COMBOS } from "../constants/services_original";
+import { COUNTRIES } from "../constants/countries";
+import { fmt, tv, formatPhoneForWhatsApp, formatPhoneNumber } from "../utils/helpers";
 
 interface AdminRegisterPurchaseModalProps {
   open: boolean;
@@ -14,6 +15,7 @@ export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, 
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
+    countryCode: '+593',
     email: '',
     service: '',
     price: '',
@@ -28,9 +30,18 @@ export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, 
   // Calcular precio automáticamente cuando cambia el servicio o duración
   useEffect(() => {
     if (formData.service) {
+      // Buscar en servicios individuales
       const selectedService = SERVICES.find(s => s.name === formData.service);
       if (selectedService) {
         const totalPrice = selectedService.price * formData.duration;
+        setFormData(prev => ({ ...prev, price: totalPrice.toString() }));
+        return;
+      }
+      
+      // Buscar en combos
+      const selectedCombo = COMBOS.find(c => c.name === formData.service);
+      if (selectedCombo) {
+        const totalPrice = selectedCombo.price * formData.duration;
         setFormData(prev => ({ ...prev, price: totalPrice.toString() }));
       }
     }
@@ -47,6 +58,9 @@ export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, 
       return;
     }
     
+    // Formatear número de teléfono completo
+    const fullPhone = formatPhoneNumber(formData.phone, formData.countryCode);
+    
     const endDate = new Date(formData.startDate);
     const monthsToAdd = formData.isAnnual ? formData.duration * 12 : formData.duration;
     // Calcular fecha de fin con días exactos (30 días por mes)
@@ -54,6 +68,7 @@ export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, 
 
     onRegister({
       ...formData,
+      phone: fullPhone,
       price: parseFloat(formData.price),
       endDate: endDate.toISOString().slice(0, 10),
       months: monthsToAdd
@@ -63,6 +78,7 @@ export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, 
     setFormData({
       name: '',
       phone: '',
+      countryCode: '+593',
       email: '',
       service: '',
       price: '',
@@ -89,7 +105,8 @@ export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, 
     const endDateStr = endDate.toISOString().slice(0, 10);
     
     const message = `🎉 ¡Hola ${formData.name}! 🎉\n\n✨ Aquí tienes tus credenciales de ${formData.service}:\n\n🔑 *CREDENCIALES DEL SERVICIO* 🔑\n📧 *Email:* ${formData.service_email}\n🔐 *Contraseña:* ${formData.service_password}\n\n⏰ *Duración:* ${monthsToAdd} ${monthsToAdd === 1 ? 'mes' : 'meses'}\n📅 *Válido hasta:* ${endDateStr}\n\n🎬 ¡Disfruta tu servicio! 🎬\n\n💬 Si tienes alguna pregunta, no dudes en contactarnos.\n\n🙏 ¡Gracias por confiar en nosotros!`;
-    const whatsappUrl = `https://wa.me/${formData.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+    const phoneNumber = formatPhoneForWhatsApp(formData.phone);
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
@@ -139,14 +156,33 @@ export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, 
                   <label className={`block text-sm font-bold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
                     📱 Teléfono *
                   </label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-600 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/30')}`}
-                    placeholder="+593 99 999 9999"
-                    required
-                  />
+                  <div className="flex gap-2">
+                    {/* Selector de código de país */}
+                    <select
+                      value={formData.countryCode}
+                      onChange={(e) => setFormData({...formData, countryCode: e.target.value})}
+                      className={`w-28 sm:w-32 rounded-xl border-2 px-2 sm:px-3 py-3 text-xs sm:text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-600 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/30')}`}
+                    >
+                      {COUNTRIES.map((country) => (
+                        <option key={country.code} value={country.code}>
+                          {country.flag} {country.code}
+                        </option>
+                      ))}
+                    </select>
+                    
+                    {/* Campo de número de teléfono */}
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      className={`flex-1 min-w-0 rounded-xl border-2 px-3 sm:px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-600 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/30')}`}
+                      placeholder="99 999 9999"
+                      required
+                    />
+                  </div>
+                  <div className={`text-xs ${tv(isDark,'text-gray-500','text-gray-400')}`}>
+                    Número completo: {formData.countryCode} {formData.phone}
+                  </div>
                 </div>
               </div>
             </div>
@@ -172,11 +208,24 @@ export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, 
                     required
                   >
                     <option value="">Selecciona un servicio</option>
-                    {SERVICES.map((service) => (
-                      <option key={service.name} value={service.name}>
-                        {service.name} - ${service.price}/mes
-                      </option>
-                    ))}
+                    
+                    {/* Servicios individuales */}
+                    <optgroup label="🎬 Servicios Individuales">
+                      {SERVICES.map((service) => (
+                        <option key={service.name} value={service.name}>
+                          {service.name} - ${service.price}/mes
+                        </option>
+                      ))}
+                    </optgroup>
+                    
+                    {/* Combos */}
+                    <optgroup label="🎁 Combos Especiales">
+                      {COMBOS.map((combo) => (
+                        <option key={combo.name} value={combo.name}>
+                          {combo.name} - ${combo.price}/mes
+                        </option>
+                      ))}
+                    </optgroup>
                   </select>
                 </div>
                 

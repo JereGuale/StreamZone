@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { DatabasePurchase } from "../lib/supabase";
-import { tv } from "../utils/helpers";
+import { tv, formatPhoneForWhatsApp } from "../utils/helpers";
 
 interface EditPurchaseModalProps {
   open: boolean;
@@ -158,7 +158,8 @@ export function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, s
 
   const handleWhatsApp = () => {
     const message = `🎉 ¡Hola ${formData.customer}! 🎉\n\n✨ Aquí tienes tus credenciales de ${formData.service}:\n\n🔑 *CREDENCIALES DEL SERVICIO* 🔑\n📧 *Email:* ${formData.service_email}\n🔐 *Contraseña:* ${formData.service_password}\n\n⏰ *Duración:* ${formData.months} ${formData.months === 1 ? 'mes' : 'meses'}\n📅 *Válido hasta:* ${formData.end}\n\n🎬 ¡Disfruta tu servicio! 🎬\n\n💬 Si tienes alguna pregunta, no dudes en contactarnos.\n\n🙏 ¡Gracias por confiar en nosotros!`;
-    const whatsappUrl = `https://wa.me/${formData.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+    const phoneNumber = formatPhoneForWhatsApp(formData.phone);
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 

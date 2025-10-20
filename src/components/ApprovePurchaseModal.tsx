@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { tv } from '../utils/helpers';
+import { tv, formatPhoneForWhatsApp } from '../utils/helpers';
 import { approvePurchase } from '../lib/supabase';
 
 interface ApprovePurchaseModalProps {
@@ -94,7 +94,8 @@ Tu compra de *${purchase.service}* ha sido aprobada exitosamente 🎊
 
 🎬✨ *¡Disfruta tu entretenimiento!* ✨🎬`;
 
-    const whatsappUrl = `https://wa.me/${purchase.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+    const phoneNumber = formatPhoneForWhatsApp(purchase.phone);
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 

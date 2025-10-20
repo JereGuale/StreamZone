@@ -25,7 +25,9 @@ export const COMBOS = [
   { id: "netflix_disney_premium", name: "Netflix + Disney Premium", price: 6.5, billing: "monthly", color: "bg-gradient-to-r from-red-600 to-blue-600", logo: "N+D+" },
   { id: "netflix_max", name: "Netflix + Max", price: 6.0, billing: "monthly", color: "bg-gradient-to-r from-red-600 to-purple-700", logo: "N+MAX" },
   { id: "disney_max", name: "Disney + Max", price: 5.5, billing: "monthly", color: "bg-gradient-to-r from-blue-600 to-purple-700", logo: "D+MAX" },
-  { id: "spotify_disney", name: "Spotify + Disney", price: 5.0, billing: "monthly", color: "bg-gradient-to-r from-emerald-600 to-blue-500", logo: "SP+D+" }
+  { id: "spotify_disney", name: "Spotify + Disney", price: 5.0, billing: "monthly", color: "bg-gradient-to-r from-emerald-600 to-blue-500", logo: "SP+D+" },
+  { id: "netflix_spotify_disney_std", name: "Netflix + Spotify + Disney Standar", price: 8.0, billing: "monthly", color: "bg-gradient-to-r from-red-600 via-emerald-600 to-blue-500", logo: "N+SP+D" },
+  { id: "netflix_spotify_prime", name: "Netflix + Spotify + Prime Video", price: 8.0, billing: "monthly", color: "bg-gradient-to-r from-red-600 via-emerald-600 to-sky-700", logo: "N+SP+PV" }
 ] as const;
 
 

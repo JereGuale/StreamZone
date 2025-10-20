@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { tv, cleanPhone } from '../../utils/helpers';
+import { tv, cleanPhone, formatPhoneNumber } from '../../utils/helpers';
 import { CountryCodeSelector } from '../../components/CountryCodeSelector';
 import { SuccessModal } from '../../components/SuccessModal';
 
@@ -50,7 +50,7 @@ export function UserRegisterForm({ isDark, onSubmit, setView, setAuthStep }: Reg
 
     try {
       // Crear usuario en Supabase
-      const fullPhone = countryCode + phone.replace(/[^\d]/g, ''); // Combinar código de país con número
+      const fullPhone = formatPhoneNumber(phone, countryCode); // Usar función mejorada para formatear número
       const { data: newUser, error } = await supabase
         .from('users')
         .insert([{
