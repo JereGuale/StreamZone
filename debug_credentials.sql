@@ -55,3 +55,4 @@ WHERE service_email IS NULL
     OR service_password IS NULL 
     OR service_password = ''
 ORDER BY created_at DESC;
+

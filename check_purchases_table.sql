@@ -62,3 +62,4 @@ SELECT
     is_grantable
 FROM information_schema.table_privileges 
 WHERE table_name = 'purchases';
+

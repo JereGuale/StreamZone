@@ -122,3 +122,4 @@ SELECT
     COUNT(CASE WHEN validated = true THEN 1 END) as compras_validadas,
     COUNT(CASE WHEN validated = false THEN 1 END) as compras_pendientes
 FROM purchases;
+

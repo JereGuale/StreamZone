@@ -82,3 +82,4 @@ DELETE FROM purchases WHERE customer IN ('Test Directo', 'Test Completo');
 
 -- 6. Verificar limpieza
 SELECT COUNT(*) as total_after_cleanup FROM purchases WHERE customer IN ('Test Directo', 'Test Completo');
+

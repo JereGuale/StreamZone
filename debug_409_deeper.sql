@@ -89,3 +89,4 @@ SELECT
 FROM pg_indexes pi
 JOIN pg_index i ON pi.indexname = i.indexrelid::regclass::text
 WHERE pi.tablename = 'purchases';
+

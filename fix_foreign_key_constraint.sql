@@ -110,3 +110,4 @@ DELETE FROM purchases WHERE customer = 'Test Cliente Manual';
 SELECT COUNT(*) as total_after_cleanup 
 FROM purchases 
 WHERE customer = 'Test Cliente Manual';
+

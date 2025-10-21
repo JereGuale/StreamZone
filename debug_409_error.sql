@@ -120,3 +120,4 @@ END $$;
 -- 7. Verificar logs de errores recientes
 SELECT 
     'Verificar logs de Supabase para errores 409' as mensaje;
+

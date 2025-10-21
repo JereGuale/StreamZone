@@ -71,3 +71,4 @@ SELECT
 FROM purchases 
 GROUP BY service
 ORDER BY total DESC;
+

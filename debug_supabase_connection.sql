@@ -130,3 +130,4 @@ SELECT
     COUNT(*) as total_compras,
     MAX(created_at) as ultima_compra
 FROM purchases;
+
