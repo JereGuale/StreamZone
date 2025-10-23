@@ -98,6 +98,45 @@ export function cleanPhone(value: string){
   return value.replace(/[^\d]/g, '');
 }
 
+export function formatPhoneNumber(phone: string, countryCode: string = '+593'): string {
+  const cleaned = cleanPhone(phone);
+  if (cleaned.length === 0) return '';
+  
+  // Si ya tiene código de país, no agregar otro
+  if (cleaned.startsWith('593') && cleaned.length >= 9) {
+    return `+${cleaned}`;
+  }
+  
+  // Si es un número local (9 dígitos), agregar código de país
+  if (cleaned.length === 9) {
+    return `${countryCode}${cleaned}`;
+  }
+  
+  // Si es un número con código de país pero sin el +
+  if (cleaned.length === 12 && cleaned.startsWith('593')) {
+    return `+${cleaned}`;
+  }
+  
+  return cleaned;
+}
+
+export function formatPhoneForWhatsApp(phone: string, countryCode: string = '593'): string {
+  const cleaned = cleanPhone(phone);
+  if (cleaned.length === 0) return '';
+  
+  // Si ya tiene código de país, no agregar otro
+  if (cleaned.startsWith('593') && cleaned.length >= 9) {
+    return cleaned;
+  }
+  
+  // Si es un número local (9 dígitos), agregar código de país
+  if (cleaned.length === 9) {
+    return `${countryCode}${cleaned}`;
+  }
+  
+  return cleaned;
+}
+
 export function emailOk(e: string){ 
   return /.+@.+\..+/.test(e); 
 }
