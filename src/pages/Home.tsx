@@ -258,4 +258,5 @@ const Home = ({ isDark, onReserve, user, setView }: HomeProps) => {
 
 export default Home;
 
-// Updated: Home component with latest features
+// Updated: Home component with latest features 
+ 
