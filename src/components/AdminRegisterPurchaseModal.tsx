@@ -104,9 +104,29 @@ export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, 
     endDate.setMonth(endDate.getMonth() + monthsToAdd);
     const endDateStr = endDate.toISOString().slice(0, 10);
     
-    const message = `🎬✨ *¡HOLA ${formData.name.toUpperCase()}!* ✨🎬\n\n🎉🎊 *¡FELICIDADES!* 🎊🎉\n\n🌟 *Tu servicio ${formData.service} está listo* 🌟\n\n🔐🔑 *TUS CREDENCIALES PREMIUM* 🔑🔐\n📧 *Email:* ${formData.service_email}\n🔒 *Contraseña:* ${formData.service_password}\n\n⏰⏳ *DURACIÓN:* ${monthsToAdd} ${monthsToAdd === 1 ? 'mes' : 'meses'} ⏳⏰\n📅📆 *Válido hasta:* ${endDateStr} 📆📅\n\n🎭🎪 *¡DISFRUTA AL MÁXIMO!* 🎪🎭\n\n💬📱 *¿Necesitas ayuda?* 📱💬\n¡Estamos aquí para ti 24/7!\n\n🙏💖 *¡Gracias por elegirnos!* 💖🙏\n\n🎬✨ *StreamZone - Tu entretenimiento digital* ✨🎬`;
+    const message = `🎬 ¡HOLA ${formData.name.toUpperCase()}! 🎬
+
+🎉 ¡FELICIDADES! 🎉
+
+🌟 Tu servicio ${formData.service} está listo 🌟
+
+🔐 TUS CREDENCIALES PREMIUM 🔐
+📧 Email: ${formData.service_email}
+🔒 Contraseña: ${formData.service_password}
+
+⏰ DURACIÓN: ${monthsToAdd} ${monthsToAdd === 1 ? 'mes' : 'meses'} ⏰
+📅 Válido hasta: ${endDateStr} 📅
+
+🎭 ¡DISFRUTA AL MÁXIMO! 🎭
+
+💬 ¿Necesitas ayuda? 💬
+¡Estamos aquí para ti 24/7!
+
+🙏 ¡Gracias por elegirnos! 🙏
+
+🎬 StreamZone - Tu entretenimiento digital 🎬`;
     const phoneNumber = formatPhoneForWhatsApp(formData.phone);
-    const whatsappUrl = whatsappLinkSimple(phoneNumber, message);
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
