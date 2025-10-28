@@ -32,6 +32,17 @@ export function whatsappLink(to: string, text: string){
   return `https://wa.me/${to}?text=${encodeURIComponent(text)}`; 
 }
 
+// Función mejorada para codificar mensajes de WhatsApp preservando emojis
+export function whatsappLinkWithEmojis(to: string, text: string): string {
+  // Reemplazar espacios con %20 y saltos de línea con %0A
+  const processedText = text
+    .replace(/\n/g, '%0A')
+    .replace(/ /g, '%20')
+    .replace(/\*/g, '*'); // Mantener asteriscos para formato
+  
+  return `https://wa.me/${to}?text=${processedText}`;
+}
+
 export function tv<T>(isDark: boolean, light: T, dark: T){ 
   return isDark? dark : light; 
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { DatabasePurchase, updatePurchase } from '../lib/supabase';
 import { supabase } from '../lib/supabase';
-import { formatPhoneForWhatsApp } from '../utils/helpers';
+import { formatPhoneForWhatsApp, whatsappLinkWithEmojis } from '../utils/helpers';
 
 interface AdminUser {
   email: string;
@@ -237,7 +237,7 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
     
     // Crear URL de WhatsApp
     const phoneNumber = formatPhoneForWhatsApp(purchase.phone);
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = whatsappLinkWithEmojis(phoneNumber, message);
     
     // Abrir WhatsApp
     try {

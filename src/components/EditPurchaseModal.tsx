@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { DatabasePurchase } from "../lib/supabase";
-import { tv, formatPhoneForWhatsApp } from "../utils/helpers";
+import { tv, formatPhoneForWhatsApp, whatsappLinkWithEmojis } from "../utils/helpers";
 
 interface EditPurchaseModalProps {
   open: boolean;
@@ -159,7 +159,7 @@ export function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, s
   const handleWhatsApp = () => {
     const message = `🎬✨ *¡HOLA ${formData.customer.toUpperCase()}!* ✨🎬\n\n🎉🎊 *¡ACTUALIZACIÓN COMPLETADA!* 🎊🎉\n\n🌟 *Tu servicio ${formData.service} ha sido actualizado* 🌟\n\n🔐🔑 *TUS CREDENCIALES PREMIUM* 🔑🔐\n📧 *Email:* ${formData.service_email}\n🔒 *Contraseña:* ${formData.service_password}\n\n⏰⏳ *DURACIÓN:* ${formData.months} ${formData.months === 1 ? 'mes' : 'meses'} ⏳⏰\n📅📆 *Válido hasta:* ${formData.end} 📆📅\n\n🎭🎪 *¡DISFRUTA AL MÁXIMO!* 🎪🎭\n\n💬📱 *¿Necesitas ayuda?* 📱💬\n¡Estamos aquí para ti 24/7!\n\n🙏💖 *¡Gracias por elegirnos!* 💖🙏\n\n🎬✨ *StreamZone - Tu entretenimiento digital* ✨🎬`;
     const phoneNumber = formatPhoneForWhatsApp(formData.phone);
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = whatsappLinkWithEmojis(phoneNumber, message);
     window.open(whatsappUrl, '_blank');
   };
 
