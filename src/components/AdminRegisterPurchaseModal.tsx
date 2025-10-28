@@ -104,27 +104,27 @@ export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, 
     endDate.setMonth(endDate.getMonth() + monthsToAdd);
     const endDateStr = endDate.toISOString().slice(0, 10);
     
-    const message = `🎬 ¡HOLA ${formData.name.toUpperCase()}! 🎬
+    const message = `★ ¡HOLA ${formData.name.toUpperCase()}! ★
 
 🎉 ¡FELICIDADES! 🎉
 
-🌟 Tu servicio ${formData.service} está listo 🌟
+★ Tu servicio ${formData.service} está listo ★
 
-🔐 TUS CREDENCIALES PREMIUM 🔐
+>>> TUS CREDENCIALES PREMIUM <<<
 📧 Email: ${formData.service_email}
 🔒 Contraseña: ${formData.service_password}
 
 ⏰ DURACIÓN: ${monthsToAdd} ${monthsToAdd === 1 ? 'mes' : 'meses'} ⏰
 📅 Válido hasta: ${endDateStr} 📅
 
-🎭 ¡DISFRUTA AL MÁXIMO! 🎭
+★ ¡DISFRUTA AL MÁXIMO! ★
 
 💬 ¿Necesitas ayuda? 💬
 ¡Estamos aquí para ti 24/7!
 
-🙏 ¡Gracias por elegirnos! 🙏
+✓ ¡Gracias por elegirnos! ✓
 
-🎬 StreamZone - Tu entretenimiento digital 🎬`;
+★ StreamZone - Tu entretenimiento digital ★`;
     const phoneNumber = formatPhoneForWhatsApp(formData.phone);
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');

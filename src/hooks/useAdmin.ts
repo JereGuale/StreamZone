@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { DatabasePurchase, updatePurchase } from '../lib/supabase';
 import { supabase } from '../lib/supabase';
-import { formatPhoneForWhatsApp, whatsappLinkWithEmojis } from '../utils/helpers';
+import { formatPhoneForWhatsApp } from '../utils/helpers';
 
 interface AdminUser {
   email: string;
@@ -205,39 +205,64 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
     const endDate = new Date(purchase.end);
     const daysLeft = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     
-    // Crear mensaje cálido y atractivo con muchos emojis
-    let message = `🎬✨ *STREAMZONE* ✨🎬\n\n🌟💫 *RECORDATORIO DE RENOVACIÓN* 💫🌟\n\n👋 *¡HOLA ${purchase.customer.toUpperCase()}!* 👋\n\n💝🎊 *Esperamos que estés disfrutando de nuestros servicios* 🎊💝\n\n`;
+    // Crear mensaje cálido y atractivo con símbolos ASCII
+    let message = `★ STREAMZONE ★
+
+★ RECORDATORIO DE RENOVACIÓN ★
+
+★ ¡HOLA ${purchase.customer.toUpperCase()}! ★
+
+★ Esperamos que estés disfrutando de nuestros servicios ★
+
+`;
     
     if (daysLeft <= 0) {
-      message += `😔💔 *¡Ups! Su servicio ${purchase.service} venció el ${purchase.end}* 💔😔\n\n`;
-      message += `🔄✨ *¡No te preocupes! Podemos reactivarlo fácilmente* ✨🔄\n\n`;
-      message += `💬📱 *Solo responde este mensaje y te ayudamos al instante* 📱💬\n\n`;
+      message += `⚠️ ¡Ups! Su servicio ${purchase.service} venció el ${purchase.end} ⚠️
+
+★ ¡No te preocupes! Podemos reactivarlo fácilmente ★
+
+💬 Solo responde este mensaje y te ayudamos al instante 💬
+
+`;
     } else if (daysLeft === 1) {
-      message += `⏰🚨 *Su servicio ${purchase.service} vence MAÑANA (${purchase.end})* 🚨⏰\n\n`;
-      message += `🔥⚡ *¡Renueva ahora y sigue disfrutando sin interrupciones!* ⚡🔥\n\n`;
-      message += `💬📱 *Responde este mensaje para renovar al instante* 📱💬\n\n`;
+      message += `⏰ Su servicio ${purchase.service} vence MAÑANA (${purchase.end}) ⏰
+
+★ ¡Renueva ahora y sigue disfrutando sin interrupciones! ★
+
+💬 Responde este mensaje para renovar al instante 💬
+
+`;
     } else if (daysLeft <= 3) {
-      message += `📅⏳ *Su servicio ${purchase.service} vence en ${daysLeft} días (${purchase.end})* ⏳📅\n\n`;
-      message += `🎯🎪 *¡Renueva con anticipación y mantén tu entretenimiento continuo!* 🎪🎯\n\n`;
-      message += `💬📱 *Responde este mensaje cuando quieras renovar* 📱💬\n\n`;
+      message += `📅 Su servicio ${purchase.service} vence en ${daysLeft} días (${purchase.end}) 📅
+
+★ ¡Renueva con anticipación y mantén tu entretenimiento continuo! ★
+
+💬 Responde este mensaje cuando quieras renovar 💬
+
+`;
     } else {
-      message += `📋💌 *Recordatorio amigable: Su servicio ${purchase.service} vence en ${daysLeft} días (${purchase.end})* 💌📋\n\n`;
-      message += `😊🌟 *¡Tienes tiempo! Renueva cuando te sea conveniente* 🌟😊\n\n`;
-      message += `💬📱 *Responde este mensaje cuando quieras proceder* 📱💬\n\n`;
+      message += `📋 Recordatorio amigable: Su servicio ${purchase.service} vence en ${daysLeft} días (${purchase.end}) 📋
+
+★ ¡Tienes tiempo! Renueva cuando te sea conveniente ★
+
+💬 Responde este mensaje cuando quieras proceder 💬
+
+`;
     }
     
-    message += `🎁🎀 *BENEFICIOS DE RENOVAR CON NOSOTROS:* 🎀🎁\n`;
-    message += `✅ Atención personalizada 24/7\n`;
-    message += `✅ Precios competitivos\n`;
-    message += `✅ Activación inmediata\n`;
-    message += `✅ Soporte técnico incluido\n\n`;
-    message += `🤝💖 *¡Gracias por confiar en StreamZone!* 💖🤝\n`;
-    message += `💖🌟 *Equipo StreamZone* 🌟💖\n`;
-    message += `🎬✨ *Tu entretenimiento es nuestra pasión* ✨🎬`;
+    message += `>>> BENEFICIOS DE RENOVAR CON NOSOTROS <<<
+✓ Atención personalizada 24/7
+✓ Precios competitivos
+✓ Activación inmediata
+✓ Soporte técnico incluido
+
+★ ¡Gracias por confiar en StreamZone! ★
+★ Equipo StreamZone ★
+★ Tu entretenimiento es nuestra pasión ★`;
     
     // Crear URL de WhatsApp
     const phoneNumber = formatPhoneForWhatsApp(purchase.phone);
-    const whatsappUrl = whatsappLinkWithEmojis(phoneNumber, message);
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     
     // Abrir WhatsApp
     try {
