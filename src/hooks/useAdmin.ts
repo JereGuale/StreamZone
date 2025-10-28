@@ -206,36 +206,33 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
     const daysLeft = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     
     // Crear mensaje cálido y atractivo con muchos emojis
-    let message = `🎬✨ *StreamZone* ✨🎬\n`;
-    message += `🌟 *Recordatorio de Renovación* 🌟\n\n`;
-    message += `👋 ¡Hola *${purchase.customer}*! 👋\n\n`;
-    message += `💝 Esperamos que estés disfrutando de nuestros servicios 💝\n\n`;
+    let message = `🎬✨ *STREAMZONE* ✨🎬\n\n🌟💫 *RECORDATORIO DE RENOVACIÓN* 💫🌟\n\n👋 *¡HOLA ${purchase.customer.toUpperCase()}!* 👋\n\n💝🎊 *Esperamos que estés disfrutando de nuestros servicios* 🎊💝\n\n`;
     
     if (daysLeft <= 0) {
-      message += `😔 ¡Ups! Su servicio *${purchase.service}* venció el ${purchase.end} 😔\n\n`;
-      message += `🔄✨ ¡No te preocupes! Podemos reactivarlo fácilmente ✨🔄\n\n`;
-      message += `💬📱 Solo responde este mensaje y te ayudamos al instante 📱💬\n\n`;
+      message += `😔💔 *¡Ups! Su servicio ${purchase.service} venció el ${purchase.end}* 💔😔\n\n`;
+      message += `🔄✨ *¡No te preocupes! Podemos reactivarlo fácilmente* ✨🔄\n\n`;
+      message += `💬📱 *Solo responde este mensaje y te ayudamos al instante* 📱💬\n\n`;
     } else if (daysLeft === 1) {
-      message += `⏰🚨 Su servicio *${purchase.service}* vence *MAÑANA* (${purchase.end}) 🚨⏰\n\n`;
-      message += `🔥 ¡Renueva ahora y sigue disfrutando sin interrupciones! 🔥\n\n`;
-      message += `💬📱 Responde este mensaje para renovar al instante 📱💬\n\n`;
+      message += `⏰🚨 *Su servicio ${purchase.service} vence MAÑANA (${purchase.end})* 🚨⏰\n\n`;
+      message += `🔥⚡ *¡Renueva ahora y sigue disfrutando sin interrupciones!* ⚡🔥\n\n`;
+      message += `💬📱 *Responde este mensaje para renovar al instante* 📱💬\n\n`;
     } else if (daysLeft <= 3) {
-      message += `📅⏳ Su servicio *${purchase.service}* vence en *${daysLeft} días* (${purchase.end}) ⏳📅\n\n`;
-      message += `🎯 ¡Renueva con anticipación y mantén tu entretenimiento continuo! 🎯\n\n`;
-      message += `💬📱 Responde este mensaje cuando quieras renovar 📱💬\n\n`;
+      message += `📅⏳ *Su servicio ${purchase.service} vence en ${daysLeft} días (${purchase.end})* ⏳📅\n\n`;
+      message += `🎯🎪 *¡Renueva con anticipación y mantén tu entretenimiento continuo!* 🎪🎯\n\n`;
+      message += `💬📱 *Responde este mensaje cuando quieras renovar* 📱💬\n\n`;
     } else {
-      message += `📋💌 Recordatorio amigable: Su servicio *${purchase.service}* vence en *${daysLeft} días* (${purchase.end}) 💌📋\n\n`;
-      message += `😊 ¡Tienes tiempo! Renueva cuando te sea conveniente 😊\n\n`;
-      message += `💬📱 Responde este mensaje cuando quieras proceder 📱💬\n\n`;
+      message += `📋💌 *Recordatorio amigable: Su servicio ${purchase.service} vence en ${daysLeft} días (${purchase.end})* 💌📋\n\n`;
+      message += `😊🌟 *¡Tienes tiempo! Renueva cuando te sea conveniente* 🌟😊\n\n`;
+      message += `💬📱 *Responde este mensaje cuando quieras proceder* 📱💬\n\n`;
     }
     
-    message += `🎁 *Beneficios de renovar con nosotros:*\n`;
+    message += `🎁🎀 *BENEFICIOS DE RENOVAR CON NOSOTROS:* 🎀🎁\n`;
     message += `✅ Atención personalizada 24/7\n`;
     message += `✅ Precios competitivos\n`;
     message += `✅ Activación inmediata\n`;
     message += `✅ Soporte técnico incluido\n\n`;
-    message += `🤝 *¡Gracias por confiar en StreamZone!* 🤝\n`;
-    message += `💖 *Equipo StreamZone* 💖\n`;
+    message += `🤝💖 *¡Gracias por confiar en StreamZone!* 💖🤝\n`;
+    message += `💖🌟 *Equipo StreamZone* 🌟💖\n`;
     message += `🎬✨ *Tu entretenimiento es nuestra pasión* ✨🎬`;
     
     // Crear URL de WhatsApp
@@ -245,7 +242,7 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
     // Abrir WhatsApp
     try {
       window.open(whatsappUrl, '_blank');
-      setMsg(`📱✨ Recordatorio enviado exitosamente a ${purchase.customer} ✨📱\n💬 El cliente recibirá un mensaje cálido y atractivo 💬`);
+      setMsg(`📱✨ *Recordatorio enviado exitosamente a ${purchase.customer}* ✨📱\n💬🎉 *El cliente recibirá un mensaje cálido y atractivo* 🎉💬`);
       setTimeout(() => setMsg(''), 5000);
     } catch (error) {
       console.error('Error abriendo WhatsApp:', error);

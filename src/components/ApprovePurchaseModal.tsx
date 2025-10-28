@@ -68,31 +68,7 @@ export function ApprovePurchaseModal({ isOpen, onClose, purchase, isDark, onAppr
   if (!isOpen || !purchase) return null;
 
   const handleWhatsApp = () => {
-    const message = `🎬✨ *StreamZone* ✨🎬
-🌟 *¡COMPRA APROBADA!* 🌟
-
-👋 ¡Hola ${purchase.customer}! 👋
-
-🎉✨ ¡FELICIDADES! ✨🎉
-Tu compra de *${purchase.service}* ha sido aprobada exitosamente 🎊
-
-🎯 *Detalles de tu compra:*
-📱 Servicio: *${purchase.service}*
-📅 Duración: *${purchase.months} meses*
-💰 Estado: *ACTIVO* ✅
-
-💻 Puedes ver todos los detalles en nuestra página web 💻
-
-🎁 *Beneficios que obtienes:*
-✅ Acceso inmediato al servicio
-✅ Soporte técnico 24/7
-✅ Actualizaciones automáticas
-✅ Calidad premium garantizada
-
-🌟 *¡Tu recomendación nos ayuda a crecer!* 🌟
-💝 ¡Muchas gracias por confiar en StreamZone! 💝
-
-🎬✨ *¡Disfruta tu entretenimiento!* ✨🎬`;
+    const message = `🎬✨ *STREAMZONE* ✨🎬\n\n🎉🎊 *¡COMPRA APROBADA!* 🎊🎉\n\n👋 *¡HOLA ${purchase.customer.toUpperCase()}!* 👋\n\n🌟✨ *¡FELICIDADES!* ✨🌟\nTu compra de *${purchase.service}* ha sido aprobada exitosamente 🎊\n\n🎯📋 *DETALLES DE TU COMPRA:* 📋🎯\n📱 *Servicio:* ${purchase.service}\n📅 *Duración:* ${purchase.months} meses\n💰 *Estado:* ACTIVO ✅\n\n💻🌐 *Puedes ver todos los detalles en nuestra página web* 🌐💻\n\n🎁🎀 *BENEFICIOS QUE OBTIENES:* 🎀🎁\n✅ Acceso inmediato al servicio\n✅ Soporte técnico 24/7\n✅ Actualizaciones automáticas\n✅ Calidad premium garantizada\n\n🌟💫 *¡Tu recomendación nos ayuda a crecer!* 💫🌟\n💝🙏 *¡Muchas gracias por confiar en StreamZone!* 🙏💝\n\n🎬✨ *¡DISFRUTA TU ENTRETENIMIENTO!* ✨🎬`;
 
     const phoneNumber = formatPhoneForWhatsApp(purchase.phone);
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
