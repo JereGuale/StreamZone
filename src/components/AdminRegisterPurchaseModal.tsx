@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { SERVICES, COMBOS } from "../constants/services_original";
 import { COUNTRIES } from "../constants/countries";
-import { fmt, tv, formatPhoneForWhatsApp, formatPhoneNumber, whatsappLinkPreserveEmojis } from "../utils/helpers";
+import { fmt, tv, formatPhoneForWhatsApp, formatPhoneNumber, whatsappLinkWithUnicodeEmojis } from "../utils/helpers";
 
 interface AdminRegisterPurchaseModalProps {
   open: boolean;
@@ -106,7 +106,7 @@ export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, 
     
     const message = `🎬✨ *¡HOLA ${formData.name.toUpperCase()}!* ✨🎬\n\n🎉🎊 *¡FELICIDADES!* 🎊🎉\n\n🌟 *Tu servicio ${formData.service} está listo* 🌟\n\n🔐🔑 *TUS CREDENCIALES PREMIUM* 🔑🔐\n📧 *Email:* ${formData.service_email}\n🔒 *Contraseña:* ${formData.service_password}\n\n⏰⏳ *DURACIÓN:* ${monthsToAdd} ${monthsToAdd === 1 ? 'mes' : 'meses'} ⏳⏰\n📅📆 *Válido hasta:* ${endDateStr} 📆📅\n\n🎭🎪 *¡DISFRUTA AL MÁXIMO!* 🎪🎭\n\n💬📱 *¿Necesitas ayuda?* 📱💬\n¡Estamos aquí para ti 24/7!\n\n🙏💖 *¡Gracias por elegirnos!* 💖🙏\n\n🎬✨ *StreamZone - Tu entretenimiento digital* ✨🎬`;
     const phoneNumber = formatPhoneForWhatsApp(formData.phone);
-    const whatsappUrl = whatsappLinkPreserveEmojis(phoneNumber, message);
+    const whatsappUrl = whatsappLinkWithUnicodeEmojis(phoneNumber, message);
     window.open(whatsappUrl, '_blank');
   };
 

@@ -39,19 +39,56 @@ export function whatsappLinkWithEmojis(to: string, text: string): string {
   return `https://wa.me/${to}?text=${encodedText}`;
 }
 
-// Función alternativa que preserva mejor los emojis
-export function whatsappLinkPreserveEmojis(to: string, text: string): string {
-  // Codificación manual más cuidadosa
-  const encodedText = text
-    .replace(/\n/g, '%0A')
-    .replace(/ /g, '%20')
-    .replace(/\*/g, '*')
-    .replace(/&/g, '%26')
-    .replace(/#/g, '%23')
-    .replace(/\?/g, '%3F')
-    .replace(/=/g, '%3D')
-    .replace(/\+/g, '%2B');
-  
+// Función que convierte emojis a códigos Unicode para WhatsApp
+export function convertEmojisToUnicode(text: string): string {
+  return text
+    .replace(/🎬/g, '&#127916;') // 🎬
+    .replace(/✨/g, '&#10024;') // ✨
+    .replace(/🎉/g, '&#127881;') // 🎉
+    .replace(/🎊/g, '&#127882;') // 🎊
+    .replace(/🌟/g, '&#127775;') // 🌟
+    .replace(/🔐/g, '&#128272;') // 🔐
+    .replace(/🔑/g, '&#128273;') // 🔑
+    .replace(/📧/g, '&#128231;') // 📧
+    .replace(/🔒/g, '&#128274;') // 🔒
+    .replace(/⏰/g, '&#9200;') // ⏰
+    .replace(/⏳/g, '&#9203;') // ⏳
+    .replace(/📅/g, '&#128197;') // 📅
+    .replace(/📆/g, '&#128198;') // 📆
+    .replace(/🎭/g, '&#127925;') // 🎭
+    .replace(/🎪/g, '&#127882;') // 🎪
+    .replace(/💬/g, '&#128172;') // 💬
+    .replace(/📱/g, '&#128241;') // 📱
+    .replace(/🙏/g, '&#128591;') // 🙏
+    .replace(/💖/g, '&#128150;') // 💖
+    .replace(/👋/g, '&#128075;') // 👋
+    .replace(/💝/g, '&#128157;') // 💝
+    .replace(/🎊/g, '&#127882;') // 🎊
+    .replace(/😔/g, '&#128546;') // 😔
+    .replace(/💔/g, '&#128148;') // 💔
+    .replace(/🔄/g, '&#128260;') // 🔄
+    .replace(/🚨/g, '&#128680;') // 🚨
+    .replace(/🔥/g, '&#128293;') // 🔥
+    .replace(/⚡/g, '&#9889;') // ⚡
+    .replace(/🎯/g, '&#127919;') // 🎯
+    .replace(/📋/g, '&#128203;') // 📋
+    .replace(/💌/g, '&#128140;') // 💌
+    .replace(/😊/g, '&#128522;') // 😊
+    .replace(/🎁/g, '&#127873;') // 🎁
+    .replace(/🎀/g, '&#127872;') // 🎀
+    .replace(/✅/g, '&#9989;') // ✅
+    .replace(/🤝/g, '&#129309;') // 🤝
+    .replace(/💫/g, '&#128171;') // 💫
+    .replace(/💻/g, '&#128187;') // 💻
+    .replace(/🌐/g, '&#127760;') // 🌐
+    .replace(/📱/g, '&#128241;') // 📱
+    .replace(/🎉/g, '&#127881;'); // 🎉
+}
+
+// Función final que preserva emojis usando Unicode
+export function whatsappLinkWithUnicodeEmojis(to: string, text: string): string {
+  const textWithUnicode = convertEmojisToUnicode(text);
+  const encodedText = encodeURIComponent(textWithUnicode);
   return `https://wa.me/${to}?text=${encodedText}`;
 }
 
