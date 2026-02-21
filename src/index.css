@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light dark; }
+html, body, #root { height: 100%; }
+
+/* Mejoras globales para móvil */
+@media (max-width: 640px) {
+  /* Reducir padding y márgenes en móvil */
+  .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  /* Mejorar legibilidad en móvil */
+  body {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  
+  /* Asegurar que los botones sean táctiles */
+  button, a, input, select, textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Mejorar scroll en móvil */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Asegurar modo oscuro en móviles */
+  .dark {
+    background-color: #0f172a !important;
+  }
+  
+  /* Forzar modo oscuro para elementos específicos en móvil */
+  .dark .bg-gradient-to-br {
+    background-image: linear-gradient(to bottom right, rgb(30 58 138 / 0.5), rgb(88 28 135 / 0.5), rgb(157 23 77 / 0.5)) !important;
+  }
+}
+
+/* Optimizaciones para pantallas pequeñas */
+@media (max-width: 480px) {
+  /* Reducir aún más los espaciados en pantallas muy pequeñas */
+  .px-4 { padding-left: 0.75rem; padding-right: 0.75rem; }
+  .px-6 { padding-left: 1rem; padding-right: 1rem; }
+  .px-8 { padding-left: 1.25rem; padding-right: 1.25rem; }
+  
+  /* Ajustar tamaños de texto */
+  .text-lg { font-size: 1rem; }
+  .text-xl { font-size: 1.125rem; }
+  .text-2xl { font-size: 1.25rem; }
+  .text-3xl { font-size: 1.5rem; }
+  .text-4xl { font-size: 1.875rem; }
+}
+
+/* Mejorar la experiencia táctil */
+@media (hover: none) and (pointer: coarse) {
+  /* Aumentar áreas de toque en dispositivos táctiles */
+  button, a {
+    padding: 0.75rem 1rem;
+    margin: 0.25rem;
+  }
+  
+  /* Mejorar hover states para táctil */
+  .hover\:scale-105:hover {
+    transform: none;
+  }
+  
+  /* Hacer que los enlaces sean más grandes */
+  a {
+    display: inline-block;
+    min-height: 44px;
+    min-width: 44px;
+    line-height: 44px;
+    text-align: center;
+  }
+}
+
+/* Oculta la scrollbar donde se use 'no-scrollbar' */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Mejoras de accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Mejorar contraste en modo oscuro */
+@media (prefers-color-scheme: dark) {
+  .dark\:text-gray-300 {
+    color: rgb(209 213 219);
+  }
+  
+  .dark\:text-gray-400 {
+    color: rgb(156 163 175);
+  }
+}
