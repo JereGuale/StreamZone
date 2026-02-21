@@ -204,6 +204,7 @@ function App() {
               start: purchaseData.startDate || new Date().toISOString().split('T')[0],
               end: purchaseData.endDate || new Date().toISOString().split('T')[0],
               months: purchaseData.months || 1,
+              price: purchaseData.price || 0,
               validated: true, // Las compras manuales se crean ya validadas
               service_email: purchaseData.service_email || null,
               service_password: purchaseData.service_password || null,

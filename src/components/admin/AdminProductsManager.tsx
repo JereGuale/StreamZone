@@ -148,51 +148,47 @@ export function AdminProductsManager({ isDark, services, combos, onRefresh, onBa
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 mb-6">
+            <div className="flex flex-wrap gap-2 mb-6">
                 <button
                     onClick={() => setActiveTab('services')}
-                    className={`px-6 py-2.5 rounded-xl font-bold transition-all shadow-md border ${activeTab === 'services'
+                    className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-xl font-bold transition-all shadow-md border text-sm sm:text-base ${activeTab === 'services'
                         ? tv(isDark, 'bg-gradient-to-r from-blue-500 to-purple-600 text-white border-blue-400 shadow-blue-500/30', 'bg-gradient-to-r from-blue-600 to-purple-700 text-white border-blue-500 shadow-blue-600/30')
                         : tv(isDark, 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50', 'bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700')
                         }`}
                 >
-                    📺 Servicios Individuales
+                    <span className="flex items-center justify-center gap-2">
+                        <span className="text-xl">📺</span>
+                        <span>Servicios</span>
+                    </span>
                 </button>
                 <button
                     onClick={() => setActiveTab('combos')}
-                    className={`px-6 py-2.5 rounded-xl font-bold transition-all shadow-md border ${activeTab === 'combos'
+                    className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-xl font-bold transition-all shadow-md border text-sm sm:text-base ${activeTab === 'combos'
                         ? tv(isDark, 'bg-gradient-to-r from-orange-400 to-red-500 text-white border-orange-400 shadow-orange-500/30', 'bg-gradient-to-r from-orange-500 to-red-600 text-white border-orange-500 shadow-orange-600/30')
                         : tv(isDark, 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50', 'bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700')
                         } `}
                 >
-                    📦 Combos Especiales
+                    <span className="flex items-center justify-center gap-2">
+                        <span className="text-xl">📦</span>
+                        <span>Combos</span>
+                    </span>
                 </button>
             </div>
 
-            {/* Table */}
-            <div className={`overflow-x-auto rounded-2xl shadow-xl backdrop-blur-md border ${tv(isDark, 'bg-white/80 border-gray-200', 'bg-gray-900/80 border-gray-700')}`}>
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className={tv(isDark, 'border-b border-gray-200 bg-gray-50/50', 'border-b border-gray-700 bg-gray-800/50')}>
-                            <th className="p-4 font-bold">Logo</th>
-                            <th className="p-4 font-bold">Nombre / ID</th>
-                            <th className="p-4 font-bold">Precio</th>
-                            <th className="p-4 font-bold">Color UI</th>
-                            <th className="p-4 font-bold text-right">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {productsToDisplay.length === 0 ? (
-                            <tr>
-                                <td colSpan={5} className="p-8 text-center text-gray-500">
-                                    No hay productos registrados en esta categoría.
-                                </td>
-                            </tr>
-                        ) : (
-                            productsToDisplay.map((product) => (
-                                <tr key={product.id} className={`group border-b last:border-0 transition-colors ${tv(isDark, 'border-gray-100 hover:bg-gray-50', 'border-gray-800 hover:bg-gray-800')}`}>
-                                    <td className="p-4 w-16">
-                                        <div className={`w-12 h-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] rounded-xl flex items-center justify-center shadow-sm relative overflow-hidden ${product.color}`}>
+            {/* Table (Desktop) / Cards (Mobile) */}
+            <div className="space-y-4">
+                {/* Mobile Cards View */}
+                <div className="grid grid-cols-1 gap-4 lg:hidden">
+                    {productsToDisplay.length === 0 ? (
+                        <div className={`p-8 text-center rounded-2xl border ${tv(isDark, 'bg-white border-gray-200 text-gray-500', 'bg-gray-900 border-gray-700 text-gray-400')}`}>
+                            No hay productos registrados en esta categoría.
+                        </div>
+                    ) : (
+                        productsToDisplay.map((product) => (
+                            <div key={product.id} className={`p-4 rounded-2xl shadow-lg border transition-all ${tv(isDark, 'bg-white border-gray-100', 'bg-gray-900/80 border-gray-700')}`}>
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-md relative overflow-hidden ${product.color}`}>
                                             {(() => {
                                                 if (product.is_combo || activeTab === 'combos') {
                                                     const logos = getComboLogos(product.id, 24, product.name);
@@ -208,61 +204,146 @@ export function AdminProductsManager({ isDark, services, combos, onRefresh, onBa
                                                         );
                                                     }
                                                 }
-
                                                 const svgLogo = getPlatformLogo(product.id, 0, 'w-full h-full object-cover scale-150');
                                                 if (svgLogo) return <div className="w-full h-full flex items-center justify-center overflow-hidden rounded-xl">{svgLogo}</div>;
-
                                                 if (product.logo?.startsWith('http') || product.logo?.startsWith('data:image')) {
                                                     return <img src={product.logo} alt={product.name} className="w-full h-full object-cover rounded-xl" loading="lazy" />
                                                 }
-
-                                                return <span className="text-white font-bold text-lg">{product.logo}</span>;
+                                                return <span className="text-white font-bold text-xl">{product.logo}</span>;
                                             })()}
                                         </div>
-                                    </td>
-                                    <td className="p-4">
-                                        <div className="font-bold text-lg">{product.name}</div>
-                                        <div className={`text-xs ${tv(isDark, 'text-gray-500', 'text-gray-400')}`}>{product.id}</div>
-                                    </td>
-                                    <td className="p-4">
-                                        <span className="font-bold text-green-500 bg-green-500/10 px-3 py-1.5 rounded-lg border border-green-500/20">
-                                            {fmt(product.price)}
-                                        </span>
-                                        <span className="text-xs ml-2 opacity-70">
-                                            {product.billing === 'annual' ? '/ año' : '/ mes'}
-                                        </span>
-                                    </td>
-                                    <td className="p-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className={`w-4 h-4 rounded-full ${product.color}`}></div>
-                                            <code className={`text-xs px-2 py-1 rounded bg-black/5 ${tv(isDark, 'text-gray-600', 'text-gray-300')}`}>
-                                                {product.color.substring(0, 15)}{product.color.length > 15 ? '...' : ''}
-                                            </code>
+                                        <div>
+                                            <div className={`font-black tracking-tight ${tv(isDark, 'text-gray-900', 'text-white')}`}>{product.name}</div>
+                                            <div className={`text-xs opacity-50 ${tv(isDark, 'text-gray-500', 'text-gray-400')}`}>{product.id}</div>
                                         </div>
-                                    </td>
-                                    <td className="p-4 text-right">
-                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={() => handleOpenModal(product)}
-                                                className={`p-2 rounded-lg transition-colors hover:bg-blue-500 hover:text-white ${tv(isDark, 'bg-gray-100 text-gray-700', 'bg-gray-700 text-gray-300')}`}
-                                                title="Editar"
-                                            >
-                                                ✏️
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(product.id)}
-                                                className={`p-2 rounded-lg transition-colors hover:bg-red-500 hover:text-white ${tv(isDark, 'bg-gray-100 text-gray-700', 'bg-gray-700 text-gray-300')}`}
-                                                title="Eliminar"
-                                            >
-                                                🗑️
-                                            </button>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleOpenModal(product)}
+                                            className={`p-2 rounded-xl transition-all active:scale-95 ${tv(isDark, 'bg-blue-50 text-blue-600', 'bg-blue-500/10 text-blue-400 border border-blue-500/20')}`}
+                                        >
+                                            ✏️
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(product.id)}
+                                            className={`p-2 rounded-xl transition-all active:scale-95 ${tv(isDark, 'bg-red-50 text-red-600', 'bg-red-500/10 text-red-400 border border-red-500/20')}`}
+                                        >
+                                            🗑️
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w-3 h-3 rounded-full ${product.color}`}></div>
+                                        <span className={`text-[10px] font-bold uppercase tracking-wider opacity-60 ${tv(isDark, 'text-gray-600', 'text-gray-400')}`}>UI COLOR</span>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-lg font-black text-green-500">{fmt(product.price)}</div>
+                                        <div className={`text-[10px] font-bold opacity-50 ${tv(isDark, 'text-gray-600', 'text-gray-400')}`}>
+                                            {product.billing === 'annual' ? 'ANUAL' : 'MENSUAL'}
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+
+                {/* Desktop Table View */}
+                <div className={`hidden lg:block overflow-x-auto rounded-2xl shadow-xl backdrop-blur-md border ${tv(isDark, 'bg-white/80 border-gray-200', 'bg-gray-900/80 border-gray-700')}`}>
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className={tv(isDark, 'border-b border-gray-200 bg-gray-50/50', 'border-b border-gray-700 bg-gray-800/50')}>
+                                <th className="p-4 font-bold">Logo</th>
+                                <th className="p-4 font-bold">Nombre / ID</th>
+                                <th className="p-4 font-bold">Precio</th>
+                                <th className="p-4 font-bold">Color UI</th>
+                                <th className="p-4 font-bold text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {productsToDisplay.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="p-8 text-center text-gray-500">
+                                        No hay productos registrados en esta categoría.
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                            ) : (
+                                productsToDisplay.map((product) => (
+                                    <tr key={product.id} className={`group border-b last:border-0 transition-colors ${tv(isDark, 'border-gray-100 hover:bg-gray-50', 'border-gray-800 hover:bg-gray-800')}`}>
+                                        <td className="p-4 w-16">
+                                            <div className={`w-12 h-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] rounded-xl flex items-center justify-center shadow-sm relative overflow-hidden ${product.color}`}>
+                                                {(() => {
+                                                    if (product.is_combo || activeTab === 'combos') {
+                                                        const logos = getComboLogos(product.id, 24, product.name);
+                                                        if (logos.length > 0) {
+                                                            return (
+                                                                <div className="flex items-center -space-x-2">
+                                                                    {logos.map((logo, i) => (
+                                                                        <div key={i} className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm shadow-md border border-white/30 flex items-center justify-center overflow-hidden" style={{ zIndex: logos.length - i }}>
+                                                                            {logo}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            );
+                                                        }
+                                                    }
+
+                                                    const svgLogo = getPlatformLogo(product.id, 0, 'w-full h-full object-cover scale-150');
+                                                    if (svgLogo) return <div className="w-full h-full flex items-center justify-center overflow-hidden rounded-xl">{svgLogo}</div>;
+
+                                                    if (product.logo?.startsWith('http') || product.logo?.startsWith('data:image')) {
+                                                        return <img src={product.logo} alt={product.name} className="w-full h-full object-cover rounded-xl" loading="lazy" />
+                                                    }
+
+                                                    return <span className="text-white font-bold text-lg">{product.logo}</span>;
+                                                })()}
+                                            </div>
+                                        </td>
+                                        <td className="p-4">
+                                            <div className="font-bold text-lg">{product.name}</div>
+                                            <div className={`text-xs ${tv(isDark, 'text-gray-500', 'text-gray-400')}`}>{product.id}</div>
+                                        </td>
+                                        <td className="p-4">
+                                            <span className="font-bold text-green-500 bg-green-500/10 px-3 py-1.5 rounded-lg border border-green-500/20">
+                                                {fmt(product.price)}
+                                            </span>
+                                            <span className="text-xs ml-2 opacity-70">
+                                                {product.billing === 'annual' ? '/ año' : '/ mes'}
+                                            </span>
+                                        </td>
+                                        <td className="p-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-4 h-4 rounded-full ${product.color}`}></div>
+                                                <code className={`text-xs px-2 py-1 rounded bg-black/5 ${tv(isDark, 'text-gray-600', 'text-gray-300')}`}>
+                                                    {product.color.substring(0, 15)}{product.color.length > 15 ? '...' : ''}
+                                                </code>
+                                            </div>
+                                        </td>
+                                        <td className="p-4 text-right">
+                                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    onClick={() => handleOpenModal(product)}
+                                                    className={`p-2 rounded-lg transition-colors hover:bg-blue-500 hover:text-white ${tv(isDark, 'bg-gray-100 text-gray-700', 'bg-gray-700 text-gray-300')}`}
+                                                    title="Editar"
+                                                >
+                                                    ✏️
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(product.id)}
+                                                    className={`p-2 rounded-lg transition-colors hover:bg-red-500 hover:text-white ${tv(isDark, 'bg-gray-100 text-gray-700', 'bg-gray-700 text-gray-300')}`}
+                                                    title="Eliminar"
+                                                >
+                                                    🗑️
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {/* CREATE / EDIT PREMIUM DESIGN MODAL */}

@@ -29,8 +29,8 @@ const Home = ({ isDark, onReserve, user, setView, services }: HomeProps) => {
                   <span className="text-lg sm:text-xl">🎬</span>
                   <span className={`text-xs sm:text-sm font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>Entretenimiento Premium</span>
                 </div>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight flex items-center gap-3">
-                  <Logo className="h-10 w-auto sm:h-16 md:h-20 drop-shadow-2xl" />
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight flex items-center gap-2 sm:gap-3">
+                  <Logo className="h-12 w-auto sm:h-20 md:h-24 drop-shadow-2xl" />
                   <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">StreamZone</span>
                 </h1>
                 <p className={`text-base sm:text-lg md:text-xl font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
@@ -191,9 +191,8 @@ const Home = ({ isDark, onReserve, user, setView, services }: HomeProps) => {
             {/* Logo y Descripción */}
             <div className="sm:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <Logo className="h-10 w-auto" />
+                <Logo className="h-12 w-auto sm:h-16" />
                 <div>
-                  <div className="font-bold text-lg sm:text-xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">StreamZone</div>
                   <div className="text-xs sm:text-sm text-gray-400">Tu entretenimiento digital</div>
                 </div>
               </div>

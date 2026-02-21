@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { tv, formatPhoneForWhatsApp } from '../utils/helpers';
 import { approvePurchase } from '../lib/supabase';
+import { SERVICES, COMBOS } from '../constants/services';
 
 interface ApprovePurchaseModalProps {
   isOpen: boolean;
@@ -15,42 +16,42 @@ export function ApprovePurchaseModal({ isOpen, onClose, purchase, isDark, onAppr
   // Detectar si es un combo y qué servicios incluye - FORZAR DETECCIÓN
   const serviceName = purchase?.service || '';
   console.log('🔍 DEBUGGING - Servicio completo:', serviceName);
-  
+
   // Servicios individuales que NO deben ser detectados como combos (incluso si tienen "+" en el nombre)
   const trimmedName = serviceName.trim();
-  
+
   // Verificar si contiene "Disney" y alguna variante de Standard/Estándar/Premium
-  const isDisneyService = /Disney/i.test(trimmedName) && 
-                         /(Standard|Estándar|Premium)/i.test(trimmedName);
-  
+  const isDisneyService = /Disney/i.test(trimmedName) &&
+    /(Standard|Estándar|Premium)/i.test(trimmedName);
+
   // Verificar que NO contenga otros servicios (Netflix, Max, Prime, etc.)
-  const hasOtherServices = trimmedName.includes('Netflix') || 
-                          trimmedName.includes('Max') || 
-                          trimmedName.includes('Prime') || 
-                          trimmedName.includes('Spotify') || 
-                          trimmedName.includes('Paramount');
-  
+  const hasOtherServices = trimmedName.includes('Netflix') ||
+    trimmedName.includes('Max') ||
+    trimmedName.includes('Prime') ||
+    trimmedName.includes('Spotify') ||
+    trimmedName.includes('Paramount');
+
   // Verificar si tiene " + " (con espacios alrededor) que separa servicios REALES
   // NO confundir con el "+" en "Disney+" que es parte del nombre del servicio
   const hasRealServiceSeparator = /\s+\+\s+/.test(trimmedName);
-  
+
   // Es servicio individual de Disney si:
   // 1. Contiene "Disney" y "Standard/Estándar/Premium"
   // 2. NO contiene otros servicios
   // 3. NO tiene " + " que separa servicios múltiples (solo puede tener "+ " que es parte del nombre)
   const isIndividualService = isDisneyService && !hasOtherServices && !hasRealServiceSeparator;
-  
+
   // Es combo solo si contiene " + " (con espacios alrededor) que separa servicios MÚLTIPLES
   // Y NO es un servicio individual de Disney
   const isCombo = hasRealServiceSeparator && !isIndividualService;
-  
+
   console.log('🔍 DEBUGGING - Servicio:', serviceName);
   console.log('🔍 DEBUGGING - Es servicio Disney?:', isDisneyService);
   console.log('🔍 DEBUGGING - Tiene otros servicios?:', hasOtherServices);
   console.log('🔍 DEBUGGING - Tiene separador real?:', hasRealServiceSeparator);
   console.log('🔍 DEBUGGING - Es servicio individual?:', isIndividualService);
   console.log('🔍 DEBUGGING - Es combo?:', isCombo);
-  
+
   // DETECTAR TODOS LOS COMBOS POSIBLES
   let services = [serviceName];
   if (isCombo) {
@@ -83,52 +84,58 @@ export function ApprovePurchaseModal({ isOpen, onClose, purchase, isDark, onAppr
     }
     console.log('🎯 COMBO DETECTADO - Servicios separados:', services);
   }
-  
+
   console.log('🎯 FINAL - isCombo:', isCombo, 'services:', services);
-  
+
   const [serviceCredentials, setServiceCredentials] = useState({
     email: '',
     password: '',
-    notes: ''
+    notes: '',
+    price: 0
   });
-  
+
   // Para combos, manejar múltiples credenciales
-  const [multiCredentials, setMultiCredentials] = useState<{[key: string]: {email: string, password: string}}>({});
-  
+  const [multiCredentials, setMultiCredentials] = useState<{ [key: string]: { email: string, password: string } }>({});
+
+
   const [loading, setLoading] = useState(false);
+
+  // Efecto para inicializar el precio basado en el producto y duración
+  React.useEffect(() => {
+    if (isOpen && purchase) {
+      if (purchase.price > 0) {
+        setServiceCredentials(prev => ({ ...prev, price: purchase.price }));
+      } else {
+        // Intentar calcular precio base
+        const service = SERVICES.find(s => s.name === purchase.service) ||
+          COMBOS.find(c => c.name === purchase.service);
+        if (service) {
+          const calculatedPrice = (service as any).price * (purchase.months || 1);
+          setServiceCredentials(prev => ({ ...prev, price: calculatedPrice }));
+        }
+      }
+    }
+  }, [isOpen, purchase]);
 
   if (!isOpen || !purchase) return null;
 
   const handleWhatsApp = () => {
-    const message = `★ STREAMZONE ★
+    // Para combos, las credenciales ya están concatenadas en service_password o multiCredentials
+    // Pero en el modal de aprobación, las tenemos frescas en los estados locales
+    let credentialsText = "";
+    if (isCombo) {
+      credentialsText = services.map(service => {
+        const creds = multiCredentials[service];
+        return `${service}: ${creds.email} / ${creds.password}`;
+      }).join('\n');
+    } else {
+      credentialsText = `Email: ${serviceCredentials.email}\nPass: ${serviceCredentials.password}`;
+    }
 
-🎉 ¡COMPRA APROBADA! 🎉
-
-★ ¡HOLA ${purchase.customer.toUpperCase()}! ★
-
-🎉 ¡FELICIDADES! 🎉
-Tu compra de ${purchase.service} ha sido aprobada exitosamente
-
->>> DETALLES DE TU COMPRA <<<
-📱 Servicio: ${purchase.service}
-📅 Duración: ${purchase.months} meses
-💰 Estado: ACTIVO ✓
-
-★ Puedes ver todos los detalles en nuestra página web ★
-
->>> BENEFICIOS QUE OBTIENES <<<
-✓ Acceso inmediato al servicio
-✓ Soporte técnico 24/7
-✓ Actualizaciones automáticas
-✓ Calidad premium garantizada
-
-★ ¡Tu recomendación nos ayuda a crecer! ★
-✓ ¡Muchas gracias por confiar en StreamZone! ✓
-
-★ ¡DISFRUTA TU ENTRETENIMIENTO! ★`;
+    const message = `\u2605 StreamZone \u2605\n\u00A1Compra Aprobada! \uD83D\uDE80\n\n\u00A1Hola ${purchase.customer}! Tu servicio ${purchase.service} ya esta activo. \u2713\n\n\uD83D\uDD11 CREDENCIALES:\n${credentialsText}\n\n\uD83D\uDCC5 Duracion: ${purchase.months} ${purchase.months === 1 ? 'mes' : 'meses'}\n\uD83D\uDC8E \u00A1Disfruta tu entretenimiento!`;
 
     const phoneNumber = formatPhoneForWhatsApp(purchase.phone);
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
@@ -141,11 +148,11 @@ Tu compra de ${purchase.service} ha sido aprobada exitosamente
     console.log('📋 multiCredentials:', multiCredentials);
     console.log('📋 onApprove function:', onApprove);
     console.log('📋 onUpdatePurchase function:', onUpdatePurchase);
-    
+
     // Validar credenciales según si es combo o no
     if (isCombo) {
       // Para combos, verificar que todos los servicios tengan credenciales
-      const missingCredentials = services.some(service => 
+      const missingCredentials = services.some(service =>
         !multiCredentials[service]?.email || !multiCredentials[service]?.password
       );
       if (missingCredentials) {
@@ -164,14 +171,14 @@ Tu compra de ${purchase.service} ha sido aprobada exitosamente
     try {
       // Preparar credenciales según si es combo o no
       let emailToSave, passwordToSave, notesToSave;
-      
+
       if (isCombo) {
         // Para combos, concatenar todas las credenciales
         const credentialsText = services.map(service => {
           const creds = multiCredentials[service];
           return `${service}:\nEmail: ${creds.email}\nContraseña: ${creds.password}`;
         }).join('\n\n');
-        
+
         emailToSave = `COMBO: ${services.join(' + ')}`;
         passwordToSave = credentialsText;
         notesToSave = serviceCredentials.notes;
@@ -181,7 +188,7 @@ Tu compra de ${purchase.service} ha sido aprobada exitosamente
         passwordToSave = serviceCredentials.password;
         notesToSave = serviceCredentials.notes;
       }
-      
+
       console.log('🔄 Modal: Iniciando aprobación...', {
         purchaseId: purchase.id,
         isCombo,
@@ -196,7 +203,8 @@ Tu compra de ${purchase.service} ha sido aprobada exitosamente
         emailToSave,
         passwordToSave,
         notesToSave,
-        'admin' // Por ahora hardcodeado
+        'admin', // Por ahora hardcodeado
+        serviceCredentials.price
       );
 
       console.log('📋 Modal: Resultado de approvePurchase:', result);
@@ -209,12 +217,13 @@ Tu compra de ${purchase.service} ha sido aprobada exitosamente
             validated: true,
             service_email: emailToSave,
             service_password: passwordToSave,
-            admin_notes: notesToSave
+            admin_notes: notesToSave,
+            price: serviceCredentials.price
           });
         }
 
         console.log('✅ Compra guardada en la base de datos exitosamente');
-        
+
         // 🔄 ACTUALIZAR ESTADO LOCAL PRIMERO (SIN ESPERAR)
         console.log('🔄 Actualizando estado local inmediatamente...');
         if (onUpdatePurchase) {
@@ -225,11 +234,11 @@ Tu compra de ${purchase.service} ha sido aprobada exitosamente
             admin_notes: notesToSave
           });
         }
-        
+
         // 🔄 LLAMAR A onApprove PARA RECARGAR DATOS
         console.log('🔄 Llamando a onApprove para recargar datos...');
         await onApprove();
-        
+
         // ⏳ ESPERAR UN MOMENTO ANTES DE CERRAR EL MODAL
         setTimeout(() => {
           console.log('🔄 Cerrando modal después de actualización...');
@@ -237,7 +246,7 @@ Tu compra de ${purchase.service} ha sido aprobada exitosamente
           setServiceCredentials({ email: '', password: '', notes: '' });
           setMultiCredentials({});
         }, 500);
-        
+
         alert('✅ Compra aprobada y actualizada correctamente');
       } else {
         throw new Error('No se pudo guardar en la base de datos');
@@ -252,14 +261,14 @@ Tu compra de ${purchase.service} ha sido aprobada exitosamente
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className={`w-full max-w-2xl rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto ${tv(isDark,'bg-white','bg-gray-900')}`} onClick={e=>e.stopPropagation()}>
+      <div className={`w-full max-w-2xl rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto ${tv(isDark, 'bg-white', 'bg-gray-900')}`} onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className={`relative p-6 border-b-2 ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-700')}`}>
+        <div className={`relative p-6 border-b-2 ${tv(isDark, 'bg-gray-50 border-gray-200', 'bg-gray-800 border-gray-700')}`}>
           <div className="flex items-center justify-between">
-            <h3 className={`text-2xl font-bold ${tv(isDark,'text-gray-900','text-white')}`}>Aprobar Compra</h3>
-            <button 
-              onClick={onClose} 
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-xl font-bold transition-all ${tv(isDark,'text-gray-500 hover:bg-gray-100','text-gray-400 hover:bg-gray-700')}`}
+            <h3 className={`text-2xl font-bold ${tv(isDark, 'text-gray-900', 'text-white')}`}>Aprobar Compra</h3>
+            <button
+              onClick={onClose}
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-xl font-bold transition-all ${tv(isDark, 'text-gray-500 hover:bg-gray-100', 'text-gray-400 hover:bg-gray-700')}`}
             >
               ×
             </button>
@@ -269,46 +278,72 @@ Tu compra de ${purchase.service} ha sido aprobada exitosamente
         <div className="p-6">
           <form className="space-y-6">
             {/* Información del cliente */}
-            <div className={`p-6 rounded-xl border-2 ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-700')}`}>
+            <div className={`p-6 rounded-xl border-2 ${tv(isDark, 'bg-gray-50 border-gray-200', 'bg-gray-800 border-gray-700')}`}>
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h4 className={`text-xl font-bold ${tv(isDark,'text-gray-900','text-white')}`}>{purchase.customer}</h4>
-                  <p className={`text-lg font-semibold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                  <h4 className={`text-xl font-bold ${tv(isDark, 'text-gray-900', 'text-white')}`}>{purchase.customer}</h4>
+                  <p className={`text-lg font-semibold ${tv(isDark, 'text-gray-700', 'text-gray-300')}`}>
                     {purchase.service} • {purchase.months} {purchase.months === 1 ? 'mes' : 'meses'}
                   </p>
                 </div>
-                <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tv(isDark,'bg-blue-100','bg-blue-900/30')}`}>
+                <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tv(isDark, 'bg-blue-100', 'bg-blue-900/30')}`}>
                   <span className="text-lg">📱</span>
-                  <span className={`font-semibold ${tv(isDark,'text-blue-800','text-blue-200')}`}>{purchase.phone}</span>
+                  <span className={`font-semibold ${tv(isDark, 'text-blue-800', 'text-blue-200')}`}>{purchase.phone}</span>
                 </div>
               </div>
             </div>
 
+            {/* Auditoría de Precio */}
+            <div className={`p-6 rounded-xl border-2 ${tv(isDark, 'bg-blue-50 border-blue-200', 'bg-blue-900/20 border-blue-700')}`}>
+              <div className="flex items-center gap-3 mb-4">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tv(isDark, 'bg-blue-100', 'bg-blue-900/30')}`}>
+                  💰
+                </div>
+                <h4 className={`text-xl font-bold ${tv(isDark, 'text-gray-900', 'text-white')}`}>Auditoría de Precio</h4>
+              </div>
+              <div className="space-y-2">
+                <label className={`block text-sm font-bold ${tv(isDark, 'text-gray-700', 'text-gray-300')}`}>
+                  Confirmar Precio de Venta (Total) *
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={serviceCredentials.price}
+                  readOnly
+                  className={`w-full rounded-xl border-2 px-4 py-3 text-lg font-bold transition-all bg-gray-100 cursor-not-allowed ${tv(isDark, 'border-gray-300 text-gray-500', 'border-gray-600 bg-gray-800 text-gray-400')}`}
+                  placeholder="0.00"
+                />
+                <p className={`text-xs ${tv(isDark, 'text-gray-500', 'text-gray-400')}`}>
+                  Este valor se usará para calcular tus ingresos totales en los reportes PDF.
+                </p>
+              </div>
+            </div>
+
             {/* Credenciales del servicio */}
-            <div className={`p-6 rounded-xl border-2 ${tv(isDark,'bg-purple-50 border-purple-200','bg-purple-900/20 border-purple-700')}`}>
+            <div className={`p-6 rounded-xl border-2 ${tv(isDark, 'bg-purple-50 border-purple-200', 'bg-purple-900/20 border-purple-700')}`}>
               <div className="flex items-center gap-3 mb-6">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tv(isDark,'bg-yellow-100','bg-yellow-900/30')}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tv(isDark, 'bg-yellow-100', 'bg-yellow-900/30')}`}>
                   🔑
                 </div>
-                <h4 className={`text-xl font-bold ${tv(isDark,'text-gray-900','text-white')}`}>Credenciales del Servicio</h4>
+                <h4 className={`text-xl font-bold ${tv(isDark, 'text-gray-900', 'text-white')}`}>Credenciales del Servicio</h4>
               </div>
-              
+
               {isCombo ? (
                 <div className="space-y-4">
-                  <div className={`p-3 rounded-lg ${tv(isDark,'bg-orange-50 border border-orange-200','bg-orange-900/20 border border-orange-600')}`}>
-                    <p className={`text-sm font-semibold ${tv(isDark,'text-orange-800','text-orange-300')}`}>
+                  <div className={`p-3 rounded-lg ${tv(isDark, 'bg-orange-50 border border-orange-200', 'bg-orange-900/20 border border-orange-600')}`}>
+                    <p className={`text-sm font-semibold ${tv(isDark, 'text-orange-800', 'text-orange-300')}`}>
                       🎁 Combo detectado: Ingresa las credenciales para cada servicio
                     </p>
                   </div>
                   {services.map((service, index) => (
-                    <div key={service} className={`p-4 rounded-lg border ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-600')}`}>
-                      <h5 className={`text-lg font-bold mb-3 ${tv(isDark,'text-gray-800','text-white')}`}>
+                    <div key={service} className={`p-4 rounded-lg border ${tv(isDark, 'bg-gray-50 border-gray-200', 'bg-gray-800 border-gray-600')}`}>
+                      <h5 className={`text-lg font-bold mb-3 ${tv(isDark, 'text-gray-800', 'text-white')}`}>
                         {service} {index === 0 ? '🎬' : index === 1 ? '🎭' : index === 2 ? '🎪' : '🎯'}
                       </h5>
-                      
+
                       <div className="space-y-3">
                         <div>
-                          <label className={`block text-sm font-bold mb-2 ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                          <label className={`block text-sm font-bold mb-2 ${tv(isDark, 'text-gray-700', 'text-gray-300')}`}>
                             📧 Email del {service}
                           </label>
                           <input
@@ -318,13 +353,13 @@ Tu compra de ${purchase.service} ha sido aprobada exitosamente
                               ...prev,
                               [service]: { ...prev[service], email: e.target.value, password: prev[service]?.password || '' }
                             }))}
-                            className={`w-full rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-blue-500','border-gray-600 bg-gray-700 text-white focus:border-blue-400')}`}
+                            className={`w-full rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${tv(isDark, 'border-gray-300 bg-white text-gray-900 focus:border-blue-500', 'border-gray-600 bg-gray-700 text-white focus:border-blue-400')}`}
                             placeholder={`usuario@${service.toLowerCase().replace(/[^a-z]/g, '')}.com`}
                           />
                         </div>
-                        
+
                         <div>
-                          <label className={`block text-sm font-bold mb-2 ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                          <label className={`block text-sm font-bold mb-2 ${tv(isDark, 'text-gray-700', 'text-gray-300')}`}>
                             🔑 Contraseña del {service}
                           </label>
                           <input
@@ -334,7 +369,7 @@ Tu compra de ${purchase.service} ha sido aprobada exitosamente
                               ...prev,
                               [service]: { ...prev[service], password: e.target.value, email: prev[service]?.email || '' }
                             }))}
-                            className={`w-full rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-amber-500/20 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-amber-500','border-gray-600 bg-gray-700 text-white focus:border-amber-400')}`}
+                            className={`w-full rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-amber-500/20 ${tv(isDark, 'border-gray-300 bg-white text-gray-900 focus:border-amber-500', 'border-gray-600 bg-gray-700 text-white focus:border-amber-400')}`}
                             placeholder="••••••••"
                           />
                         </div>
@@ -345,27 +380,27 @@ Tu compra de ${purchase.service} ha sido aprobada exitosamente
               ) : (
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className={`block text-sm font-bold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                    <label className={`block text-sm font-bold ${tv(isDark, 'text-gray-700', 'text-gray-300')}`}>
                       Email del servicio *
                     </label>
                     <input
                       type="email"
                       value={serviceCredentials.email}
-                      onChange={(e) => setServiceCredentials(prev => ({...prev, email: e.target.value}))}
-                      className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200','border-gray-600 bg-gray-700 text-white focus:border-purple-400 focus:ring-purple-800/30')}`}
+                      onChange={(e) => setServiceCredentials(prev => ({ ...prev, email: e.target.value }))}
+                      className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tv(isDark, 'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200', 'border-gray-600 bg-gray-700 text-white focus:border-purple-400 focus:ring-purple-800/30')}`}
                       required
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <label className={`block text-sm font-bold ${tv(isDark,'text-gray-700','text-gray-300')}`}>
+                    <label className={`block text-sm font-bold ${tv(isDark, 'text-gray-700', 'text-gray-300')}`}>
                       Contraseña del servicio *
                     </label>
                     <input
                       type="text"
                       value={serviceCredentials.password}
-                      onChange={(e) => setServiceCredentials(prev => ({...prev, password: e.target.value}))}
-                      className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200','border-gray-600 bg-gray-700 text-white focus:border-purple-400 focus:ring-purple-800/30')}`}
+                      onChange={(e) => setServiceCredentials(prev => ({ ...prev, password: e.target.value }))}
+                      className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tv(isDark, 'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200', 'border-gray-600 bg-gray-700 text-white focus:border-purple-400 focus:ring-purple-800/30')}`}
                       required
                     />
                   </div>
@@ -374,39 +409,39 @@ Tu compra de ${purchase.service} ha sido aprobada exitosamente
             </div>
 
             {/* Información importante del administrador */}
-            <div className={`p-6 rounded-xl border-2 ${tv(isDark,'bg-gray-50 border-gray-200','bg-gray-800 border-gray-700')}`}>
-              <h4 className={`text-lg font-bold mb-4 ${tv(isDark,'text-gray-900','text-white')}`}>Información Importante</h4>
+            <div className={`p-6 rounded-xl border-2 ${tv(isDark, 'bg-gray-50 border-gray-200', 'bg-gray-800 border-gray-700')}`}>
+              <h4 className={`text-lg font-bold mb-4 ${tv(isDark, 'text-gray-900', 'text-white')}`}>Información Importante</h4>
               <textarea
                 value={serviceCredentials.notes}
-                onChange={(e) => setServiceCredentials(prev => ({...prev, notes: e.target.value}))}
+                onChange={(e) => setServiceCredentials(prev => ({ ...prev, notes: e.target.value }))}
                 placeholder="Notas adicionales sobre esta compra..."
-                className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 resize-none ${tv(isDark,'border-gray-300 bg-white text-gray-900 focus:border-gray-500 focus:ring-gray-200','border-gray-600 bg-gray-700 text-white focus:border-gray-400 focus:ring-gray-800/30')}`}
+                className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 resize-none ${tv(isDark, 'border-gray-300 bg-white text-gray-900 focus:border-gray-500 focus:ring-gray-200', 'border-gray-600 bg-gray-700 text-white focus:border-gray-400 focus:ring-gray-800/30')}`}
                 rows={3}
               />
             </div>
 
             {/* Botones de acción */}
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
-              <button 
+              <button
                 onClick={onClose}
-                className={`w-full sm:flex-1 px-6 py-3 rounded-xl font-bold transition-all duration-200 hover:scale-105 ${tv(isDark,'bg-gray-200 text-gray-700 hover:bg-gray-300','bg-gray-700 text-gray-200 hover:bg-gray-600')}`}
+                className={`w-full sm:flex-1 px-6 py-3 rounded-xl font-bold transition-all duration-200 hover:scale-105 ${tv(isDark, 'bg-gray-200 text-gray-700 hover:bg-gray-300', 'bg-gray-700 text-gray-200 hover:bg-gray-600')}`}
               >
                 Cancelar
               </button>
-              
-              <button 
+
+              <button
                 onClick={handleWhatsApp}
-                disabled={isCombo ? 
+                disabled={isCombo ?
                   services.some(service => !multiCredentials[service]?.email || !multiCredentials[service]?.password) :
                   (!serviceCredentials.email || !serviceCredentials.password)
                 }
-                className={`w-full sm:flex-1 px-6 py-3 rounded-xl font-bold transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${tv(isDark,'bg-green-500 text-white hover:bg-green-600','bg-green-600 text-white hover:bg-green-700')}`}
+                className={`w-full sm:flex-1 px-6 py-3 rounded-xl font-bold transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${tv(isDark, 'bg-green-500 text-white hover:bg-green-600', 'bg-green-600 text-white hover:bg-green-700')}`}
               >
                 <span className="text-lg">📱</span>
                 <span className="truncate">Enviar por WhatsApp</span>
               </button>
-              
-              <button 
+
+              <button
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -415,11 +450,11 @@ Tu compra de ${purchase.service} ha sido aprobada exitosamente
                   console.log('🔍 serviceCredentials:', serviceCredentials);
                   handleApprove();
                 }}
-                disabled={loading || (isCombo ? 
+                disabled={loading || (isCombo ?
                   services.some(service => !multiCredentials[service]?.email || !multiCredentials[service]?.password) :
                   (!serviceCredentials.email || !serviceCredentials.password)
                 )}
-                className={`w-full sm:flex-1 px-6 py-3 rounded-xl font-bold transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${tv(isDark,'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl','bg-gradient-to-r from-blue-600 to-purple-700 text-white hover:from-blue-700 hover:to-purple-800 shadow-lg hover:shadow-xl')}`}
+                className={`w-full sm:flex-1 px-6 py-3 rounded-xl font-bold transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${tv(isDark, 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl', 'bg-gradient-to-r from-blue-600 to-purple-700 text-white hover:from-blue-700 hover:to-purple-800 shadow-lg hover:shadow-xl')}`}
               >
                 {loading ? (
                   <div className="flex items-center justify-center gap-2">

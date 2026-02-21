@@ -18,7 +18,7 @@ export function usePurchases(onSetView?: (view: string) => void) {
   // Función para generar mensaje de WhatsApp
   const generateWhatsAppMessage = (purchaseData: any) => {
     const { service, price, duration, devices, customer, phone, email, paymentMethod, notes } = purchaseData;
-    
+
     return `🎬✨ *Nueva Compra - StreamZone* ✨🎬
 
 👋 ¡Hola! Tenemos una nueva compra registrada 👋
@@ -50,7 +50,7 @@ export function usePurchases(onSetView?: (view: string) => void) {
     const whatsappMessage = generateWhatsAppMessage(purchaseData);
     const agent1Link = `https://wa.me/${AGENTE_1_WHATSAPP.replace('+', '')}?text=${encodeURIComponent(whatsappMessage)}`;
     const agent2Link = `https://wa.me/${AGENTE_2_WHATSAPP.replace('+', '')}?text=${encodeURIComponent(whatsappMessage)}`;
-    
+
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
     modal.innerHTML = `
@@ -74,9 +74,9 @@ export function usePurchases(onSetView?: (view: string) => void) {
         </div>
       </div>
     `;
-    
+
     document.body.appendChild(modal);
-    
+
     // Función para cerrar modal de forma segura
     const closeModal = () => {
       try {
@@ -87,7 +87,7 @@ export function usePurchases(onSetView?: (view: string) => void) {
         console.log('Modal ya cerrado');
       }
     };
-    
+
     // Event listeners
     document.getElementById('agent1')?.addEventListener('click', () => {
       closeModal();
@@ -99,7 +99,7 @@ export function usePurchases(onSetView?: (view: string) => void) {
         }
       }, 100);
     });
-    
+
     document.getElementById('agent2')?.addEventListener('click', () => {
       closeModal();
       setTimeout(() => {
@@ -110,17 +110,17 @@ export function usePurchases(onSetView?: (view: string) => void) {
         }
       }, 100);
     });
-    
+
     document.getElementById('closeModal')?.addEventListener('click', closeModal);
   };
 
   // Función principal para procesar compra - 100% GARANTIZADA
   const processPurchase = async (purchaseData: any) => {
     setIsProcessing(true);
-    
+
     try {
       console.log('🛒 Procesando compra para usuario registrado:', purchaseData);
-      
+
       // ✅ GARANTIZAR datos mínimos para usuarios registrados
       const guaranteedData = {
         customer: purchaseData.customer || 'Cliente StreamZone',
@@ -136,24 +136,24 @@ export function usePurchases(onSetView?: (view: string) => void) {
         start: purchaseData.start || new Date().toISOString().slice(0, 10),
         end: purchaseData.end || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
       };
-      
+
       console.log('✅ Datos garantizados para usuario registrado:', guaranteedData);
       console.log('🎯 Mostrando panel de agentes...');
-      
+
       // ✅ Mostrar panel de agentes para usuarios registrados
       showAgentSelection(guaranteedData);
-      
+
       // Intentar guardar en BD en segundo plano (sin bloquear la UI)
       try {
         console.log('💾 Intentando guardar en BD en segundo plano...');
-        
+
         // Buscar usuario existente por email PRIMERO (más confiable)
         console.log('🔍 Buscando usuario existente por email:', purchaseData.email);
         const { data: userByEmail } = await getUserByEmail(purchaseData.email);
-        
+
         let userId = userByEmail?.id;
         let userPhone = userByEmail?.phone;
-        
+
         if (userId) {
           console.log('✅ Usuario encontrado por email:', userId);
           console.log('📱 Teléfono del usuario en BD:', userPhone);
@@ -161,7 +161,7 @@ export function usePurchases(onSetView?: (view: string) => void) {
           // Si no se encuentra por email, buscar por teléfono
           console.log('🔍 Usuario no encontrado por email, buscando por teléfono:', purchaseData.phone);
           const { data: existingUser, error: userError } = await getUserByPhone(purchaseData.phone);
-          
+
           if (existingUser?.id) {
             userId = existingUser.id;
             userPhone = existingUser.phone;
@@ -174,7 +174,7 @@ export function usePurchases(onSetView?: (view: string) => void) {
               phone: purchaseData.phone,
               email: purchaseData.email || 'sin-email@temp.com'
             };
-            
+
             const { data: newUser, error: createError } = await createUser(userData);
             if (createError) {
               console.warn('⚠️ Error creando usuario:', createError);
@@ -188,11 +188,11 @@ export function usePurchases(onSetView?: (view: string) => void) {
             }
           }
         }
-        
+
         // Guardar la compra (pendiente de aprobación) - SOLO campos que existen en la BD
         if (userId) {
           console.log('🎯 TENEMOS userId:', userId);
-          
+
           // ✅ USAR EL TELÉFONO DEL USUARIO EN BD (NO el del formulario)
           const purchaseDataForDB: Omit<DatabasePurchase, 'id' | 'created_at'> = {
             customer: purchaseData.customer,
@@ -201,18 +201,19 @@ export function usePurchases(onSetView?: (view: string) => void) {
             start: purchaseData.start,
             end: purchaseData.end,
             months: purchaseData.duration,
+            price: purchaseData.price || 0,
             validated: false // ✅ PENDIENTE de aprobación del admin
             // ✅ SOLO campos que realmente existen en la tabla purchases
           };
-          
+
           console.log('📱 Teléfono del formulario:', purchaseData.phone);
           console.log('📱 Teléfono de la BD (usado):', userPhone || purchaseData.phone);
-          
+
           console.log('💾 Guardando compra pendiente en BD (campos correctos):', purchaseDataForDB);
           console.log('🔍 Llamando a createPurchase con:', JSON.stringify(purchaseDataForDB, null, 2));
-          
+
           const { data: savedPurchase, error: purchaseError } = await createPurchase(purchaseDataForDB);
-          
+
           if (purchaseError) {
             console.error('❌ Error guardando compra:', purchaseError);
             console.error('❌ Detalles del error:', JSON.stringify(purchaseError, null, 2));
@@ -223,7 +224,7 @@ export function usePurchases(onSetView?: (view: string) => void) {
             console.log('✅ ID de la compra guardada:', savedPurchase?.id);
             console.log('✅ Validated status:', savedPurchase?.validated);
             console.log('🎯 ¡COMPRA GUARDADA EXITOSAMENTE! Debería aparecer en admin.');
-            
+
             // 🔄 FORZAR RECARGA INMEDIATA DE COMPRAS PENDIENTES
             console.log('🔄 Forzando recarga inmediata de compras pendientes...');
             setTimeout(async () => {
@@ -245,7 +246,7 @@ export function usePurchases(onSetView?: (view: string) => void) {
         console.warn('⚠️ Error en BD (no crítico):', dbError);
         // No mostrar error al usuario, el panel de agentes ya se mostró
       }
-      
+
     } catch (error) {
       console.error('❌ Error crítico:', error);
       // Solo mostrar error si realmente no se puede mostrar el panel de agentes

@@ -59,6 +59,7 @@ export interface DatabasePurchase {
   renewal_status?: 'none' | 'pending' | 'success' | 'failed';
   original_purchase_id?: string;
   is_renewal?: boolean;
+  price?: number;
 }
 
 export interface RenewalHistory {
@@ -244,7 +245,8 @@ export const createPurchase = async (purchaseData: Omit<DatabasePurchase, 'id' |
       last_renewal_attempt: purchaseData.last_renewal_attempt || null,
       renewal_status: purchaseData.renewal_status || 'none',
       original_purchase_id: purchaseData.original_purchase_id || null,
-      is_renewal: purchaseData.is_renewal || false
+      is_renewal: purchaseData.is_renewal || false,
+      price: purchaseData.price || 0
     };
 
     console.log('💾 createPurchase: Datos limpios:', cleanPurchaseData);
@@ -540,7 +542,8 @@ export const approvePurchase = async (
   serviceEmail: string,
   servicePassword: string,
   adminNotes?: string,
-  approvedBy?: string
+  approvedBy?: string,
+  price?: number
 ) => {
   console.log('🔍 approvePurchase: Verificando configuración de Supabase...');
   console.log('🔍 supabase client:', supabase);
@@ -567,7 +570,8 @@ export const approvePurchase = async (
         service_email: serviceEmail,
         service_password: servicePassword,
         admin_notes: adminNotes,
-        approved_by: approvedBy
+        approved_by: approvedBy,
+        price: price !== undefined ? price : undefined
       })
       .eq('id', purchaseId)
       .select()

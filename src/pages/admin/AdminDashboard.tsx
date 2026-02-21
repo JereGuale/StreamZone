@@ -255,19 +255,19 @@ export function AdminDashboard({
 
         <button
           onClick={() => setAdminView('products')}
-          className={`group relative flex flex-col items-center p-6 rounded-2xl border transition-all hover:scale-[1.03] text-center overflow-hidden ${tv(isDark, 'bg-white border-gray-100 shadow-sm hover:border-cyan-200', 'bg-zinc-900/50 border-white/5 shadow-xl hover:border-cyan-500/20')}`}
+          className={`group relative flex flex-col items-center p-6 rounded-2xl border transition-all hover:scale-[1.03] text-center overflow-hidden ${tv(isDark, 'bg-white border-gray-100 shadow-sm hover:border-amber-200', 'bg-zinc-900/50 border-white/5 shadow-xl hover:border-amber-500/20')}`}
         >
           {/* Top colored border highlight */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-cyan-500"></div>
+          <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500"></div>
 
-          <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center mb-4 border border-cyan-500/20 text-cyan-400 group-hover:scale-110 transition-transform">
+          <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center mb-4 border border-amber-500/20 text-amber-400 group-hover:scale-110 transition-transform">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
           </div>
           <h4 className={`text-sm sm:text-base font-black tracking-tight mb-2 ${tv(isDark, 'text-gray-900', 'text-white')}`}>GESTIONAR PRODUCTOS</h4>
           <p className={`text-[10px] sm:text-xs font-medium px-2 leading-relaxed opacity-60 ${tv(isDark, 'text-gray-600', 'text-gray-400')}`}>
-            Edita servicios, precios y combos activos
+            Servicios individuales y combos
           </p>
         </button>
       </div>
@@ -403,11 +403,7 @@ export function AdminDashboard({
         open={adminMenuOpen}
         onClose={() => setAdminMenuOpen(false)}
         isDark={isDark}
-        setSubView={(v) => {
-          if (v === 'dashboard') setAdminView('dashboard');
-          if (v === 'purchases') setAdminView('purchases');
-          if (v === 'products') setAdminView('products');
-        }}
+        setSubView={setAdminView}
         openAdmins={() => setAdminDrawerOpen(true)}
         onExportCSV={onExportCSV}
         onLogout={onLogout}
