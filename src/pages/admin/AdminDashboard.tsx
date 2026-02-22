@@ -316,11 +316,12 @@ export function AdminDashboard({
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3">
                     <span className="text-2xl animate-pulse">⏳</span>
-                    <h4 className={`text-xl font-black tracking-tight ${tv(isDark, 'text-gray-900', 'text-white')}`}>
+                    <h4 className={`text-xl font-bold tracking-tight ${tv(isDark, 'text-gray-900', 'text-white')}`}>
                       Compras Pendientes
                     </h4>
                   </div>
-                  <span className="px-4 py-1.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 text-xs font-black uppercase tracking-wider">
+                  <span className="flex items-center gap-1.5 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#f59e0b] text-zinc-900 text-[10px] sm:text-xs font-bold tracking-wide shadow-sm">
+                    <div className="w-1.5 h-1.5 rounded-full bg-zinc-900"></div>
                     {pendingPurchases.length} pendientes
                   </span>
                 </div>
@@ -356,9 +357,18 @@ export function AdminDashboard({
 
             {adminPurchaseView === 'active' && (
               <div>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
-                  <h4 className={`text-lg sm:text-xl font-bold ${tv(isDark, 'text-zinc-900', 'text-white')}`}>✅ Compras Activas</h4>
-                  <span className={`px-4 py-2 rounded-full text-sm font-semibold border-2 ${tv(isDark, 'bg-green-200 text-green-900 border-green-400', 'bg-green-800 text-green-100 border-green-500')}`}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-2">
+                  <div className="flex items-center gap-3">
+                    <span className="flex items-center justify-center w-6 h-6 rounded bg-[#4ade80] text-white text-sm shadow-sm">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </span>
+                    <h4 className={`text-xl font-bold tracking-tight ${tv(isDark, 'text-gray-900', 'text-white')}`}>
+                      Compras Activas
+                    </h4>
+                  </div>
+                  <span className="flex items-center gap-1.5 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#86efac] border border-[#4ade80] text-[#166534] text-[10px] sm:text-xs font-bold tracking-wide shadow-sm">
                     {activePurchases.length} activas
                   </span>
                 </div>
