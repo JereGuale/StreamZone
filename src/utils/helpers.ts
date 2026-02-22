@@ -2,58 +2,59 @@
 export const fmt = (n: number) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "USD" }).format(n);
 
 export const storage = {
-  load<T>(key: string, fallback: T): T { 
-    try { 
-      return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)) as T; 
-    } catch { 
-      return fallback; 
-    } 
+  load<T>(key: string, fallback: T): T {
+    try {
+      return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)) as T;
+    } catch {
+      return fallback;
+    }
   },
-  save<T>(key: string, val: T) { 
-    localStorage.setItem(key, JSON.stringify(val)); 
+  save<T>(key: string, val: T) {
+    localStorage.setItem(key, JSON.stringify(val));
   },
-  del(key: string){ 
-    localStorage.removeItem(key); 
+  del(key: string) {
+    localStorage.removeItem(key);
   }
 };
 
-export function uid(){ 
-  return Math.random().toString(36).slice(2,10); 
+export function uid() {
+  return Math.random().toString(36).slice(2, 10);
 }
 
-export function daysBetween(a: string, b: string){ 
+export function daysBetween(a: string, b: string) {
   const date1 = new Date(a);
   const date2 = new Date(b);
   const diffTime = date2.getTime() - date1.getTime();
   return Math.floor(diffTime / (1000 * 60 * 60 * 24));
 }
 
-export function whatsappLink(to: string, text: string){ 
-  return `https://wa.me/${to}?text=${encodeURIComponent(text)}`; 
+export function whatsappLink(to: string, text: string) {
+  return `https://api.whatsapp.com/send?phone=${to}&text=${encodeURIComponent(text)}`;
 }
 
 // Función mejorada para codificar mensajes de WhatsApp preservando emojis
 export function whatsappLinkWithEmojis(to: string, text: string): string {
   // Usar encodeURIComponent pero con una codificación más específica
   const encodedText = encodeURIComponent(text);
-  return `https://wa.me/${to}?text=${encodedText}`;
+  return `https://api.whatsapp.com/send?phone=${to}&text=${encodedText}`;
 }
 
 // Función simple que funciona mejor con WhatsApp
 export function whatsappLinkSimple(to: string, text: string): string {
   // Crear URL directamente sin codificación excesiva
-  const baseUrl = `https://wa.me/${to}`;
+  const baseUrl = `https://api.whatsapp.com/send`;
   const params = new URLSearchParams();
+  params.set('phone', to);
   params.set('text', text);
   return `${baseUrl}?${params.toString()}`;
 }
 
-export function tv<T>(isDark: boolean, light: T, dark: T){ 
-  return isDark? dark : light; 
+export function tv<T>(isDark: boolean, light: T, dark: T) {
+  return isDark ? dark : light;
 }
 
 // Función mejorada para contraste que considera el modo del sistema
-export function tvContrast<T>(isDark: boolean, systemPrefersDark: boolean, light: T, dark: T, lightHighContrast?: T){ 
+export function tvContrast<T>(isDark: boolean, systemPrefersDark: boolean, light: T, dark: T, lightHighContrast?: T) {
   if (lightHighContrast && !systemPrefersDark && !isDark) {
     return lightHighContrast;
   }
@@ -80,7 +81,7 @@ export const getServiceDays = (startDate: string, endDate: string): number => {
 
 export const getServiceStatus = (endDate: string): { status: string; color: string; icon: string; message: string } => {
   const daysRemaining = getDaysRemaining(endDate);
-  
+
   if (daysRemaining < 0) {
     return {
       status: 'expired',
@@ -105,56 +106,56 @@ export const getServiceStatus = (endDate: string): { status: string; color: stri
   }
 };
 
-export function ownPurchases(list: any[], user: any){ 
-  if(!user) return []; 
-  return list.filter(p=>p.validated && p.phone===user.phone); 
+export function ownPurchases(list: any[], user: any) {
+  if (!user) return [];
+  return list.filter(p => p.validated && p.phone === user.phone);
 }
 
-export function cleanPhone(value: string){ 
+export function cleanPhone(value: string) {
   return value.replace(/[^\d]/g, '');
 }
 
 export function formatPhoneNumber(phone: string, countryCode: string = '+593'): string {
   const cleaned = cleanPhone(phone);
   if (cleaned.length === 0) return '';
-  
+
   // Si ya tiene código de país, no agregar otro
   if (cleaned.startsWith('593') && cleaned.length >= 9) {
     return `+${cleaned}`;
   }
-  
+
   // Si es un número local (9 dígitos), agregar código de país
   if (cleaned.length === 9) {
     return `${countryCode}${cleaned}`;
   }
-  
+
   // Si es un número con código de país pero sin el +
   if (cleaned.length === 12 && cleaned.startsWith('593')) {
     return `+${cleaned}`;
   }
-  
+
   return cleaned;
 }
 
 export function formatPhoneForWhatsApp(phone: string, countryCode: string = '593'): string {
   const cleaned = cleanPhone(phone);
   if (cleaned.length === 0) return '';
-  
+
   // Si ya tiene código de país, no agregar otro
   if (cleaned.startsWith('593') && cleaned.length >= 9) {
     return cleaned;
   }
-  
+
   // Si es un número local (9 dígitos), agregar código de país
   if (cleaned.length === 9) {
     return `${countryCode}${cleaned}`;
   }
-  
+
   return cleaned;
 }
 
-export function emailOk(e: string){ 
-  return /.+@.+\..+/.test(e); 
+export function emailOk(e: string) {
+  return /.+@.+\..+/.test(e);
 }
 
 export function getServiceDescription(serviceId: string): string {

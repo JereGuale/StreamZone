@@ -18,38 +18,31 @@ export function usePurchases(onSetView?: (view: string) => void) {
   // Función para generar mensaje de WhatsApp
   const generateWhatsAppMessage = (purchaseData: any) => {
     const { service, price, duration, devices, customer, phone, email, paymentMethod, notes } = purchaseData;
+    const durationText = duration === 1 ? '1 mes' : `${duration} meses`;
+    const emailText = email ? `\n📧 *Email:* ${email}` : '';
+    const notesText = notes ? `\n📝 *Nota:* ${notes}` : '';
 
-    return `🎬✨ *Nueva Compra - StreamZone* ✨🎬
+    return `👋 ¡Hola! Quiero confirmar mi compra en *StreamZone* 🍿
 
-👋 ¡Hola! Tenemos una nueva compra registrada 👋
+👤 *Mis Datos:*
+• ${customer}
+• ${phone}${emailText}
 
-👤 *Cliente:* ${customer}
-📱 *WhatsApp:* ${phone}
-📧 *Email:* ${email || 'No proporcionado'}
+🛒 *Mi Pedido:*
+• 🍿 *Servicio:* ${service}
+• ⏳ *Tiempo:* ${durationText}
+• 📺 *Pantallas:* ${devices}
+• 💳 *Pago:* ${paymentMethod}
+• 💵 *Total:* $${price}${notesText}
 
-🎯 *Detalles del Servicio:*
-🎬 *Servicio:* ${service}
-💰 *Precio:* $${price}
-⏱️ *Duración:* ${duration} ${duration === 1 ? 'mes' : 'meses'}
-📱 *Dispositivos:* ${devices}
-💳 *Método de pago:* ${paymentMethod}
-📝 *Notas:* ${notes || 'Ninguna'}
-
-💳 *Datos para transferencia:*
-🏦 *Pichincha:* ${PAYMENT_METHODS.PICHINCHA}
-🏛️ *Guayaquil:* ${PAYMENT_METHODS.GUAYAQUIL}
-🌊 *Pacífico:* ${PAYMENT_METHODS.PACIFICO}
-💳 *PayPal:* ${PAYMENT_METHODS.PAYPAL}
-
-🎉✨ ¡Gracias por tu compra! ✨🎉
-💝 ¡Esperamos que disfrutes tu servicio! 💝`;
+Quedo atento/a para enviar el comprobante de pago y recibir mis credenciales. ¡Gracias! ✨`;
   };
 
   // Función para mostrar modal de selección de agente
   const showAgentSelection = (purchaseData: any) => {
     const whatsappMessage = generateWhatsAppMessage(purchaseData);
-    const agent1Link = `https://wa.me/${AGENTE_1_WHATSAPP.replace('+', '')}?text=${encodeURIComponent(whatsappMessage)}`;
-    const agent2Link = `https://wa.me/${AGENTE_2_WHATSAPP.replace('+', '')}?text=${encodeURIComponent(whatsappMessage)}`;
+    const agent1Link = `https://api.whatsapp.com/send?phone=${AGENTE_1_WHATSAPP.replace('+', '')}&text=${encodeURIComponent(whatsappMessage)}`;
+    const agent2Link = `https://api.whatsapp.com/send?phone=${AGENTE_2_WHATSAPP.replace('+', '')}&text=${encodeURIComponent(whatsappMessage)}`;
 
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
