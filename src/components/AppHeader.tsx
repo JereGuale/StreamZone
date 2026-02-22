@@ -78,23 +78,7 @@ export function AppHeader({ isDark, view, user, adminLogged, setView, handleLogo
               </span>
             </button>
 
-            {/* Combos — visible only when logged in */}
-            {user && (
-              <button
-                onClick={() => setView('combos')}
-                className={`relative px-3 sm:px-4 py-2 rounded-xl font-semibold transition-all duration-300 text-xs sm:text-sm ${view === 'combos'
-                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/25'
-                  : tv(isDark, 'text-gray-600 hover:text-gray-900 hover:bg-gray-100', 'text-gray-400 hover:text-white hover:bg-white/10')
-                  }`}
-              >
-                <span className="flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                  </svg>
-                  <span className="hidden xs:inline sm:inline">Combos</span>
-                </span>
-              </button>
-            )}
+
 
             {/* User section */}
             {user ? (
