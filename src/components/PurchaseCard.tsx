@@ -156,10 +156,10 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
             </div>
 
             {/* Right side: Actions */}
-            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2 shrink-0 relative z-10">
               <button
-                onClick={onToggleValidate}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#0e7490] hover:bg-[#164e63] text-white font-semibold text-sm transition-colors"
+                onClick={(e) => { e.stopPropagation(); onToggleValidate(); }}
+                className="flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-lg bg-[#0e7490] hover:bg-[#164e63] text-white font-semibold text-sm transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -167,8 +167,8 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
                 Aprobar
               </button>
               <button
-                onClick={onDelete}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-semibold text-sm transition-colors ${tv(isDark, 'text-gray-700 hover:bg-gray-100', 'text-zinc-300 hover:bg-zinc-800')}`}
+                onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                className={`flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-lg font-semibold text-sm transition-colors ${tv(isDark, 'text-gray-700 hover:bg-gray-100 border border-gray-200', 'text-zinc-300 hover:bg-zinc-800 border border-zinc-700')}`}
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
