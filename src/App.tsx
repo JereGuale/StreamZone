@@ -10,6 +10,7 @@ import { FloatingThemeToggle } from "./components/FloatingThemeToggle";
 import { ModalsManager } from "./components/ModalsManager";
 import { ApprovePurchaseModal } from "./components/ApprovePurchaseModal";
 import { ErrorModal } from "./components/ErrorModal";
+import { ConfirmActionModal } from "./components/ConfirmActionModal";
 import { useChatbot } from "./chatbot/useChatbot";
 import { useReservations } from "./hooks/useReservations";
 import { usePurchases } from "./hooks/usePurchases";
@@ -54,7 +55,8 @@ function App() {
     setAdminRegisterPurchaseOpen, editPurchaseOpen, setEditPurchaseOpen,
     editingPurchase, setEditingPurchase, approvePurchaseOpen, setApprovePurchaseOpen,
     selectedPurchase, setSelectedPurchase, adminEmails,
-    handleToggleValidate, handleDeletePurchase, handleEditPurchase, handleReminderPurchase, handleApproveSuccess, handleUpdatePurchase, handleExportCSV
+    handleToggleValidate, handleDeletePurchase, handleEditPurchase, handleReminderPurchase, handleApproveSuccess, handleUpdatePurchase, handleExportCSV,
+    confirmActionOpen, setConfirmActionOpen, confirmActionData
   } = useAdmin(supabaseData.allPurchases, (newPurchases) => {
     setAllPurchases(newPurchases);
     // También actualizar en Supabase si es necesario
@@ -289,6 +291,21 @@ function App() {
         isDark={isDark}
         showRetry={false}
       />
+
+      {/* Modal de confirmación de eliminación/invalidación */}
+      {confirmActionData && (
+        <ConfirmActionModal
+          isOpen={confirmActionOpen}
+          onClose={() => setConfirmActionOpen(false)}
+          onConfirm={confirmActionData.action}
+          title={confirmActionData.title}
+          message={confirmActionData.message}
+          isDark={isDark}
+          isDanger={confirmActionData.isDanger}
+          requireConfirmationText={confirmActionData.requireText}
+          confirmText={confirmActionData.confirmText}
+        />
+      )}
 
       {/* Componentes flotantes */}
       <FloatingChatbot answerFn={chatbot.answer} isDark={isDark} />

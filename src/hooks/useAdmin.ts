@@ -38,6 +38,22 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
   const [approvePurchaseOpen, setApprovePurchaseOpen] = useState(false);
   const [selectedPurchase, setSelectedPurchase] = useState<DatabasePurchase | null>(null);
 
+  // Estado para modal de confirmación
+  const [confirmActionOpen, setConfirmActionOpen] = useState(false);
+  const [confirmActionData, setConfirmActionData] = useState<{
+    action: () => void;
+    title: string;
+    message: string;
+    isDanger?: boolean;
+    requireText?: string;
+    confirmText?: string;
+  } | null>(null);
+
+  const openConfirmModal = (title: string, message: string, onConfirm: () => void, isDanger = false, requireText?: string, confirmText?: string) => {
+    setConfirmActionData({ title, message, action: onConfirm, isDanger, requireText, confirmText });
+    setConfirmActionOpen(true);
+  };
+
   // Lista de emails para compatibilidad con login
   const adminEmails = adminUsers.map(user => user.email);
 
@@ -58,49 +74,54 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
       return;
     }
 
-    if (!confirm(`¿Estás seguro de que quieres ${action} la compra de ${purchase.customer} - ${purchase.service}?`)) {
-      return;
-    }
+    openConfirmModal(
+      'Invalidar Compra',
+      `¿Estás seguro de que quieres ${action} la compra de ${purchase.customer} - ${purchase.service}?`,
+      async () => {
+        setLoading(true);
+        try {
+          const { error } = await supabase
+            .from('purchases')
+            .update({ validated: false })
+            .eq('id', purchaseId);
 
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from('purchases')
-        .update({ validated: false })
-        .eq('id', purchaseId);
+          if (error) throw error;
 
-      if (error) throw error;
+          setPurchases(prev =>
+            prev.map(p =>
+              p.id === purchaseId
+                ? { ...p, validated: false }
+                : p
+            )
+          );
 
-      setPurchases(prev =>
-        prev.map(p =>
-          p.id === purchaseId
-            ? { ...p, validated: false }
-            : p
-        )
-      );
+          setMsg(`✅✨ Compra invalidada exitosamente ✨✅`);
+          setTimeout(() => setMsg(''), 3000);
 
-      setMsg(`✅✨ Compra invalidada exitosamente ✨✅`);
-      setTimeout(() => setMsg(''), 3000);
-
-      if (refreshFromSupabase) await refreshFromSupabase();
-    } catch (error) {
-      console.error('Error al actualizar compra:', error);
-      setMsg('❌ Error al actualizar la compra');
-      setTimeout(() => setMsg(''), 3000);
-    } finally {
-      setLoading(false);
-    }
+          if (refreshFromSupabase) await refreshFromSupabase();
+        } catch (error) {
+          console.error('Error al actualizar compra:', error);
+          setMsg('❌ Error al actualizar la compra');
+          setTimeout(() => setMsg(''), 3000);
+        } finally {
+          setLoading(false);
+        }
+      },
+      true,
+      undefined,
+      'Invalidar'
+    );
   };
 
   const handleDeletePurchase = async (purchaseId: string) => {
     const purchase = purchases.find(p => p.id === purchaseId);
     if (!purchase) return;
 
+    const title = purchase.validated ? 'Eliminar Compra Permanentemente' : 'Rechazar Compra';
     const warning = purchase.validated
-      ? `⚠️ ADVERTENCIA: ¿Estás seguro de que quieres ELIMINAR PERMANENTEMENTE a ${purchase.customer}?\n\nEscribe "ELIMINAR" para confirmar:`
+      ? `⚠️ ADVERTENCIA: ¿Estás seguro de que quieres ELIMINAR PERMANENTEMENTE a ${purchase.customer}?`
       : `¿Estás seguro de que quieres rechazar la compra de ${purchase.customer}?`;
-
-    if (!confirm(warning)) return;
+    const requireText = purchase.validated ? 'ELIMINAR' : undefined;
 
     if (!supabase) {
       setMsg('❌ Error: Base de datos no disponible');
@@ -108,32 +129,36 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
       return;
     }
 
-    if (purchase.validated) {
-      const confirmation = prompt('Escribe exactamente: ELIMINAR');
-      if (confirmation !== 'ELIMINAR') return;
-    }
+    openConfirmModal(
+      title,
+      warning,
+      async () => {
+        setLoading(true);
+        try {
+          const { error } = await supabase
+            .from('purchases')
+            .delete()
+            .eq('id', purchaseId);
 
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from('purchases')
-        .delete()
-        .eq('id', purchaseId);
+          if (error) throw error;
 
-      if (error) throw error;
+          setPurchases(prev => prev.filter(p => p.id !== purchaseId));
+          setMsg(`✅✨ Compra eliminada exitosamente ✨✅`);
+          setTimeout(() => setMsg(''), 3000);
 
-      setPurchases(prev => prev.filter(p => p.id !== purchaseId));
-      setMsg(`✅✨ Compra eliminada exitosamente ✨✅`);
-      setTimeout(() => setMsg(''), 3000);
-
-      if (refreshFromSupabase) await refreshFromSupabase();
-    } catch (error) {
-      console.error('Error al eliminar compra:', error);
-      setMsg('❌ Error al eliminar la compra');
-      setTimeout(() => setMsg(''), 3000);
-    } finally {
-      setLoading(false);
-    }
+          if (refreshFromSupabase) await refreshFromSupabase();
+        } catch (error) {
+          console.error('Error al eliminar compra:', error);
+          setMsg('❌ Error al eliminar la compra');
+          setTimeout(() => setMsg(''), 3000);
+        } finally {
+          setLoading(false);
+        }
+      },
+      true,
+      requireText,
+      purchase.validated ? 'Eliminar' : 'Rechazar'
+    );
   };
 
   const handleEditPurchase = (purchase: DatabasePurchase) => {
@@ -398,6 +423,7 @@ export const useAdmin = (purchases: any[] = [], setPurchases: (purchases: any[] 
     editPurchaseOpen, setEditPurchaseOpen, editingPurchase, setEditingPurchase,
     approvePurchaseOpen, setApprovePurchaseOpen, selectedPurchase, setSelectedPurchase,
     adminEmails, handleToggleValidate, handleDeletePurchase, handleEditPurchase,
-    handleReminderPurchase, handleApproveSuccess, handleUpdatePurchase, handleExportCSV
+    handleReminderPurchase, handleApproveSuccess, handleUpdatePurchase, handleExportCSV,
+    confirmActionOpen, setConfirmActionOpen, confirmActionData
   };
 };
