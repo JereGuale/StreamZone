@@ -9,108 +9,128 @@ interface CombosProps {
 }
 
 export const Combos = ({ isDark, onReserve, combos }: CombosProps) => {
-  const getPremiumGradient = (colorClass: string) => {
-    const c = colorClass.toLowerCase();
-    if (c.includes('red')) return 'bg-gradient-to-br from-red-600/90 to-purple-900/90';
-    if (c.includes('blue')) return 'bg-gradient-to-br from-blue-600/90 to-indigo-900/90';
-    if (c.includes('purple')) return 'bg-gradient-to-br from-purple-600/90 to-pink-900/90';
-    if (c.includes('orange') || c.includes('amber')) return 'bg-gradient-to-br from-orange-500/90 to-red-800/90';
-    if (c.includes('green')) return 'bg-gradient-to-br from-green-500/90 to-cyan-900/90';
-    if (c.includes('indigo')) return 'bg-gradient-to-br from-indigo-600/90 to-slate-900/90';
-    return 'bg-gradient-to-br from-zinc-800 to-zinc-950';
-  };
-
   return (
-    <section className="mx-auto max-w-7xl px-4 sm:px-6 pb-16">
-      <div className={`mb-8 p-6 sm:p-8 rounded-2xl ${tv(isDark, 'bg-white/10 backdrop-blur-md border border-white/20 shadow-xl', 'bg-gray-800/40 backdrop-blur-md border border-white/10 shadow-xl')}`}>
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xl shadow-inner">
-            <div className="w-6 h-6 rounded-full border-2 border-pink-500/50 flex items-center justify-center">
-              <div className="w-2 h-2 rounded-full bg-pink-500 shadow-[0_0_10px_#ec4899]"></div>
-            </div>
+    <div className={`relative min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#0B1120]' : 'bg-white'}`}>
+      {/* Background Pattern - Mirrored from Home */}
+      <div className="absolute inset-x-0 top-0 h-[500px] pointer-events-none">
+        <div className={`absolute inset-0 ${isDark
+          ? 'bg-gradient-to-br from-blue-950/50 via-purple-950/50 to-pink-950/50'
+          : 'bg-gradient-to-br from-blue-50/50 via-purple-50/50 to-pink-50/50'
+          }`}></div>
+        <div className={`absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t ${isDark ? 'from-[#0B1120]' : 'from-white'} to-transparent`}></div>
+      </div>
+
+      <section className="relative mx-auto max-w-7xl px-4 sm:px-6 py-12 md:py-20">
+        {/* Header Mirroring Home Category Style */}
+        <div className="text-center mb-12 md:mb-16">
+          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border transition-colors mb-6 ${isDark ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-600'}`}>
+            <span className="text-lg">💎</span>
+            <span className="text-xs font-bold uppercase tracking-widest">Promociones Especiales</span>
           </div>
-          <div>
-            <h3 className="text-2xl sm:text-3xl font-bold text-white">Combos Especiales</h3>
-            <p className="text-sm sm:text-base text-gray-400">Ahorra más con nuestras combinaciones exclusivas</p>
-          </div>
+
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold leading-[1.1] tracking-tight mb-6">
+            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Combos Especiales
+            </span>
+          </h1>
+
+          <p className={`text-sm sm:text-base md:text-lg max-w-2xl mx-auto font-medium leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+            Ahorra más con nuestras combinaciones exclusivas. <br className="hidden sm:block" />
+            Elige el plan que mejor se adapte a tu entretenimiento.
+          </p>
         </div>
-      </div>
 
-      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-7xl mx-auto">
-        {combos.map((combo) => {
-          const logos = getComboLogos(combo.id, 24, combo.name);
-          const gradient = getPremiumGradient(combo.color || '');
+        {/* Cards Grid - Mirroring ServiceCard.tsx */}
+        <div className="grid gap-6 sm:gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {combos.map((combo) => {
+            const logos = getComboLogos(combo.id, 40, combo.name);
 
-          return (
-            <div
-              key={combo.id}
-              className={`group flex flex-col ${gradient} rounded-xl p-6 text-white shadow-2xl border border-white/5 transition-all duration-300 hover:scale-[1.02]`}
-            >
-              {/* Row 1: Logos (Top) */}
-              <div className="flex items-center -space-x-1 mb-3">
-                {logos.length > 0 ? (
-                  logos.map((logo, i) => (
-                    <div
-                      key={i}
-                      className="w-10 h-10 rounded-lg bg-black/40 backdrop-blur-sm border border-white/20 flex items-center justify-center overflow-hidden shadow-lg"
-                      style={{ zIndex: logos.length - i }}
-                    >
-                      {logo}
-                    </div>
-                  ))
-                ) : (
-                  <div className="w-12 h-12 rounded-lg bg-black/40 border border-white/20 flex items-center justify-center overflow-hidden">
-                    {combo.logo?.startsWith('http') ? (
-                      <img src={combo.logo} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="font-bold">{combo.logo || combo.name.charAt(0)}</span>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Row 2: Price (Below Logos) */}
-              <div className="mb-4">
-                <div className="text-2xl font-black tracking-tight leading-none">
-                  US$ {combo.price.toFixed(2).replace('.', ',')}
-                </div>
-                <div className="text-[10px] sm:text-xs font-bold opacity-60 mt-1 uppercase tracking-widest">por mes</div>
-              </div>
-
-              {/* Row 3: Title */}
-              <h4 className="text-xl font-bold mb-6 min-h-[3rem] leading-snug">{combo.name}</h4>
-
-              {/* Row 4: Features */}
-              <div className="space-y-4 mb-8 flex-1">
-                <div className="flex items-start gap-3">
-                  <span className="text-lg opacity-80">🐷</span>
-                  <p className="text-xs sm:text-sm font-medium leading-tight opacity-90">Ahorro significativo vs compras individuales</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-lg opacity-80">📺</span>
-                  <p className="text-xs sm:text-sm font-medium leading-tight opacity-90">
-                    {combo.name.toLowerCase().includes('max') ? 'Acceso completo a todas las plataformas en 4K' : 'Acceso completo a todas las plataformas'}
-                  </p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-lg opacity-80">⚡</span>
-                  <p className="text-xs sm:text-sm font-medium leading-tight opacity-90">Activación inmediata</p>
-                </div>
-              </div>
-
-              {/* Row 5: Button */}
-              <button
-                onClick={() => onReserve(combo)}
-                className="w-full bg-white/10 hover:bg-white/20 border border-white/10 py-3 rounded-lg font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 shadow-lg"
+            return (
+              <div
+                key={combo.id}
+                className={`group relative p-6 sm:p-7 rounded-[32px] border transition-all duration-500 hover:-translate-y-2 flex flex-col items-center text-center shadow-lg ${tv(isDark,
+                  'bg-white border-gray-100 hover:shadow-blue-500/10',
+                  'bg-[#0F172A] border-white/5 hover:shadow-blue-500/20 shadow-[0_8px_30px_rgb(0,0,0,0.5)]'
+                )}`}
               >
-                <span>🚀</span>
-                <span>Comprar Combo</span>
-                <span className="text-yellow-400">✨</span>
-              </button>
-            </div>
-          );
-        })}
-      </div>
-    </section>
+                {/* Logo Section */}
+                <div className="relative mt-2 mb-6 w-full flex justify-center -space-x-4">
+                  {logos.length > 0 ? (
+                    logos.map((logo, i) => (
+                      <div
+                        key={i}
+                        className={`w-16 h-16 sm:w-20 sm:h-20 rounded-[1.2rem] sm:rounded-3xl shadow-xl border border-white/10 flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-110 ${isDark ? 'bg-gray-800' : 'bg-gray-50'}`}
+                        style={{ zIndex: logos.length - i }}
+                      >
+                        <div className="w-full h-full p-3">{logo}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-[1.2rem] sm:rounded-3xl shadow-xl border border-white/10 flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-110 ${isDark ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'}`}>
+                      <span className="text-2xl font-bold">{combo.name.charAt(0)}</span>
+                    </div>
+                  )}
+
+                  {/* Green Check Badge */}
+                  <div className="absolute -top-1 right-1/4 translate-x-1/2 z-20 w-5 h-5 sm:w-7 sm:h-7 bg-emerald-500 rounded-full flex items-center justify-center border-2 shadow-md" style={{ borderColor: isDark ? '#0F172A' : '#FFFFFF' }}>
+                    <span className="text-white text-[10px] sm:text-xs font-bold">✓</span>
+                  </div>
+                </div>
+
+                {/* Info Container */}
+                <div className="w-full flex-1 flex flex-col">
+                  <h3 className={`text-xl font-bold mb-6 px-2 line-clamp-2 min-h-[3.5rem] flex items-center justify-center tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {combo.name}
+                  </h3>
+
+                  {/* Benefits Grid */}
+                  <div className={`grid grid-cols-2 gap-2 mb-8 p-3 rounded-2xl border ${isDark ? 'bg-black/20 border-white/5' : 'bg-gray-50/50 border-gray-100'}`}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs">🎬</span>
+                      <span className={`text-[10px] font-bold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>4K Ultra HD</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs">💰</span>
+                      <span className={`text-[10px] font-bold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Gran Ahorro</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs">🔒</span>
+                      <span className={`text-[10px] font-bold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Garantía Total</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs">⭐</span>
+                      <span className={`text-[10px] font-bold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Soporte 24/7</span>
+                    </div>
+                  </div>
+
+                  {/* Price Box */}
+                  <div className={`w-full py-4 px-4 rounded-3xl border flex flex-col items-center justify-center mb-6 transition-transform group-hover:scale-[1.02] ${isDark ? 'bg-[#0B1120] border-blue-500/20 shadow-[inset_0_0_20px_rgba(59,130,246,0.05)]' : 'bg-gray-50 border-blue-100'}`}>
+                    <div className="flex items-center">
+                      <span className={`text-3xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        US${combo.price.toFixed(2).replace('.', ',')}
+                      </span>
+                      <span className={`text-sm font-bold ml-1.5 mt-2 ${isDark ? 'text-blue-400/60' : 'text-blue-600/60'}`}>
+                        /mes
+                      </span>
+                    </div>
+                    <p className={`text-[9px] font-black uppercase tracking-[0.2em] mt-1 ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>Acceso Ilimitado</p>
+                  </div>
+
+                  {/* Button */}
+                  <button
+                    onClick={() => onReserve(combo)}
+                    className="w-full mt-auto py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-300 shadow-[0_10px_25px_rgba(37,99,235,0.4)] hover:shadow-[0_10px_35px_rgba(37,99,235,0.5)] hover:scale-[1.03] active:scale-95"
+                  >
+                    <span>🚀</span>
+                    <span>Comprar ahora</span>
+                    <span>✨</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    </div>
   );
 };

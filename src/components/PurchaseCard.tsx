@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fmt, daysBetween, tv } from '../utils/helpers';
+import { getPlatformLogo } from './PlatformLogos';
 
 interface PurchaseCardProps {
   key?: any;
@@ -8,7 +9,7 @@ interface PurchaseCardProps {
   onToggleValidate: () => void;
   onDelete: () => void;
   onEdit: () => void;
-  onReminder: () => void;
+  onReminder?: () => void;
 }
 
 export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit, onReminder }: PurchaseCardProps) {
@@ -16,9 +17,6 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswords, setShowPasswords] = useState<{ [key: string]: boolean }>({});
   const [isOpen, setIsOpen] = useState(false);
-
-  // Debug: Log para verificar las credenciales
-  console.log('🔍 PurchaseCard - Item completo:', item);
 
   // Detectar si es un combo y qué servicios incluye
   const serviceName = item?.service || '';
@@ -78,12 +76,12 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
     sections.forEach(section => {
       const lines = section.split('\n');
       if (lines.length >= 3) {
-        const serviceName = lines[0].replace(':', '').trim();
+        const sName = lines[0].replace(':', '').trim();
         const email = lines[1].replace('Email: ', '').trim();
         const password = lines[2].replace('Contraseña: ', '').trim();
 
-        if (serviceName && email && password) {
-          credentials[serviceName] = { email, password };
+        if (sName && email && password) {
+          credentials[sName] = { email, password };
         }
       }
     });
@@ -101,7 +99,6 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
   }, []);
 
   const days = daysBetween(currentDate, item.end);
-  const status = days < 0 ? 'Vencido' : days === 0 ? 'Vence hoy' : `${days} días`;
 
   const getBadgeColor = (serviceName: string, isDark: boolean) => {
     const name = (serviceName || '').toLowerCase();
@@ -117,18 +114,36 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
     return isDark ? 'bg-zinc-800 text-zinc-300 border-zinc-700' : 'bg-white text-gray-900 border-gray-300 shadow-sm';
   };
 
-  // Si es una compra pendiente, mostrar diseño profesional de la referencia
+  // Helper formatting logic
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    try {
+      const [y, m, d] = dateStr.split('-');
+      return `${d}/${m}/${y.slice(2)}`;
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const getStatusText = (days: number) => {
+    if (days < 0) return 'Suscripción vencida';
+    if (days === 0) return 'Vence hoy mismo';
+    if (days <= 7) return 'Vence en menos de una semana';
+    if (days <= 30) return 'Vence en menos de un mes';
+    return `Vence en ${Math.floor(days / 30)} meses aproximadamente`;
+  };
+
+  const serviceIdParsed = serviceName.toLowerCase().replace('+', '').replace('premium', '').replace('estándar', '').trim();
+  const platformLogo = getPlatformLogo(serviceIdParsed, 44, 'w-10 h-10 object-contain');
+
+  // Si es una compra pendiente, mostrar diseño profesional previo
   if (!item.validated) {
     const badgeColorClass = getBadgeColor(item.service, isDark);
 
     return (
       <div className={`p-4 sm:p-5 rounded-xl border mb-4 ${tv(isDark, 'bg-white border-gray-200 shadow-sm', 'bg-[#18181b] border-zinc-800')}`}>
         <div className="flex flex-col gap-4">
-
-          {/* Top Header: Info + Actions */}
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-
-            {/* Left side: Name, Badge, Phone, Date */}
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <h3 className={`text-base sm:text-lg font-bold ${tv(isDark, 'text-gray-900', 'text-zinc-100')}`}>
@@ -140,13 +155,13 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
               </div>
 
               <div className={`flex items-center gap-4 text-xs font-medium ${tv(isDark, 'text-gray-500', 'text-zinc-400')}`}>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-medium">
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
                   {item.phone}
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-medium">
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
@@ -155,12 +170,11 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
               </div>
             </div>
 
-            {/* Right side: Actions */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2 shrink-0 relative z-10">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleValidate(); }}
-                className="flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-lg bg-[#0e7490] hover:bg-[#164e63] text-white font-semibold text-sm transition-colors cursor-pointer relative z-20"
+                className="flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-lg bg-[#0e7490] hover:bg-[#164e63] text-white font-semibold text-sm transition-colors cursor-pointer"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -170,7 +184,7 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
               <button
                 type="button"
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
-                className={`flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-lg font-semibold text-sm transition-colors cursor-pointer relative z-20 ${tv(isDark, 'bg-[#ef4444] text-white hover:bg-red-600 shadow-sm', 'bg-red-600 text-white hover:bg-red-700 shadow-sm')}`}
+                className={`flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-lg font-semibold text-sm transition-colors cursor-pointer ${tv(isDark, 'bg-[#ef4444] text-white hover:bg-red-600 shadow-sm', 'bg-red-600 text-white hover:bg-red-700 shadow-sm')}`}
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -180,7 +194,6 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
             </div>
           </div>
 
-          {/* Details Box */}
           <div className={`grid grid-cols-3 gap-4 px-4 py-3 rounded-lg ${tv(isDark, 'bg-[#e2e8f0]', 'bg-zinc-800/60')}`}>
             <div>
               <div className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 ${tv(isDark, 'text-gray-500', 'text-zinc-500')}`}>DURACIÓN</div>
@@ -195,120 +208,142 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
               <div className={`text-sm font-semibold ${tv(isDark, 'text-gray-900', 'text-zinc-200')}`}>{item.end}</div>
             </div>
           </div>
-
         </div>
       </div>
     );
   }
 
   // =============================================
-  // COMPRA ACTIVA - con expand/collapse via state
+  // COMPRA ACTIVA - Rediseño según Screenshot
   // =============================================
   return (
-    <div className={`rounded-xl border shadow-sm mb-4 overflow-hidden ${tv(isDark, 'bg-white border-gray-200', 'bg-[#18181b] border-zinc-800')}`}>
-      {/* Header - siempre visible, clickeable para expandir */}
-      <div className="p-4 sm:p-5 cursor-pointer select-none" onClick={() => setIsOpen(!isOpen)}>
-        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-          {/* Left: User info */}
-          <div className="flex items-start gap-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm ${tv(isDark, 'bg-gradient-to-br from-blue-500 to-indigo-600', 'bg-gradient-to-br from-blue-600 to-indigo-700')}`}>
-              {item.customer.charAt(0).toUpperCase()}
+    <div className={`rounded-3xl border shadow-2xl mb-6 overflow-hidden transition-all duration-300 ${tv(isDark, 'bg-white border-gray-100', 'bg-[#0B1120] border-white/5')}`}>
+      {/* Header - Styled like screenshot */}
+      <div className={`p-5 cursor-pointer select-none transition-colors ${tv(isDark, 'bg-gray-50/50 hover:bg-gray-100/50', 'bg-gradient-to-r from-[#1a1b26] to-[#0B1120] hover:from-[#1e1f2b]')}`} onClick={() => setIsOpen(!isOpen)}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm border ${tv(isDark, 'bg-gray-100 border-gray-200', 'bg-white/5 border-white/10')} shrink-0`}>
+              {platformLogo || <span className="text-xl font-bold text-white uppercase">{item.service.charAt(0)}</span>}
             </div>
             <div className="flex flex-col">
-              <h3 className={`font-bold text-base sm:text-lg tracking-tight ${tv(isDark, 'text-gray-900', 'text-zinc-100')}`}>
-                {item.customer}
-              </h3>
-              <div className={`flex items-center gap-1.5 text-xs font-medium mb-3 ${tv(isDark, 'text-gray-500', 'text-zinc-400')}`}>
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                {item.phone}
-              </div>
-              <div className={`flex items-center gap-1.5 text-sm font-bold mb-1 ${tv(isDark, 'text-gray-800', 'text-zinc-200')}`}>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" /></svg>
+              <h3 className={`font-black text-xl tracking-tight leading-none mb-1.5 ${tv(isDark, 'text-gray-900', 'text-white')}`}>
                 {item.service}
-              </div>
-              <div className={`flex items-center gap-1.5 text-xs ${tv(isDark, 'text-gray-500', 'text-zinc-400')}`}>
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                {item.start} → {item.end} • {item.months} {item.months === 1 ? 'mes' : 'meses'}
+              </h3>
+              <div className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${tv(isDark, 'text-gray-500', 'text-gray-400')}`}>
+                {item.months} {item.months === 1 ? 'mes' : 'meses'} • <span className="text-emerald-500">Activo</span>
               </div>
             </div>
           </div>
 
-          {/* Right: Status badges + toggle */}
-          <div className="flex items-center gap-2 lg:gap-3 lg:self-start flex-wrap">
-            <button
-              className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all ${tv(isDark, 'bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-600', 'bg-zinc-800 border-zinc-700 hover:bg-zinc-700 text-zinc-300')}`}
-              onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
-            >
-              <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            <button
-              onClick={(e) => { e.stopPropagation(); onEdit(); }}
-              className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors shadow-sm ${tv(isDark, 'bg-[#f97316] hover:bg-[#ea580c] text-white', 'bg-[#ea580c] hover:bg-[#c2410c] text-white')}`}
-              title="Editar compra"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-              </svg>
-            </button>
-
-            <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg border flex items-center gap-1 ${tv(isDark, 'bg-[#dcfce7] text-[#166534] border-[#bbf7d0]', 'bg-green-900/30 text-green-400 border-green-800/50')}`}>
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              Validada
-            </span>
-
-            <span className={`px-3 py-1 text-xs font-bold rounded-full shadow-sm flex items-center gap-1.5 border ${days <= 0
-              ? tv(isDark, 'bg-red-100 text-red-700 border-red-200', 'bg-red-900/20 text-red-400 border-red-800')
-              : tv(isDark, 'bg-[#dbeafe] text-[#1d4ed8] border-blue-200', 'bg-blue-900/20 text-blue-400 border-blue-800')
-              }`}>
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              {days <= 0 ? 'VENCIDO' : `${days} días`}
-            </span>
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all ${tv(isDark, 'bg-white border-gray-200 text-gray-400', 'bg-white/5 border-white/5 text-gray-500')}`}>
+            <svg className={`w-4 h-4 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
           </div>
         </div>
       </div>
 
-      {/* Expandable content - credentials + action buttons */}
+      {/* Single Unified Info Block */}
+      <div className={`p-6 flex flex-col gap-6 transition-colors ${tv(isDark, 'bg-gray-50', 'bg-[#121827]')}`}>
+        {/* Dates Row */}
+        <div className="flex items-center justify-around w-full">
+          <div className="flex flex-col items-center">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-1.5 transition-colors shadow-inner border border-white/5 ${tv(isDark, 'bg-blue-50', 'bg-blue-500/10')}`}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 2V5M16 2V5M3.5 9.09H20.5M21 8.5V17C21 20 19.5 22 16 22H8C4.5 22 3 20 3 17V8.5C3 5.5 4.5 3.5 8 3.5H16C19.5 3.5 21 5.5 21 8.5Z" stroke="#3b82f6" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M15.6947 13.7H15.7037M15.6947 16.7H15.7037M11.9955 13.7H12.0045M11.9955 16.7H12.0045M8.29639 13.7H8.30537M8.29639 16.7H8.30537" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <span className={`text-[9px] font-black uppercase tracking-widest ${tv(isDark, 'text-gray-400', 'text-gray-500')}`}>Inicio: <span className={tv(isDark, 'text-gray-900', 'text-white')}>{formatDate(item.start)}</span></span>
+          </div>
+
+          <div className="flex flex-col items-center">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-1.5 transition-colors shadow-inner border border-white/5 ${tv(isDark, 'bg-red-50', 'bg-red-500/10')}`}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C17.2467 22 21.5 17.7467 21.5 12.5C21.5 7.25329 17.2467 3 12 3C6.75329 3 2.5 7.25329 2.5 12.5C2.5 17.7467 6.75329 22 12 22Z" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M12 8V13H17" stroke="#ef4444" stroke-width="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M2.5 5.5L4.5 3.5M21.5 5.5L19.5 3.5" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <span className={`text-[9px] font-black uppercase tracking-widest ${tv(isDark, 'text-gray-400', 'text-gray-500')}`}>Vence: <span className={tv(isDark, 'text-gray-900', 'text-white')}>{formatDate(item.end)}</span></span>
+          </div>
+        </div>
+
+        {/* Countdown Row */}
+        <div className="text-center pt-2 border-t border-white/5">
+          <h4 className="text-4xl font-black text-red-600 tracking-tighter tabular-nums drop-shadow-sm">
+            {days < 0 ? '00' : days.toString().padStart(2, '0')}
+          </h4>
+          <p className="text-sm font-black text-red-600/90 uppercase tracking-[0.2em] -mt-1">
+            días restantes
+          </p>
+        </div>
+      </div>
+
+      {/* Ver Credenciales Button - Below Dates */}
+      <div className={`px-6 pb-6 transition-colors ${tv(isDark, 'bg-white', 'bg-[#1a202e]')}`}>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`w-full py-4 rounded-2xl font-black text-sm transition-all border-2 flex items-center justify-center gap-3 ${isOpen
+            ? (isDark ? 'bg-red-500 border-red-500 text-white shadow-lg' : 'bg-red-600 border-red-600 text-white shadow-md')
+            : (isDark ? 'bg-white/5 border-white/20 text-white hover:bg-white/10' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50 shadow-sm')
+            }`}
+        >
+          {isOpen ? (
+            <>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+              Ocultar credenciales
+            </>
+          ) : (
+            <>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+              Ver credenciales de acceso
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Expandable Credentials & Actions */}
       {isOpen && (
-        <div className="px-4 sm:px-5 pb-4 sm:pb-5">
-          {/* Credentials section */}
-          <div className={`p-4 sm:p-5 rounded-xl border ${tv(isDark, 'bg-[#f0fdf4] border-[#bbf7d0]', 'bg-green-950/20 border-green-900/40')}`}>
-            <div className="flex items-center gap-2 mb-4">
-              <svg className="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
-              <h5 className={`font-bold text-base ${tv(isDark, 'text-gray-900', 'text-white')}`}>
-                {isCombo ? 'Credenciales del Combo' : 'Credenciales del Servicio'}
+        <div className={`px-5 pb-6 pt-2 animate-in fade-in slide-in-from-top-2 duration-300 ${tv(isDark, 'bg-white', 'bg-[#1a202e]')}`}>
+          <div className="h-px w-full bg-white/5 mb-6"></div>
+
+          <div className={`p-5 rounded-3xl border mb-6 ${tv(isDark, 'bg-emerald-50 border-emerald-100', 'bg-[#0B1120] border-white/5')}`}>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 rounded-xl bg-yellow-500/20 flex items-center justify-center text-yellow-500">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+              </div>
+              <h5 className={`font-black text-sm uppercase tracking-widest ${tv(isDark, 'text-gray-900', 'text-white')}`}>
+                Credenciales
               </h5>
             </div>
 
             {isCombo ? (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {services.map((service) => {
                   const serviceCreds = credentials[service];
                   if (!serviceCreds) return null;
                   return (
-                    <div key={service} className="space-y-3">
-                      <h6 className={`text-sm font-bold ${tv(isDark, 'text-gray-800', 'text-white')}`}>{service}</h6>
-                      <div className="grid grid-cols-1 md:grid-cols-[80px_1fr] items-center gap-2 sm:gap-4">
-                        <span className={`text-sm font-medium ${tv(isDark, 'text-gray-700', 'text-gray-300')}`}>Email:</span>
-                        <input type="text" value={serviceCreds.email} readOnly
-                          className={`text-sm font-mono px-4 py-2.5 rounded-lg border w-full outline-none ${tv(isDark, 'bg-white text-gray-700 border-gray-300', 'bg-zinc-800 text-gray-200 border-zinc-700')}`} />
+                    <div key={service} className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1 h-4 bg-emerald-500 rounded-full"></div>
+                        <h6 className={`text-xs font-black uppercase tracking-wider ${tv(isDark, 'text-gray-900', 'text-white')}`}>{service}</h6>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-[80px_1fr] items-center gap-2 sm:gap-4">
-                        <span className={`text-sm font-medium ${tv(isDark, 'text-gray-700', 'text-gray-300')}`}>Password:</span>
-                        <div className="flex items-center gap-2 w-full">
+                      <div className="space-y-3">
+                        <div className="relative">
+                          <label className={`absolute -top-2 left-3 px-1 text-[9px] font-black uppercase tracking-widest ${tv(isDark, 'bg-emerald-50 text-gray-400', 'bg-[#0B1120] text-gray-500')}`}>Email</label>
+                          <input type="text" value={serviceCreds.email} readOnly
+                            className={`text-sm font-mono px-4 py-3.5 rounded-2xl border w-full outline-none transition-all ${tv(isDark, 'bg-white text-gray-700 border-emerald-100 focus:border-emerald-300', 'bg-black/20 text-gray-200 border-white/5 focus:border-white/10')}`} />
+                        </div>
+                        <div className="relative flex items-center gap-2">
+                          <label className={`absolute -top-2 left-3 px-1 text-[9px] font-black uppercase tracking-widest ${tv(isDark, 'bg-emerald-50 text-gray-400', 'bg-[#0B1120] text-gray-500')}`}>Password</label>
                           <input type={showPasswords[service] ? 'text' : 'password'} value={serviceCreds.password} readOnly
-                            className={`text-sm font-mono px-4 py-2.5 rounded-lg border flex-1 w-full outline-none ${tv(isDark, 'bg-white text-gray-700 border-gray-300', 'bg-zinc-800 text-gray-200 border-zinc-700')}`} />
+                            className={`text-sm font-mono px-4 py-3.5 rounded-2xl border flex-1 outline-none transition-all ${tv(isDark, 'bg-white text-gray-700 border-emerald-100 focus:border-emerald-300', 'bg-black/20 text-gray-200 border-white/5 focus:border-white/10')}`} />
                           <button
                             onClick={() => setShowPasswords(prev => ({ ...prev, [service]: !prev[service] }))}
-                            className={`w-10 h-10 shrink-0 rounded-lg flex items-center justify-center transition-colors shadow-sm ${tv(isDark, 'bg-[#dbeafe] text-[#2563eb] hover:bg-blue-200', 'bg-blue-900/40 text-blue-400 hover:bg-blue-900/60')}`}
+                            className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-all bg-blue-600/10 text-blue-500 hover:bg-blue-600/20 active:scale-95`}
                           >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               {showPasswords[service]
                                 ? <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 : <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
@@ -322,65 +357,43 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
                 })}
               </div>
             ) : (
-              <div className="space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-[80px_1fr] items-center gap-2 sm:gap-4">
-                  <span className={`text-sm font-bold ${tv(isDark, 'text-gray-700', 'text-gray-300')}`}>Email:</span>
+              <div className="space-y-4">
+                <div className="relative">
+                  <label className={`absolute -top-2 left-3 px-1 text-[9px] font-black uppercase tracking-widest ${tv(isDark, 'bg-emerald-50 text-gray-400', 'bg-[#0B1120] text-gray-500')}`}>Email</label>
                   <input type="text" value={item.service_email || 'No disponible'} readOnly
-                    className={`text-sm font-mono px-4 py-2.5 rounded-lg border w-full outline-none ${tv(isDark, 'bg-white text-gray-800 border-gray-300', 'bg-[#18181b] text-gray-200 border-zinc-700')}`} />
+                    className={`text-sm font-mono px-4 py-3.5 rounded-2xl border w-full outline-none transition-all ${tv(isDark, 'bg-white text-gray-700 border-emerald-100 focus:border-emerald-300', 'bg-black/20 text-gray-200 border-white/5 focus:border-white/10')}`} />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-[80px_1fr] items-center gap-2 sm:gap-4">
-                  <span className={`text-sm font-bold ${tv(isDark, 'text-gray-700', 'text-gray-300')}`}>Password:</span>
-                  <div className="flex items-center gap-2 w-full">
-                    <input type={showPassword ? 'text' : 'password'} value={item.service_password || 'No disponible'} readOnly
-                      className={`text-sm font-mono px-4 py-2.5 rounded-lg border flex-1 w-full outline-none ${tv(isDark, 'bg-white text-gray-800 border-gray-300', 'bg-[#18181b] text-gray-200 border-zinc-700')}`} />
-                    <button
-                      onClick={() => setShowPassword(!showPassword)}
-                      className={`w-11 h-10 shrink-0 rounded-lg flex items-center justify-center transition-colors shadow-sm ${tv(isDark, 'bg-[#dbeafe] text-[#2563eb] hover:bg-blue-200', 'bg-blue-900/40 text-blue-400 hover:bg-blue-900/60')}`}
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        {showPassword
-                          ? <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          : <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                        }
-                      </svg>
-                    </button>
-                  </div>
+                <div className="relative flex items-center gap-2">
+                  <label className={`absolute -top-2 left-3 px-1 text-[9px] font-black uppercase tracking-widest ${tv(isDark, 'bg-emerald-50 text-gray-400', 'bg-[#0B1120] text-gray-500')}`}>Password</label>
+                  <input type={showPassword ? 'text' : 'password'} value={item.service_password || 'No disponible'} readOnly
+                    className={`text-sm font-mono px-4 py-3.5 rounded-2xl border flex-1 outline-none transition-all ${tv(isDark, 'bg-white text-gray-700 border-emerald-100 focus:border-emerald-300', 'bg-black/20 text-gray-200 border-white/5 focus:border-white/10')}`} />
+                  <button
+                    onClick={() => setShowPassword(!showPassword)}
+                    className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-all bg-blue-600/10 text-blue-500 hover:bg-blue-600/20 active:scale-95`}
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      {showPassword
+                        ? <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        : <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      }
+                    </svg>
+                  </button>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Action buttons */}
-          <div className={`mt-4 p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 ${tv(isDark, 'bg-[#f8fafc]', 'bg-zinc-800/40')}`}>
-            <div className="flex flex-wrap gap-2 sm:gap-3">
-              <button onClick={onToggleValidate}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-all shadow-sm ${tv(isDark, 'bg-[#3b82f6] text-white hover:bg-blue-600', 'bg-blue-600 text-white hover:bg-blue-700')}`}>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                Validada
-              </button>
-              <button onClick={onEdit}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-all shadow-sm ${tv(isDark, 'bg-[#f97316] text-white hover:bg-[#ea580c]', 'bg-[#ea580c] text-white hover:bg-[#c2410c]')}`}>
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                Editar
-              </button>
-              <button onClick={onReminder}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-all shadow-sm ${tv(isDark, 'bg-[#22c55e] text-white hover:bg-[#16a34a]', 'bg-[#16a34a] text-white hover:bg-[#15803d]')}`}>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                Recordatorio
-              </button>
-              <button onClick={onDelete}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-all shadow-sm ${tv(isDark, 'bg-[#ef4444] text-white hover:bg-red-600', 'bg-red-600 text-white hover:bg-red-700')}`}>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                Eliminar
-              </button>
-            </div>
-            <div className={`px-4 py-2 text-sm font-bold rounded-full shadow-sm flex items-center gap-1.5 border-2 ${days <= 0
-              ? tv(isDark, 'bg-red-100 text-red-700 border-red-200', 'bg-red-900/20 text-red-400 border-red-800')
-              : tv(isDark, 'bg-[#dbeafe] text-[#1d4ed8] border-[#bfdbfe]', 'bg-blue-900/20 text-blue-400 border-blue-800')
-              }`}>
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-              {days <= 0 ? 'VENCIDO' : `${days} días`}
-            </div>
+          <div className="flex flex-wrap gap-2 pt-2">
+            <button onClick={onDelete}
+              className={`flex-1 min-w-[120px] py-4 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white shadow-sm active:scale-95`}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              Eliminar
+            </button>
+            <button onClick={onReminder}
+              className={`flex-1 min-w-[120px] py-4 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all bg-emerald-600 text-white hover:bg-emerald-700 shadow-[0_4px_15px_rgba(16,185,129,0.3)] active:scale-95`}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              Renovar
+            </button>
           </div>
         </div>
       )}

@@ -103,6 +103,7 @@ export function MainContent({
             onEditPurchase={handleEditPurchase}
             onSetView={setView}
             loading={loading}
+            onRefresh={refreshAllStats}
           />
         ) : null;
       case 'admin':
