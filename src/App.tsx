@@ -114,7 +114,7 @@ function App() {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${tv(isDark, 'bg-gray-50', 'bg-zinc-900')}`}>
+    <div className={`min-h-screen transition-colors duration-300 ${tv(isDark, 'bg-gray-50', 'bg-[#0B1120]')}`}>
       {/* Header */}
       <AppHeader
         isDark={isDark}
@@ -126,7 +126,7 @@ function App() {
       />
 
       {/* Contenido principal */}
-      <main className="flex-1 pt-16 sm:pt-24 lg:pt-0">
+      <main className="flex-1">
         <MainContent
           view={view}
           isDark={isDark}

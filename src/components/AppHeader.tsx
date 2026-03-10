@@ -35,7 +35,7 @@ export function AppHeader({ isDark, view, user, adminLogged, setView, handleLogo
   const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : user?.email ? user.email.charAt(0).toUpperCase() : '?';
 
   return (
-    <header className={`sticky top-0 z-50 backdrop-blur-2xl border-b transition-all duration-700 ${tv(isDark, 'bg-white/80 border-white/20 shadow-sm', 'bg-black/40 border-white/5 shadow-2xl')}`}>
+    <header className={`sticky top-0 z-50 backdrop-blur-2xl border-b transition-all duration-700 ${tv(isDark, 'bg-white/80 border-white/20 shadow-sm', 'bg-[#0B1120]/80 border-white/5 shadow-2xl')}`}>
       {/* Premium gradient accent line with pulse effect */}
       <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
       <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 opacity-80"></div>
@@ -62,21 +62,19 @@ export function AppHeader({ isDark, view, user, adminLogged, setView, handleLogo
 
 
           {/* Right Navigation */}
-          <nav className="flex items-center gap-1.5 sm:gap-3">
+          <nav className="flex items-center gap-2 sm:gap-4">
             {/* Inicio */}
             <button
               onClick={() => setView('home')}
-              className={`relative px-4 py-2 rounded-xl font-bold transition-all duration-500 text-xs sm:text-sm ${view === 'home'
-                ? 'bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)]'
-                : tv(isDark, 'text-gray-600 hover:text-blue-600 hover:bg-blue-50', 'text-gray-400 hover:text-white hover:bg-white/5')
+              className={`relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl transition-all duration-500 ${view === 'home'
+                ? 'bg-blue-600 text-white shadow-[0_8px_20px_rgba(37,99,235,0.3)] scale-110'
+                : tv(isDark, 'text-gray-500 hover:text-blue-600 hover:bg-blue-50', 'text-gray-400 hover:text-white hover:bg-white/10')
                 }`}
+              title="Inicio"
             >
-              <span className="flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-                <span className="hidden xs:inline">Inicio</span>
-              </span>
+              <svg className="w-4.5 h-4.5 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
             </button>
 
             {/* User section */}
@@ -84,20 +82,22 @@ export function AppHeader({ isDark, view, user, adminLogged, setView, handleLogo
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen(o => !o)}
-                  className={`flex items-center gap-2.5 p-1.5 rounded-2xl transition-all duration-500 ${dropdownOpen
+                  className={`flex items-center gap-2 p-1 rounded-xl transition-all duration-500 ${dropdownOpen
                     ? tv(isDark, 'bg-blue-50 ring-1 ring-blue-200', 'bg-white/10 ring-1 ring-white/20')
                     : tv(isDark, 'hover:bg-gray-100', 'hover:bg-white/5')
                     }`}
                 >
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-sm font-black shadow-lg shadow-blue-600/20 select-none">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-xs sm:text-sm font-black shadow-[0_4px_10px_rgba(37,99,235,0.2)] select-none transition-transform duration-500 group-hover:scale-105">
                     {userInitial}
                   </div>
-                  <span className={`hidden md:block text-sm font-bold ${tv(isDark, 'text-gray-700', 'text-gray-200')}`}>
-                    {user.name?.split(' ')[0] || 'Mi Cuenta'}
-                  </span>
-                  <svg className={`w-4 h-4 transition-transform duration-500 ${dropdownOpen ? 'rotate-180' : ''} ${tv(isDark, 'text-gray-400', 'text-gray-500')}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
+                  <div className="hidden md:flex items-center gap-2">
+                    <span className={`text-sm font-black tracking-tight ${tv(isDark, 'text-gray-900', 'text-white')}`}>
+                      {user.name?.split(' ')[0] || 'Mi Cuenta'}
+                    </span>
+                    <svg className={`w-4 h-4 transition-transform duration-500 ${dropdownOpen ? 'rotate-180' : ''} ${tv(isDark, 'text-gray-400', 'text-gray-500')}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </button>
 
                 {/* Dropdown Menu */}
@@ -178,26 +178,27 @@ export function AppHeader({ isDark, view, user, adminLogged, setView, handleLogo
             {adminLogged ? (
               <button
                 onClick={() => setView('admin')}
-                className={`relative px-4 py-2 rounded-xl font-bold transition-all duration-500 text-xs sm:text-sm ${view === 'admin'
-                  ? 'bg-purple-600 text-white shadow-[0_0_20px_rgba(147,51,234,0.4)]'
-                  : tv(isDark, 'text-gray-600 hover:text-purple-600 hover:bg-purple-50', 'text-gray-400 hover:text-white hover:bg-white/5')
+                className={`relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl transition-all duration-500 ${view === 'admin'
+                  ? 'bg-purple-600 text-white shadow-[0_8px_20px_rgba(147,51,234,0.3)] scale-110'
+                  : tv(isDark, 'text-gray-500 hover:text-purple-600 hover:bg-purple-50', 'text-gray-400 hover:text-white hover:bg-white/10')
                   }`}
+                title="Panel Admin"
               >
-                <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span className="hidden sm:inline">Admin</span>
-                </span>
+                <svg className="w-4.5 h-4.5 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
               </button>
             ) : (
               <button
                 onClick={() => setView('admin')}
-                className={`group relative p-2 rounded-xl transition-all duration-500 ${tv(isDark, 'text-gray-400 hover:text-gray-600 hover:bg-gray-100', 'text-gray-500 hover:text-white hover:bg-white/5')}`}
+                className={`relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl transition-all duration-500 ${view === 'admin'
+                  ? 'bg-purple-600 text-white shadow-[0_8px_20px_rgba(147,51,234,0.3)]'
+                  : tv(isDark, 'text-gray-400 hover:text-purple-600 hover:bg-purple-50', 'text-gray-500 hover:text-white hover:bg-white/10')
+                  }`}
                 title="Panel Admin"
               >
-                <svg className="w-5 h-5 transition-transform duration-500 group-hover:rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <svg className="w-4.5 h-4.5 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 </svg>
               </button>

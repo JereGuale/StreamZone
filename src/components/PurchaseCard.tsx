@@ -308,7 +308,7 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
         <div className={`px-5 pb-6 pt-2 animate-in fade-in slide-in-from-top-2 duration-300 ${tv(isDark, 'bg-white', 'bg-[#1a202e]')}`}>
           <div className="h-px w-full bg-white/5 mb-6"></div>
 
-          <div className={`p-5 rounded-3xl border mb-6 ${tv(isDark, 'bg-emerald-50 border-emerald-100', 'bg-[#0B1120] border-white/5')}`}>
+          <div className={`p-5 rounded-3xl border mb-6 ${tv(isDark, 'bg-white border-black', 'bg-[#0B1120] border-white/5')}`}>
             <div className="flex items-center gap-3 mb-6">
               <div className="w-8 h-8 rounded-xl bg-yellow-500/20 flex items-center justify-center text-yellow-500">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
@@ -331,14 +331,14 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
                       </div>
                       <div className="space-y-3">
                         <div className="relative">
-                          <label className={`absolute -top-2 left-3 px-1 text-[9px] font-black uppercase tracking-widest ${tv(isDark, 'bg-emerald-50 text-gray-400', 'bg-[#0B1120] text-gray-500')}`}>Email</label>
+                          <label className={`absolute -top-2 left-3 px-1 text-[9px] font-black uppercase tracking-widest ${tv(isDark, 'bg-white text-gray-400', 'bg-[#0B1120] text-gray-500')}`}>Email</label>
                           <input type="text" value={serviceCreds.email} readOnly
-                            className={`text-sm font-mono px-4 py-3.5 rounded-2xl border w-full outline-none transition-all ${tv(isDark, 'bg-white text-gray-700 border-emerald-100 focus:border-emerald-300', 'bg-black/20 text-gray-200 border-white/5 focus:border-white/10')}`} />
+                            className={`text-sm font-mono px-4 py-3.5 rounded-2xl border w-full outline-none transition-all ${tv(isDark, 'bg-white text-gray-700 border-black focus:border-gray-900', 'bg-black/20 text-gray-200 border-white/5 focus:border-white/10')}`} />
                         </div>
                         <div className="relative flex items-center gap-2">
-                          <label className={`absolute -top-2 left-3 px-1 text-[9px] font-black uppercase tracking-widest ${tv(isDark, 'bg-emerald-50 text-gray-400', 'bg-[#0B1120] text-gray-500')}`}>Password</label>
+                          <label className={`absolute -top-2 left-3 px-1 text-[9px] font-black uppercase tracking-widest ${tv(isDark, 'bg-white text-gray-400', 'bg-[#0B1120] text-gray-500')}`}>Password</label>
                           <input type={showPasswords[service] ? 'text' : 'password'} value={serviceCreds.password} readOnly
-                            className={`text-sm font-mono px-4 py-3.5 rounded-2xl border flex-1 outline-none transition-all ${tv(isDark, 'bg-white text-gray-700 border-emerald-100 focus:border-emerald-300', 'bg-black/20 text-gray-200 border-white/5 focus:border-white/10')}`} />
+                            className={`text-sm font-mono px-4 py-3.5 rounded-2xl border flex-1 outline-none transition-all ${tv(isDark, 'bg-white text-gray-700 border-black focus:border-gray-900', 'bg-black/20 text-gray-200 border-white/5 focus:border-white/10')}`} />
                           <button
                             onClick={() => setShowPasswords(prev => ({ ...prev, [service]: !prev[service] }))}
                             className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-all bg-blue-600/10 text-blue-500 hover:bg-blue-600/20 active:scale-95`}
@@ -359,14 +359,14 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
             ) : (
               <div className="space-y-4">
                 <div className="relative">
-                  <label className={`absolute -top-2 left-3 px-1 text-[9px] font-black uppercase tracking-widest ${tv(isDark, 'bg-emerald-50 text-gray-400', 'bg-[#0B1120] text-gray-500')}`}>Email</label>
+                  <label className={`absolute -top-2 left-3 px-1 text-[9px] font-black uppercase tracking-widest ${tv(isDark, 'bg-white text-gray-400', 'bg-[#0B1120] text-gray-500')}`}>Email</label>
                   <input type="text" value={item.service_email || 'No disponible'} readOnly
-                    className={`text-sm font-mono px-4 py-3.5 rounded-2xl border w-full outline-none transition-all ${tv(isDark, 'bg-white text-gray-700 border-emerald-100 focus:border-emerald-300', 'bg-black/20 text-gray-200 border-white/5 focus:border-white/10')}`} />
+                    className={`text-sm font-mono px-4 py-3.5 rounded-2xl border w-full outline-none transition-all ${tv(isDark, 'bg-white text-gray-700 border-black focus:border-gray-900', 'bg-black/20 text-gray-200 border-white/5 focus:border-white/10')}`} />
                 </div>
                 <div className="relative flex items-center gap-2">
-                  <label className={`absolute -top-2 left-3 px-1 text-[9px] font-black uppercase tracking-widest ${tv(isDark, 'bg-emerald-50 text-gray-400', 'bg-[#0B1120] text-gray-500')}`}>Password</label>
+                  <label className={`absolute -top-2 left-3 px-1 text-[9px] font-black uppercase tracking-widest ${tv(isDark, 'bg-white text-gray-400', 'bg-[#0B1120] text-gray-500')}`}>Password</label>
                   <input type={showPassword ? 'text' : 'password'} value={item.service_password || 'No disponible'} readOnly
-                    className={`text-sm font-mono px-4 py-3.5 rounded-2xl border flex-1 outline-none transition-all ${tv(isDark, 'bg-white text-gray-700 border-emerald-100 focus:border-emerald-300', 'bg-black/20 text-gray-200 border-white/5 focus:border-white/10')}`} />
+                    className={`text-sm font-mono px-4 py-3.5 rounded-2xl border flex-1 outline-none transition-all ${tv(isDark, 'bg-white text-gray-700 border-black focus:border-gray-900', 'bg-black/20 text-gray-200 border-white/5 focus:border-white/10')}`} />
                   <button
                     onClick={() => setShowPassword(!showPassword)}
                     className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center transition-all bg-blue-600/10 text-blue-500 hover:bg-blue-600/20 active:scale-95`}

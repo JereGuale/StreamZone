@@ -83,31 +83,62 @@ export const Combos = ({ isDark, onReserve, combos }: CombosProps) => {
                     {combo.name}
                   </h3>
 
-                  {/* Benefits Grid */}
-                  <div className={`grid grid-cols-1 gap-y-2.5 mb-6 sm:mb-8 p-3 sm:p-4 rounded-2xl border ${isDark ? 'bg-black/20 border-white/5' : 'bg-gray-50/50 border-gray-100'}`}>
-                    <div className="flex items-center justify-center gap-3">
-                      <span className="text-base">🎬</span>
-                      <span className={`text-[11px] sm:text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>4K Ultra HD</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-3">
-                      <span className="text-base">💎</span>
-                      <span className={`text-[11px] sm:text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Premium Access</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-3">
-                      <span className="text-base">🔒</span>
-                      <span className={`text-[11px] sm:text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Garantía Total</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-3">
-                      <span className="text-base">⭐</span>
-                      <span className={`text-[11px] sm:text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Soporte 24/7</span>
-                    </div>
+                  {/* Benefits List - Centered Block with Aligned Icons */}
+                  <div className={`w-full max-w-[220px] mx-auto space-y-3 mb-6 sm:mb-8 p-4 sm:p-5 rounded-3xl border transition-all ${isDark ? 'bg-black/20 border-white/5 shadow-inner' : 'bg-gray-50/50 border-gray-100 shadow-sm'}`}>
+                    {[
+                      {
+                        icon: (
+                          <svg className="w-5 h-5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                            <path d="M8 21h8" /><path d="M12 17v4" />
+                          </svg>
+                        ),
+                        text: '4K Ultra HD'
+                      },
+                      {
+                        icon: (
+                          <svg className="w-5 h-5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M19 5c-1.5 0-2.8 1.4-3 3-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-3c1-.5 1.5-1 2-2 2.5-2 2.5-7.5-1-7.5" />
+                            <path d="M7 11c.5 0 1 .5 1 1" />
+                            <path d="M11 11h.01" />
+                            <path d="M12 2v2" />
+                          </svg>
+                        ),
+                        text: 'Gran Ahorro'
+                      },
+                      {
+                        icon: (
+                          <svg className="w-5 h-5 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            <path d="M9 12l2 2 4-4" />
+                          </svg>
+                        ),
+                        text: 'Garantía Total'
+                      },
+                      {
+                        icon: (
+                          <svg className="w-5 h-5 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 11-7.6-11.4 8.28 8.28 0 013 0" />
+                            <path d="M3 21l1.9-5.7" />
+                          </svg>
+                        ),
+                        text: 'Soporte 24/7'
+                      }
+                    ].map((b, i) => (
+                      <div key={i} className="flex items-center gap-4 w-full pl-2">
+                        <span className="shrink-0 filter drop-shadow-sm leading-none">{b.icon}</span>
+                        <span className={`text-[11px] sm:text-xs font-black uppercase tracking-[0.1em] text-left transition-colors truncate ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                          {b.text}
+                        </span>
+                      </div>
+                    ))}
                   </div>
 
                   {/* Price Box */}
                   <div className={`w-full py-3 sm:py-4 px-3 sm:px-4 rounded-2xl sm:rounded-3xl border flex flex-col items-center justify-center mb-5 sm:mb-6 transition-transform group-hover:scale-[1.02] ${isDark ? 'bg-[#0B1120] border-blue-500/20 shadow-[inset_0_0_20px_rgba(59,130,246,0.05)]' : 'bg-gray-50 border-blue-100'}`}>
                     <div className="flex items-center">
                       <span className={`text-2xl sm:text-3xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        US${combo.price.toFixed(2).replace('.', ',')}
+                        ${combo.price.toFixed(2).replace('.', ',')}
                       </span>
                       <span className={`text-xs sm:text-sm font-bold ml-1 sm:ml-1.5 mt-1 sm:mt-2 ${isDark ? 'text-blue-400/60' : 'text-blue-600/60'}`}>
                         /mes

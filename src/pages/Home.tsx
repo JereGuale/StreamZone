@@ -28,7 +28,7 @@ const Home = ({ isDark, onReserve, user, setView, services }: HomeProps) => {
           <div className={`absolute bottom-0 right-1/4 w-96 h-96 rounded-full mix-blend-screen filter blur-3xl opacity-50 animate-pulse animation-delay-2000 ${isDark ? 'bg-purple-600/10' : 'bg-purple-200/40'}`}></div>
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-20 lg:py-24">
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-20 sm:pt-32 pb-8 sm:pb-12 md:pb-20 lg:pb-24">
           <div className="grid items-center gap-12 lg:grid-cols-2">
             {/* Left Column: Content */}
             <div className="relative z-10 space-y-8">

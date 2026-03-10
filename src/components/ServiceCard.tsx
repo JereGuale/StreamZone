@@ -51,7 +51,7 @@ export function ServiceCard({ s, onReserve, isDark }: ServiceCardProps) {
       {/* 3. Price Box */}
       <div className={`w-full py-2 sm:py-3 px-1.5 sm:px-2 rounded-xl sm:rounded-2xl border flex items-center justify-center mb-3 sm:mb-4 ${tv(isDark, 'bg-gray-50 border-gray-200', 'bg-[#14151f]/50 border-white/5')}`}>
         <span className={`text-lg sm:text-2xl font-black tracking-tight ${tv(isDark, 'text-gray-900', 'text-white')}`}>
-          US{fmt(s.price)}
+          {fmt(s.price)}
         </span>
         <span className={`text-[10px] sm:text-sm font-medium ml-1 mt-1 sm:mt-2 ${tv(isDark, 'text-gray-500', 'text-gray-400')}`}>
           /{s.billing === 'annual' ? 'año' : 'mes'}
