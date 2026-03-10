@@ -13,7 +13,7 @@ export function ServiceCard({ s, onReserve, isDark }: ServiceCardProps) {
   const svgLogo = getPlatformLogo(s.id, 0, 'w-full h-full');
 
   return (
-    <div className={`group relative p-4 sm:p-5 rounded-3xl border transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl flex flex-col items-center text-center ${tv(isDark,
+    <div className={`group relative p-4 sm:p-5 rounded-[24px] sm:rounded-3xl border transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl flex flex-col items-center text-center ${tv(isDark,
       'bg-white border-gray-100 shadow-xl hover:shadow-blue-500/10',
       'bg-[#1a1b26] border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.5)] hover:shadow-blue-500/20'
     )}`}>
@@ -25,9 +25,9 @@ export function ServiceCard({ s, onReserve, isDark }: ServiceCardProps) {
         {/* Glow behind the logo */}
         <div className={`absolute inset-0 ${s.color} blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300 rounded-full`}></div>
 
-        <div className="relative w-full h-full rounded-[1.2rem] sm:rounded-3xl shadow-lg border border-white/10 flex flex-col justify-center items-center overflow-hidden z-10">
+        <div className="relative w-full h-full rounded-2xl sm:rounded-3xl shadow-lg border border-white/10 flex flex-col justify-center items-center overflow-hidden z-10">
           {svgLogo ? (
-            <div className="w-full h-full p-2">{svgLogo}</div>
+            <div className="w-full h-full p-2 sm:p-2.5">{svgLogo}</div>
           ) : s.logo?.startsWith('http') || s.logo?.startsWith('data:image') ? (
             <img src={s.logo} alt={s.name} className="w-full h-full object-cover" loading="lazy" />
           ) : (
@@ -44,16 +44,16 @@ export function ServiceCard({ s, onReserve, isDark }: ServiceCardProps) {
       </div>
 
       {/* 2. Title */}
-      <h3 className={`text-lg sm:text-xl font-bold mb-3 sm:mb-4 px-2 w-full truncate ${tv(isDark, 'text-gray-900', 'text-white')}`}>
+      <h3 className={`text-base sm:text-lg md:text-xl font-bold mb-3 sm:mb-4 px-1 w-full truncate ${tv(isDark, 'text-gray-900', 'text-white')}`}>
         {s.name}
       </h3>
 
       {/* 3. Price Box */}
-      <div className={`w-full py-2 sm:py-3 px-2 rounded-2xl border flex items-center justify-center mb-3 sm:mb-4 ${tv(isDark, 'bg-gray-50 border-gray-200', 'bg-[#14151f]/50 border-white/5')}`}>
-        <span className={`text-xl sm:text-2xl font-black tracking-tight ${tv(isDark, 'text-gray-900', 'text-white')}`}>
+      <div className={`w-full py-2 sm:py-3 px-1.5 sm:px-2 rounded-xl sm:rounded-2xl border flex items-center justify-center mb-3 sm:mb-4 ${tv(isDark, 'bg-gray-50 border-gray-200', 'bg-[#14151f]/50 border-white/5')}`}>
+        <span className={`text-lg sm:text-2xl font-black tracking-tight ${tv(isDark, 'text-gray-900', 'text-white')}`}>
           US{fmt(s.price)}
         </span>
-        <span className={`text-xs sm:text-sm font-medium ml-1 mt-1 sm:mt-2 ${tv(isDark, 'text-gray-500', 'text-gray-400')}`}>
+        <span className={`text-[10px] sm:text-sm font-medium ml-1 mt-1 sm:mt-2 ${tv(isDark, 'text-gray-500', 'text-gray-400')}`}>
           /{s.billing === 'annual' ? 'año' : 'mes'}
         </span>
       </div>
@@ -67,11 +67,11 @@ export function ServiceCard({ s, onReserve, isDark }: ServiceCardProps) {
       {/* 5. Comprar Ahora Button */}
       <button
         onClick={() => onReserve(s)}
-        className="w-full mt-auto py-3 sm:py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 hover:from-blue-500 hover:to-indigo-500 transition-all shadow-[0_4px_15px_rgba(37,99,235,0.3)] hover:shadow-[0_4px_20px_rgba(37,99,235,0.4)] transform hover:scale-[1.02] active:scale-95"
+        className="w-full mt-auto py-3 sm:py-3.5 px-3 sm:px-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-xs sm:text-base flex items-center justify-center gap-1.5 sm:gap-2 hover:from-blue-500 hover:to-indigo-500 transition-all shadow-[0_4px_15px_rgba(37,99,235,0.3)] hover:shadow-[0_4px_20px_rgba(37,99,235,0.4)] transform hover:scale-[1.02] active:scale-95"
       >
-        <span>🚀</span>
+        <span className="text-sm sm:text-base">🚀</span>
         <span>Comprar Ahora</span>
-        <span>✨</span>
+        <span className="text-sm sm:text-base">✨</span>
       </button>
     </div>
   );

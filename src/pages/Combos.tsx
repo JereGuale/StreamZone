@@ -41,14 +41,14 @@ export const Combos = ({ isDark, onReserve, combos }: CombosProps) => {
         </div>
 
         {/* Cards Grid - Mirroring ServiceCard.tsx */}
-        <div className="grid gap-6 sm:gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-4 sm:gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {combos.map((combo) => {
             const logos = getComboLogos(combo.id, 40, combo.name);
 
             return (
               <div
                 key={combo.id}
-                className={`group relative p-6 sm:p-7 rounded-[32px] border transition-all duration-500 hover:-translate-y-2 flex flex-col items-center text-center shadow-lg ${tv(isDark,
+                className={`group relative p-5 sm:p-7 rounded-[24px] sm:rounded-[32px] border transition-all duration-500 hover:-translate-y-2 flex flex-col items-center text-center shadow-lg ${tv(isDark,
                   'bg-white border-gray-100 hover:shadow-blue-500/10',
                   'bg-[#0F172A] border-white/5 hover:shadow-blue-500/20 shadow-[0_8px_30px_rgb(0,0,0,0.5)]'
                 )}`}
@@ -59,15 +59,15 @@ export const Combos = ({ isDark, onReserve, combos }: CombosProps) => {
                     logos.map((logo, i) => (
                       <div
                         key={i}
-                        className={`w-16 h-16 sm:w-20 sm:h-20 rounded-[1.2rem] sm:rounded-3xl shadow-xl border border-white/10 flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-110 ${isDark ? 'bg-gray-800' : 'bg-gray-50'}`}
+                        className={`w-14 h-14 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl shadow-xl border border-white/10 flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-110 ${isDark ? 'bg-gray-800' : 'bg-gray-50'}`}
                         style={{ zIndex: logos.length - i }}
                       >
-                        <div className="w-full h-full p-3">{logo}</div>
+                        <div className="w-full h-full p-2.5 sm:p-3">{logo}</div>
                       </div>
                     ))
                   ) : (
-                    <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-[1.2rem] sm:rounded-3xl shadow-xl border border-white/10 flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-110 ${isDark ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'}`}>
-                      <span className="text-2xl font-bold">{combo.name.charAt(0)}</span>
+                    <div className={`w-14 h-14 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl shadow-xl border border-white/10 flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-110 ${isDark ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'}`}>
+                      <span className="text-xl sm:text-2xl font-bold">{combo.name.charAt(0)}</span>
                     </div>
                   )}
 
@@ -79,41 +79,41 @@ export const Combos = ({ isDark, onReserve, combos }: CombosProps) => {
 
                 {/* Info Container */}
                 <div className="w-full flex-1 flex flex-col">
-                  <h3 className={`text-xl font-bold mb-6 px-2 line-clamp-2 min-h-[3.5rem] flex items-center justify-center tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  <h3 className={`text-lg sm:text-xl font-bold mb-4 sm:mb-6 px-1 sm:px-2 line-clamp-2 min-h-[3rem] sm:min-h-[3.5rem] flex items-center justify-center tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     {combo.name}
                   </h3>
 
                   {/* Benefits Grid */}
-                  <div className={`grid grid-cols-2 gap-2 mb-8 p-3 rounded-2xl border ${isDark ? 'bg-black/20 border-white/5' : 'bg-gray-50/50 border-gray-100'}`}>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs">🎬</span>
-                      <span className={`text-[10px] font-bold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>4K Ultra HD</span>
+                  <div className={`grid grid-cols-2 gap-x-1 sm:gap-x-2 gap-y-2 mb-6 sm:mb-8 p-2.5 sm:p-3 rounded-2xl border ${isDark ? 'bg-black/20 border-white/5' : 'bg-gray-50/50 border-gray-100'}`}>
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <span className="text-[10px] sm:text-xs">🎬</span>
+                      <span className={`text-[9px] sm:text-[10px] font-bold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>4K Ultra HD</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs">💰</span>
-                      <span className={`text-[10px] font-bold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Gran Ahorro</span>
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <span className="text-[10px] sm:text-xs">💰</span>
+                      <span className={`text-[9px] sm:text-[10px] font-bold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Gran Ahorro</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs">🔒</span>
-                      <span className={`text-[10px] font-bold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Garantía Total</span>
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <span className="text-[10px] sm:text-xs">🔒</span>
+                      <span className={`text-[9px] sm:text-[10px] font-bold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Garantía Total</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs">⭐</span>
-                      <span className={`text-[10px] font-bold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Soporte 24/7</span>
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <span className="text-[10px] sm:text-xs">⭐</span>
+                      <span className={`text-[9px] sm:text-[10px] font-bold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Soporte 24/7</span>
                     </div>
                   </div>
 
                   {/* Price Box */}
-                  <div className={`w-full py-4 px-4 rounded-3xl border flex flex-col items-center justify-center mb-6 transition-transform group-hover:scale-[1.02] ${isDark ? 'bg-[#0B1120] border-blue-500/20 shadow-[inset_0_0_20px_rgba(59,130,246,0.05)]' : 'bg-gray-50 border-blue-100'}`}>
+                  <div className={`w-full py-3 sm:py-4 px-3 sm:px-4 rounded-2xl sm:rounded-3xl border flex flex-col items-center justify-center mb-5 sm:mb-6 transition-transform group-hover:scale-[1.02] ${isDark ? 'bg-[#0B1120] border-blue-500/20 shadow-[inset_0_0_20px_rgba(59,130,246,0.05)]' : 'bg-gray-50 border-blue-100'}`}>
                     <div className="flex items-center">
-                      <span className={`text-3xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      <span className={`text-2xl sm:text-3xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         US${combo.price.toFixed(2).replace('.', ',')}
                       </span>
-                      <span className={`text-sm font-bold ml-1.5 mt-2 ${isDark ? 'text-blue-400/60' : 'text-blue-600/60'}`}>
+                      <span className={`text-xs sm:text-sm font-bold ml-1 sm:ml-1.5 mt-1 sm:mt-2 ${isDark ? 'text-blue-400/60' : 'text-blue-600/60'}`}>
                         /mes
                       </span>
                     </div>
-                    <p className={`text-[9px] font-black uppercase tracking-[0.2em] mt-1 ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>Acceso Ilimitado</p>
+                    <p className={`text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] mt-0.5 sm:mt-1 ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>Acceso Ilimitado</p>
                   </div>
 
                   {/* Button */}

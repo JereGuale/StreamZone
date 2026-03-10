@@ -38,7 +38,7 @@ const Home = ({ isDark, onReserve, user, setView, services }: HomeProps) => {
                   <span className="text-xs font-medium uppercase tracking-wider">Cuentas premium activas y soporte rápido</span>
                 </div>
 
-                <h1 className={`text-4xl sm:text-5xl md:text-6xl font-bold leading-[1.1] tracking-tight transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <h1 className={`text-3xl sm:text-5xl md:text-6xl font-bold leading-[1.1] tracking-tight transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   Tus plataformas favoritas <span className="text-blue-500">más claras, más confiables y listas para usar.</span>
                 </h1>
               </div>
@@ -46,7 +46,7 @@ const Home = ({ isDark, onReserve, user, setView, services }: HomeProps) => {
               <div className="flex flex-wrap gap-4">
                 <button
                   onClick={() => setView('combos')}
-                  className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:scale-105 active:scale-95"
+                  className="flex-1 sm:flex-none px-6 sm:px-8 py-3.5 sm:py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:scale-105 active:scale-95 text-sm sm:text-base"
                 >
                   Ver combos
                 </button>
@@ -54,7 +54,7 @@ const Home = ({ isDark, onReserve, user, setView, services }: HomeProps) => {
                   href="https://api.whatsapp.com/send?phone=593984280334&text=Hola%2C%20me%20gustar%C3%ADa%20recibir%20m%C3%A1s%20informaci%C3%B3n%20acerca%20de%20c%C3%B3mo%20comprar%20en%20StreamZone."
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`px-8 py-4 font-bold rounded-xl border transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 ${isDark ? 'bg-[#1e293b]/50 hover:bg-[#1e293b] text-white border-gray-700' : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border-gray-300'}`}
+                  className={`flex-1 sm:flex-none px-6 sm:px-8 py-3.5 sm:py-4 font-bold rounded-xl border transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 text-sm sm:text-base ${isDark ? 'bg-[#1e293b]/50 hover:bg-[#1e293b] text-white border-gray-700' : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border-gray-300'}`}
                 >
                   <span>💬</span>
                   Cómo comprar
@@ -80,10 +80,10 @@ const Home = ({ isDark, onReserve, user, setView, services }: HomeProps) => {
 
             {/* Right Column: Featured Platforms */}
             <div className="relative z-10 lg:pl-12">
-              <div className={`p-8 rounded-[32px] border backdrop-blur-xl shadow-2xl transition-all duration-300 ${isDark ? 'bg-[#0F172A]/80 border-white/5' : 'bg-white/90 border-gray-200'}`}>
-                <div className="mb-8">
-                  <h2 className={`text-2xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Plataformas destacadas</h2>
-                  <p className={`text-sm transition-colors ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Precios visibles para que el usuario compare más rápido.</p>
+              <div className={`p-6 sm:p-8 rounded-[24px] sm:rounded-[32px] border backdrop-blur-xl shadow-2xl transition-all duration-300 ${isDark ? 'bg-[#0F172A]/80 border-white/5' : 'bg-white/90 border-gray-200'}`}>
+                <div className="mb-6 sm:mb-8">
+                  <h2 className={`text-xl sm:text-2xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Plataformas destacadas</h2>
+                  <p className={`text-xs sm:text-sm transition-colors ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Precios visibles para que el usuario compare más rápido.</p>
                 </div>
 
                 <div className="space-y-6">
@@ -128,16 +128,16 @@ const Home = ({ isDark, onReserve, user, setView, services }: HomeProps) => {
                   </div>
 
                   <div className="flex items-center justify-between group">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center shadow-lg transition-colors ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl overflow-hidden flex items-center justify-center shadow-lg transition-colors ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
                         {getPlatformLogo('prime', 48, 'w-full h-full')}
                       </div>
                       <div>
-                        <div className={`font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Prime Video</div>
-                        <div className="text-gray-500 text-xs">Catálogo familiar y 4K</div>
+                        <div className={`text-sm sm:text-base font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Prime Video</div>
+                        <div className="text-gray-500 text-[10px] sm:text-xs">Catálogo familiar y 4K</div>
                       </div>
                     </div>
-                    <div className={`font-bold text-xl transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{getServicePrice('prime', '$2.50')}</div>
+                    <div className={`font-bold text-lg sm:text-xl transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{getServicePrice('prime', '$2.50')}</div>
                   </div>
                 </div>
               </div>

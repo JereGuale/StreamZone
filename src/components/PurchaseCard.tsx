@@ -219,24 +219,24 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
   return (
     <div className={`rounded-3xl border shadow-2xl mb-6 overflow-hidden transition-all duration-300 ${tv(isDark, 'bg-white border-gray-100', 'bg-[#0B1120] border-white/5')}`}>
       {/* Header - Styled like screenshot */}
-      <div className={`p-5 cursor-pointer select-none transition-colors ${tv(isDark, 'bg-gray-50/50 hover:bg-gray-100/50', 'bg-gradient-to-r from-[#1a1b26] to-[#0B1120] hover:from-[#1e1f2b]')}`} onClick={() => setIsOpen(!isOpen)}>
+      <div className={`p-4 sm:p-5 cursor-pointer select-none transition-colors ${tv(isDark, 'bg-gray-50/50 hover:bg-gray-100/50', 'bg-gradient-to-r from-[#1a1b26] to-[#0B1120] hover:from-[#1e1f2b]')}`} onClick={() => setIsOpen(!isOpen)}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm border ${tv(isDark, 'bg-gray-100 border-gray-200', 'bg-white/5 border-white/10')} shrink-0`}>
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-sm border ${tv(isDark, 'bg-gray-100 border-gray-200', 'bg-white/5 border-white/10')} shrink-0`}>
               {platformLogo || <span className="text-xl font-bold text-white uppercase">{item.service.charAt(0)}</span>}
             </div>
             <div className="flex flex-col">
-              <h3 className={`font-black text-xl tracking-tight leading-none mb-1.5 ${tv(isDark, 'text-gray-900', 'text-white')}`}>
+              <h3 className={`font-black text-lg sm:text-xl tracking-tight leading-none mb-1 sm:mb-1.5 ${tv(isDark, 'text-gray-900', 'text-white')}`}>
                 {item.service}
               </h3>
-              <div className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${tv(isDark, 'text-gray-500', 'text-gray-400')}`}>
+              <div className={`flex items-center gap-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider ${tv(isDark, 'text-gray-500', 'text-gray-400')}`}>
                 {item.months} {item.months === 1 ? 'mes' : 'meses'} • <span className="text-emerald-500">Activo</span>
               </div>
             </div>
           </div>
 
-          <div className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all ${tv(isDark, 'bg-white border-gray-200 text-gray-400', 'bg-white/5 border-white/5 text-gray-500')}`}>
-            <svg className={`w-4 h-4 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+          <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center border transition-all ${tv(isDark, 'bg-white border-gray-200 text-gray-400', 'bg-white/5 border-white/5 text-gray-500')}`}>
+            <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </div>
@@ -244,37 +244,37 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
       </div>
 
       {/* Single Unified Info Block */}
-      <div className={`p-6 flex flex-col gap-6 transition-colors ${tv(isDark, 'bg-gray-50', 'bg-[#121827]')}`}>
+      <div className={`p-4 sm:p-6 flex flex-col gap-4 sm:gap-6 transition-colors ${tv(isDark, 'bg-gray-50', 'bg-[#121827]')}`}>
         {/* Dates Row */}
         <div className="flex items-center justify-around w-full">
           <div className="flex flex-col items-center">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-1.5 transition-colors shadow-inner border border-white/5 ${tv(isDark, 'bg-blue-50', 'bg-blue-500/10')}`}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center mb-1 transition-colors shadow-inner border border-white/5 ${tv(isDark, 'bg-blue-50', 'bg-blue-500/10')}`}>
+              <svg width="16" height="16" className="sm:w-[18px] sm:h-[18px]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M8 2V5M16 2V5M3.5 9.09H20.5M21 8.5V17C21 20 19.5 22 16 22H8C4.5 22 3 20 3 17V8.5C3 5.5 4.5 3.5 8 3.5H16C19.5 3.5 21 5.5 21 8.5Z" stroke="#3b82f6" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M15.6947 13.7H15.7037M15.6947 16.7H15.7037M11.9955 13.7H12.0045M11.9955 16.7H12.0045M8.29639 13.7H8.30537M8.29639 16.7H8.30537" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <span className={`text-[9px] font-black uppercase tracking-widest ${tv(isDark, 'text-gray-400', 'text-gray-500')}`}>Inicio: <span className={tv(isDark, 'text-gray-900', 'text-white')}>{formatDate(item.start)}</span></span>
+            <span className={`text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${tv(isDark, 'text-gray-400', 'text-gray-500')}`}>Inicio: <span className={tv(isDark, 'text-gray-900', 'text-white')}>{formatDate(item.start)}</span></span>
           </div>
 
           <div className="flex flex-col items-center">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-1.5 transition-colors shadow-inner border border-white/5 ${tv(isDark, 'bg-red-50', 'bg-red-500/10')}`}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center mb-1 transition-colors shadow-inner border border-white/5 ${tv(isDark, 'bg-red-50', 'bg-red-500/10')}`}>
+              <svg width="16" height="16" className="sm:w-[18px] sm:h-[18px]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 22C17.2467 22 21.5 17.7467 21.5 12.5C21.5 7.25329 17.2467 3 12 3C6.75329 3 2.5 7.25329 2.5 12.5C2.5 17.7467 6.75329 22 12 22Z" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M12 8V13H17" stroke="#ef4444" stroke-width="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M2.5 5.5L4.5 3.5M21.5 5.5L19.5 3.5" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <span className={`text-[9px] font-black uppercase tracking-widest ${tv(isDark, 'text-gray-400', 'text-gray-500')}`}>Vence: <span className={tv(isDark, 'text-gray-900', 'text-white')}>{formatDate(item.end)}</span></span>
+            <span className={`text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${tv(isDark, 'text-gray-400', 'text-gray-500')}`}>Vence: <span className={tv(isDark, 'text-gray-900', 'text-white')}>{formatDate(item.end)}</span></span>
           </div>
         </div>
 
         {/* Countdown Row */}
-        <div className="text-center pt-2 border-t border-white/5">
-          <h4 className="text-4xl font-black text-red-600 tracking-tighter tabular-nums drop-shadow-sm">
+        <div className="text-center pt-1.5 sm:pt-2 border-t border-white/5">
+          <h4 className="text-3xl sm:text-4xl font-black text-red-600 tracking-tighter tabular-nums drop-shadow-sm">
             {days < 0 ? '00' : days.toString().padStart(2, '0')}
           </h4>
-          <p className="text-sm font-black text-red-600/90 uppercase tracking-[0.2em] -mt-1">
+          <p className="text-[10px] sm:text-sm font-black text-red-600/90 uppercase tracking-[0.2em] -mt-0.5 sm:-mt-1">
             días restantes
           </p>
         </div>
