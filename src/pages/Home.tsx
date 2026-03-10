@@ -21,14 +21,14 @@ const Home = ({ isDark, onReserve, user, setView, services }: HomeProps) => {
   return (
     <>
       {/* Hero Section */}
-      <section className={`relative overflow-x-hidden min-h-[600px] flex items-center transition-colors duration-300 ${isDark ? 'bg-[#0B1120]' : 'bg-white'}`}>
+      <section className={`relative overflow-x-hidden min-h-0 lg:min-h-[600px] flex items-center transition-colors duration-300 ${isDark ? 'bg-[#0B1120]' : 'bg-white'}`}>
         {/* Background Effects */}
         <div className="absolute inset-0 pointer-events-none">
           <div className={`absolute top-0 left-1/4 w-96 h-96 rounded-full mix-blend-screen filter blur-3xl opacity-50 animate-pulse ${isDark ? 'bg-blue-600/10' : 'bg-blue-200/40'}`}></div>
           <div className={`absolute bottom-0 right-1/4 w-96 h-96 rounded-full mix-blend-screen filter blur-3xl opacity-50 animate-pulse animation-delay-2000 ${isDark ? 'bg-purple-600/10' : 'bg-purple-200/40'}`}></div>
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 md:py-20 lg:py-24">
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-20 lg:py-24">
           <div className="grid items-center gap-12 lg:grid-cols-2">
             {/* Left Column: Content */}
             <div className="relative z-10 space-y-8">
@@ -62,18 +62,18 @@ const Home = ({ isDark, onReserve, user, setView, services }: HomeProps) => {
               </div>
 
               {/* Stats Cards */}
-              <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 border-t transition-colors ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
-                <div className={`p-4 rounded-2xl border backdrop-blur-sm transition-colors ${isDark ? 'bg-gray-900/40 border-gray-800/50 text-white shadow-lg' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}>
-                  <div className="text-2xl font-bold">+500</div>
-                  <div className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Clientes activos</div>
+              <div className={`grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 pt-6 sm:pt-8 border-t transition-colors ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
+                <div className={`p-3 sm:p-4 rounded-2xl border backdrop-blur-sm transition-colors ${isDark ? 'bg-gray-900/40 border-gray-800/50 text-white shadow-lg' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}>
+                  <div className="text-xl sm:text-2xl font-bold">+500</div>
+                  <div className={`text-[10px] sm:text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Clientes activos</div>
                 </div>
-                <div className={`p-4 rounded-2xl border backdrop-blur-sm transition-colors ${isDark ? 'bg-gray-900/40 border-gray-800/50 text-white shadow-lg' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}>
-                  <div className="text-2xl font-bold">24/7</div>
-                  <div className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Atención por mensaje</div>
+                <div className={`p-3 sm:p-4 rounded-2xl border backdrop-blur-sm transition-colors ${isDark ? 'bg-gray-900/40 border-gray-800/50 text-white shadow-lg' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}>
+                  <div className="text-xl sm:text-2xl font-bold">24/7</div>
+                  <div className={`text-[10px] sm:text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Soporte rápido</div>
                 </div>
-                <div className={`p-4 rounded-2xl border backdrop-blur-sm transition-colors ${isDark ? 'bg-gray-900/40 border-gray-800/50 text-white shadow-lg' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}>
-                  <div className="text-2xl font-bold">100%</div>
-                  <div className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Reposición y garantía</div>
+                <div className={`col-span-2 sm:col-span-1 p-3 sm:p-4 rounded-2xl border backdrop-blur-sm transition-colors ${isDark ? 'bg-gray-900/40 border-gray-800/50 text-white shadow-lg' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}>
+                  <div className="text-xl sm:text-2xl font-bold">100%</div>
+                  <div className={`text-[10px] sm:text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Garantía real</div>
                 </div>
               </div>
             </div>

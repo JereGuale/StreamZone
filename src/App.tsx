@@ -126,7 +126,7 @@ function App() {
       />
 
       {/* Contenido principal */}
-      <main className="flex-1">
+      <main className="flex-1 pt-16 sm:pt-24 lg:pt-0">
         <MainContent
           view={view}
           isDark={isDark}

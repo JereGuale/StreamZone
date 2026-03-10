@@ -84,22 +84,22 @@ export const Combos = ({ isDark, onReserve, combos }: CombosProps) => {
                   </h3>
 
                   {/* Benefits Grid */}
-                  <div className={`grid grid-cols-2 gap-x-1 sm:gap-x-2 gap-y-2 mb-6 sm:mb-8 p-2.5 sm:p-3 rounded-2xl border ${isDark ? 'bg-black/20 border-white/5' : 'bg-gray-50/50 border-gray-100'}`}>
-                    <div className="flex items-center gap-1.5 sm:gap-2">
-                      <span className="text-[10px] sm:text-xs">🎬</span>
-                      <span className={`text-[9px] sm:text-[10px] font-bold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>4K Ultra HD</span>
+                  <div className={`grid grid-cols-1 gap-y-2.5 mb-6 sm:mb-8 p-3 sm:p-4 rounded-2xl border ${isDark ? 'bg-black/20 border-white/5' : 'bg-gray-50/50 border-gray-100'}`}>
+                    <div className="flex items-center justify-center gap-3">
+                      <span className="text-base">🎬</span>
+                      <span className={`text-[11px] sm:text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>4K Ultra HD</span>
                     </div>
-                    <div className="flex items-center gap-1.5 sm:gap-2">
-                      <span className="text-[10px] sm:text-xs">💰</span>
-                      <span className={`text-[9px] sm:text-[10px] font-bold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Gran Ahorro</span>
+                    <div className="flex items-center justify-center gap-3">
+                      <span className="text-base">💎</span>
+                      <span className={`text-[11px] sm:text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Premium Access</span>
                     </div>
-                    <div className="flex items-center gap-1.5 sm:gap-2">
-                      <span className="text-[10px] sm:text-xs">🔒</span>
-                      <span className={`text-[9px] sm:text-[10px] font-bold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Garantía Total</span>
+                    <div className="flex items-center justify-center gap-3">
+                      <span className="text-base">🔒</span>
+                      <span className={`text-[11px] sm:text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Garantía Total</span>
                     </div>
-                    <div className="flex items-center gap-1.5 sm:gap-2">
-                      <span className="text-[10px] sm:text-xs">⭐</span>
-                      <span className={`text-[9px] sm:text-[10px] font-bold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Soporte 24/7</span>
+                    <div className="flex items-center justify-center gap-3">
+                      <span className="text-base">⭐</span>
+                      <span className={`text-[11px] sm:text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Soporte 24/7</span>
                     </div>
                   </div>
 
