@@ -1,5 +1,6 @@
 import { ServiceCard } from '../components/ServiceCard';
 import { Logo } from '../components/Logo';
+import { getPlatformLogo } from '../components/PlatformLogos';
 
 interface HomeProps {
   isDark: boolean;
@@ -12,130 +13,137 @@ interface HomeProps {
 const Home = ({ isDark, onReserve, user, setView, services }: HomeProps) => {
   console.log('Home component rendering with props:', { isDark, user, setView, servicesCount: services?.length });
 
+  const getServicePrice = (keyword: string, fallback: string) => {
+    const service = services?.find(s => s.name.toLowerCase().includes(keyword.toLowerCase()));
+    return service ? `$${Number(service.price).toFixed(2)}` : fallback;
+  };
+
   return (
     <>
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
+      <section className={`relative overflow-x-hidden min-h-[600px] flex items-center transition-colors duration-300 ${isDark ? 'bg-[#0B1120]' : 'bg-white'}`}>
         {/* Background Effects */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-pink-600/10"></div>
-        <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
-        <div className="absolute top-0 right-1/4 w-72 h-72 bg-purple-500/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse animation-delay-2000"></div>
+        <div className="absolute inset-0 pointer-events-none">
+          <div className={`absolute top-0 left-1/4 w-96 h-96 rounded-full mix-blend-screen filter blur-3xl opacity-50 animate-pulse ${isDark ? 'bg-blue-600/10' : 'bg-blue-200/40'}`}></div>
+          <div className={`absolute bottom-0 right-1/4 w-96 h-96 rounded-full mix-blend-screen filter blur-3xl opacity-50 animate-pulse animation-delay-2000 ${isDark ? 'bg-purple-600/10' : 'bg-purple-200/40'}`}></div>
+        </div>
 
-        <div className="relative mx-auto max-w-7xl px-3 sm:px-4 py-8 sm:py-12 md:py-16 lg:py-24">
-          <div className="grid items-center gap-4 sm:gap-6 md:gap-8 lg:grid-cols-2">
-            <div className="relative z-10 space-y-4 sm:space-y-6">
-              <div className="space-y-2 sm:space-y-3">
-                <div className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20">
-                  <span className="text-lg sm:text-xl">🎬</span>
-                  <span className={`text-xs sm:text-sm font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>Entretenimiento Premium</span>
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 md:py-20 lg:py-24">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            {/* Left Column: Content */}
+            <div className="relative z-10 space-y-8">
+              <div className="space-y-4">
+                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border transition-colors ${isDark ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-600'}`}>
+                  <span className="text-sm">✨</span>
+                  <span className="text-xs font-medium uppercase tracking-wider">Cuentas premium activas y soporte rápido</span>
                 </div>
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight flex items-center gap-2 sm:gap-3">
-                  <Logo className="h-12 w-auto sm:h-20 md:h-24 drop-shadow-2xl" />
-                  <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">StreamZone</span>
+
+                <h1 className={`text-4xl sm:text-5xl md:text-6xl font-bold leading-[1.1] tracking-tight transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  Tus plataformas favoritas <span className="text-blue-500">más claras, más confiables y listas para usar.</span>
                 </h1>
-                <p className={`text-base sm:text-lg md:text-xl font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                  Tus plataformas favoritas, al mejor precio
-                </p>
-                <p className={`text-sm sm:text-base ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                  Reserva por WhatsApp, recibe acceso con soporte inmediato y renueva sin complicaciones.
-                  <span className="font-semibold text-blue-600"> Administra tus servicios desde tu cuenta.</span>
-                </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3">
-                {user ? (
-                  <a href="#catalogo" className={`inline-flex items-center justify-center px-4 sm:px-6 py-3 rounded-2xl font-semibold text-sm sm:text-base transition-all duration-200 hover:scale-105 shadow-lg ${isDark ? 'bg-gradient-to-r from-blue-600 to-purple-700 text-white hover:from-blue-700 hover:to-purple-800' : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700'}`}>
-                    <span className="mr-2">✨</span>
-                    Ver Catálogo
-                    <span className="ml-2">🚀</span>
-                  </a>
-                ) : (
-                  <button onClick={() => setView('auth')} className={`inline-flex items-center justify-center px-4 sm:px-6 py-3 rounded-2xl font-semibold text-sm sm:text-base transition-all duration-200 hover:scale-105 shadow-lg ${isDark ? 'bg-gradient-to-r from-blue-600 to-purple-700 text-white hover:from-blue-700 hover:to-purple-800' : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700'}`}>
-                    <span className="mr-2">🔐</span>
-                    Iniciar Sesión
-                    <span className="ml-2">✨</span>
-                  </button>
-                )}
-                <button onClick={() => setView('combos')} className={`inline-flex items-center justify-center px-4 sm:px-6 py-3 rounded-2xl font-semibold text-sm sm:text-base transition-all duration-200 hover:scale-105 ${isDark ? 'bg-zinc-800 text-purple-400 border-2 border-purple-600 hover:bg-purple-900/20' : 'bg-white text-purple-600 border-2 border-purple-200 hover:bg-purple-50'}`}>
-                  <span className="mr-2">📦</span>
-                  Ver Combos
+              <div className="flex flex-wrap gap-4">
+                <button
+                  onClick={() => setView('combos')}
+                  className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:scale-105 active:scale-95"
+                >
+                  Ver combos
                 </button>
+                <a
+                  href="https://api.whatsapp.com/send?phone=593984280334&text=Hola%2C%20me%20gustar%C3%ADa%20recibir%20m%C3%A1s%20informaci%C3%B3n%20acerca%20de%20c%C3%B3mo%20comprar%20en%20StreamZone."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`px-8 py-4 font-bold rounded-xl border transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 ${isDark ? 'bg-[#1e293b]/50 hover:bg-[#1e293b] text-white border-gray-700' : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border-gray-300'}`}
+                >
+                  <span>💬</span>
+                  Cómo comprar
+                </a>
               </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-3 sm:gap-4 pt-4 sm:pt-6">
-                <div className="text-center">
-                  <div className={`text-lg sm:text-xl font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>500+</div>
-                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Clientes felices</div>
+              {/* Stats Cards */}
+              <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 border-t transition-colors ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
+                <div className={`p-4 rounded-2xl border backdrop-blur-sm transition-colors ${isDark ? 'bg-gray-900/40 border-gray-800/50 text-white shadow-lg' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}>
+                  <div className="text-2xl font-bold">+500</div>
+                  <div className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Clientes activos</div>
                 </div>
-                <div className="text-center">
-                  <div className={`text-lg sm:text-xl font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>24/7</div>
-                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Soporte</div>
+                <div className={`p-4 rounded-2xl border backdrop-blur-sm transition-colors ${isDark ? 'bg-gray-900/40 border-gray-800/50 text-white shadow-lg' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}>
+                  <div className="text-2xl font-bold">24/7</div>
+                  <div className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Atención por mensaje</div>
                 </div>
-                <div className="text-center">
-                  <div className={`text-lg sm:text-xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>100%</div>
-                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Garantía</div>
+                <div className={`p-4 rounded-2xl border backdrop-blur-sm transition-colors ${isDark ? 'bg-gray-900/40 border-gray-800/50 text-white shadow-lg' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}>
+                  <div className="text-2xl font-bold">100%</div>
+                  <div className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Reposición y garantía</div>
                 </div>
               </div>
             </div>
-            {/* Hero Illustration - Optimizada para móvil */}
-            <div className="relative z-10">
-              <div className={`relative rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-2xl backdrop-blur-md border-2 ${isDark ? 'bg-gradient-to-br from-zinc-900/80 to-blue-900/80 border-blue-700/50' : 'bg-gradient-to-br from-white/80 to-blue-50/80 border-blue-200/50'}`}>
-                {/* Floating Cards */}
-                <div className="relative h-60 sm:h-80 flex items-center justify-center">
-                  <div className="absolute top-2 sm:top-4 left-2 sm:left-4 w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl sm:rounded-2xl shadow-lg flex items-center justify-center text-white text-lg sm:text-2xl animate-float">
-                    🎬
-                  </div>
-                  <div className="absolute top-4 sm:top-8 right-4 sm:right-8 w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg sm:rounded-xl shadow-lg flex items-center justify-center text-white text-base sm:text-xl animate-float animation-delay-1000">
-                    🎧
-                  </div>
-                  <div className="absolute bottom-4 sm:bottom-8 left-4 sm:left-8 w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-lg sm:rounded-xl shadow-lg flex items-center justify-center text-white text-sm sm:text-lg animate-float animation-delay-2000">
-                    📺
-                  </div>
-                  <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 w-14 h-14 sm:w-18 sm:h-18 bg-gradient-to-r from-pink-500 to-pink-600 rounded-xl sm:rounded-2xl shadow-lg flex items-center justify-center text-white text-xl sm:text-2xl animate-float animation-delay-3000">
-                    🏰
-                  </div>
 
-                  {/* Central Icon */}
-                  <div className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl sm:rounded-3xl shadow-2xl flex items-center justify-center text-white text-2xl sm:text-3xl md:text-4xl ${isDark ? 'bg-gradient-to-r from-blue-700 to-purple-700' : 'bg-gradient-to-r from-blue-600 to-purple-600'}`}>
-                    ✨
-                  </div>
+            {/* Right Column: Featured Platforms */}
+            <div className="relative z-10 lg:pl-12">
+              <div className={`p-8 rounded-[32px] border backdrop-blur-xl shadow-2xl transition-all duration-300 ${isDark ? 'bg-[#0F172A]/80 border-white/5' : 'bg-white/90 border-gray-200'}`}>
+                <div className="mb-8">
+                  <h2 className={`text-2xl font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Plataformas destacadas</h2>
+                  <p className={`text-sm transition-colors ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Precios visibles para que el usuario compare más rápido.</p>
                 </div>
 
-                {/* Payment Methods - Optimizado para móvil */}
-                <div className="mt-4 sm:mt-6 space-y-3 sm:space-y-4">
-                  <div className={`text-center font-bold text-sm sm:text-base ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
-                    💳 Métodos de Pago
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                    <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl text-center ${isDark ? 'bg-blue-900/30 border border-blue-700' : 'bg-blue-50 border border-blue-200'}`}>
-                      <div className="text-lg sm:text-xl mb-1">🏦</div>
-                      <div className={`text-xs font-semibold ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>Bancos</div>
+                <div className="space-y-6">
+                  {/* Platform Item */}
+                  <div className="flex items-center justify-between group">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center shadow-lg transition-colors ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                        {getPlatformLogo('netflix', 48, 'w-full h-full')}
+                      </div>
+                      <div>
+                        <div className={`font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Netflix Premium</div>
+                        <div className="text-gray-500 text-xs">Perfil individual</div>
+                      </div>
                     </div>
-                    <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl text-center ${isDark ? 'bg-green-900/30 border border-green-700' : 'bg-green-50 border border-green-200'}`}>
-                      <div className="text-lg sm:text-xl mb-1">💚</div>
-                      <div className={`text-xs font-semibold ${isDark ? 'text-green-300' : 'text-green-700'}`}>PayPal</div>
-                    </div>
-                    <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl text-center ${isDark ? 'bg-purple-900/30 border border-purple-700' : 'bg-purple-50 border border-purple-200'}`}>
-                      <div className="text-lg sm:text-xl mb-1">📱</div>
-                      <div className={`text-xs font-semibold ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>Pago Móvil</div>
-                    </div>
+                    <div className={`font-bold text-xl transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{getServicePrice('netflix', '$4.00')}</div>
                   </div>
 
-                  {/* Bank Details */}
-                  <div className="mt-3 sm:mt-4 grid grid-cols-2 gap-2">
-                    <span className={`text-xs px-2 sm:px-3 py-1 sm:py-2 rounded-lg text-center ${isDark ? 'bg-green-800 text-green-200' : 'bg-green-100 text-green-700'}`}>🏦 Pichincha</span>
-                    <span className={`text-xs px-2 sm:px-3 py-1 sm:py-2 rounded-lg text-center ${isDark ? 'bg-blue-800 text-blue-200' : 'bg-blue-100 text-blue-700'}`}>🏛️ Guayaquil</span>
-                    <span className={`text-xs px-2 sm:px-3 py-1 sm:py-2 rounded-lg text-center ${isDark ? 'bg-purple-800 text-purple-200' : 'bg-purple-100 text-purple-700'}`}>🌊 Pacífico</span>
-                    <span className={`text-xs px-2 sm:px-3 py-1 sm:py-2 rounded-lg text-center ${isDark ? 'bg-orange-800 text-orange-200' : 'bg-orange-100 text-orange-700'}`}>💳 PayPal</span>
+                  <div className="flex items-center justify-between group">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center shadow-lg transition-colors ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                        {getPlatformLogo('disney_premium', 48, 'w-full h-full')}
+                      </div>
+                      <div>
+                        <div className={`font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Disney+ Premium</div>
+                        <div className="text-gray-500 text-xs">Series, películas y deportes</div>
+                      </div>
+                    </div>
+                    <div className={`font-bold text-xl transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{getServicePrice('disney', '$4.00')}</div>
+                  </div>
+
+                  <div className="flex items-center justify-between group">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center shadow-lg transition-colors ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                        {getPlatformLogo('max', 48, 'w-full h-full')}
+                      </div>
+                      <div>
+                        <div className={`font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Max Standard</div>
+                        <div className="text-gray-500 text-xs">Entretenimiento premium</div>
+                      </div>
+                    </div>
+                    <div className={`font-bold text-xl transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{getServicePrice('max', '$3.00')}</div>
+                  </div>
+
+                  <div className="flex items-center justify-between group">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center shadow-lg transition-colors ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                        {getPlatformLogo('prime', 48, 'w-full h-full')}
+                      </div>
+                      <div>
+                        <div className={`font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>Prime Video</div>
+                        <div className="text-gray-500 text-xs">Catálogo familiar y 4K</div>
+                      </div>
+                    </div>
+                    <div className={`font-bold text-xl transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{getServicePrice('prime', '$2.50')}</div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div className="absolute inset-0 -z-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700" />
       </section>
 
 
@@ -227,14 +235,24 @@ const Home = ({ isDark, onReserve, user, setView, services }: HomeProps) => {
             <div>
               <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Contacto</h3>
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-gray-300">
+                <a
+                  href="https://api.whatsapp.com/send?phone=593984280334"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-gray-300 hover:text-green-400 transition-colors"
+                >
                   <span>📱</span>
-                  <span className="text-sm sm:text-base">+593 99 999 9999</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-300">
+                  <span className="text-sm sm:text-base">+593 98 428 0334</span>
+                </a>
+                <a
+                  href="https://api.whatsapp.com/send?phone=593984280334"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-gray-300 hover:text-green-400 transition-colors"
+                >
                   <span>💬</span>
                   <span className="text-sm sm:text-base">WhatsApp</span>
-                </div>
+                </a>
                 <div className="flex items-center gap-2 text-gray-300">
                   <span>✉️</span>
                   <span className="text-sm sm:text-base">info@streamzone.com</span>

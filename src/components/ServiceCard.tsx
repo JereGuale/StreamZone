@@ -67,7 +67,7 @@ export function ServiceCard({ s, onReserve, isDark }: ServiceCardProps) {
       {/* 5. Comprar Ahora Button */}
       <button
         onClick={() => onReserve(s)}
-        className="w-full mt-auto py-3 sm:py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 hover:from-blue-500 hover:via-purple-500 hover:to-pink-500 transition-all shadow-[0_0_15px_rgba(236,72,153,0.3)] hover:shadow-[0_0_20px_rgba(236,72,153,0.5)] transform hover:scale-[1.02] active:scale-95"
+        className="w-full mt-auto py-3 sm:py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 hover:from-blue-500 hover:to-indigo-500 transition-all shadow-[0_4px_15px_rgba(37,99,235,0.3)] hover:shadow-[0_4px_20px_rgba(37,99,235,0.4)] transform hover:scale-[1.02] active:scale-95"
       >
         <span>🚀</span>
         <span>Comprar Ahora</span>

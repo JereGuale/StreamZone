@@ -3,7 +3,13 @@
 @tailwind utilities;
 
 :root { color-scheme: light dark; }
-html, body, #root { height: 100%; }
+html, body { 
+  height: 100%; 
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+}
+#root { height: 100%; }
 
 /* Mejoras globales para móvil */
 @media (max-width: 640px) {

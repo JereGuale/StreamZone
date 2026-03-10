@@ -179,6 +179,8 @@ function App() {
         user={user}
         isDark={isDark}
         systemPrefersDark={systemPrefersDark}
+        services={supabaseData.services}
+        combos={supabaseData.combos}
         setReserveModalOpen={reservations.setReserveModalOpen}
         setRegistrationRequiredOpen={reservations.setRegistrationRequiredOpen}
         setPurchaseModalOpen={reservations.setPurchaseModalOpen}

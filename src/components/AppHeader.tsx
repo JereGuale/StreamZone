@@ -35,9 +35,10 @@ export function AppHeader({ isDark, view, user, adminLogged, setView, handleLogo
   const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : user?.email ? user.email.charAt(0).toUpperCase() : '?';
 
   return (
-    <header className={`sticky top-0 z-50 backdrop-blur-xl border-b transition-all duration-500 ${tv(isDark, 'bg-white/95 border-gray-200/50 shadow-lg', 'bg-zinc-900/95 border-zinc-700/50 shadow-2xl')}`}>
-      {/* Subtle gradient accent line */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600"></div>
+    <header className={`sticky top-0 z-50 backdrop-blur-2xl border-b transition-all duration-700 ${tv(isDark, 'bg-white/80 border-white/20 shadow-sm', 'bg-black/40 border-white/5 shadow-2xl')}`}>
+      {/* Premium gradient accent line with pulse effect */}
+      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 opacity-80"></div>
 
       <div className="relative mx-auto max-w-7xl px-3 sm:px-4 lg:px-8">
         <div className="flex h-16 sm:h-24 items-center justify-between">
@@ -65,54 +66,46 @@ export function AppHeader({ isDark, view, user, adminLogged, setView, handleLogo
             {/* Inicio */}
             <button
               onClick={() => setView('home')}
-              className={`relative px-3 sm:px-4 py-2 rounded-xl font-semibold transition-all duration-300 text-xs sm:text-sm ${view === 'home'
-                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25'
-                : tv(isDark, 'text-gray-600 hover:text-gray-900 hover:bg-gray-100', 'text-gray-400 hover:text-white hover:bg-white/10')
+              className={`relative px-4 py-2 rounded-xl font-bold transition-all duration-500 text-xs sm:text-sm ${view === 'home'
+                ? 'bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)]'
+                : tv(isDark, 'text-gray-600 hover:text-blue-600 hover:bg-blue-50', 'text-gray-400 hover:text-white hover:bg-white/5')
                 }`}
             >
-              <span className="flex items-center gap-1.5">
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                <span className="hidden xs:inline sm:inline">Inicio</span>
+                <span className="hidden xs:inline">Inicio</span>
               </span>
             </button>
 
-
-
             {/* User section */}
             {user ? (
-              /* ===== Logged-in: Avatar Dropdown ===== */
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen(o => !o)}
-                  className={`flex items-center gap-2 pl-1 pr-2 sm:pr-3 py-1 rounded-full transition-all duration-300 ${dropdownOpen
-                    ? tv(isDark, 'bg-blue-50 ring-2 ring-blue-400', 'bg-white/15 ring-2 ring-purple-500')
-                    : tv(isDark, 'hover:bg-gray-100', 'hover:bg-white/10')
+                  className={`flex items-center gap-2.5 p-1.5 rounded-2xl transition-all duration-500 ${dropdownOpen
+                    ? tv(isDark, 'bg-blue-50 ring-1 ring-blue-200', 'bg-white/10 ring-1 ring-white/20')
+                    : tv(isDark, 'hover:bg-gray-100', 'hover:bg-white/5')
                     }`}
-                  title="Menú de usuario"
                 >
-                  {/* Avatar circle */}
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-sm sm:text-base font-bold shadow-md select-none">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-sm font-black shadow-lg shadow-blue-600/20 select-none">
                     {userInitial}
                   </div>
-                  {/* Name (desktop) */}
-                  <span className={`hidden md:block text-sm font-semibold truncate max-w-[120px] ${tv(isDark, 'text-gray-700', 'text-gray-200')}`}>
-                    {user.name || user.email || 'Usuario'}
+                  <span className={`hidden md:block text-sm font-bold ${tv(isDark, 'text-gray-700', 'text-gray-200')}`}>
+                    {user.name?.split(' ')[0] || 'Mi Cuenta'}
                   </span>
-                  {/* Chevron */}
-                  <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''} ${tv(isDark, 'text-gray-500', 'text-gray-400')}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <svg className={`w-4 h-4 transition-transform duration-500 ${dropdownOpen ? 'rotate-180' : ''} ${tv(isDark, 'text-gray-400', 'text-gray-500')}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
 
                 {/* Dropdown Menu */}
                 {dropdownOpen && (
-                  <div className={`dropdown-animate absolute right-0 mt-2 w-60 rounded-2xl shadow-2xl border overflow-hidden ${tv(isDark, 'bg-white border-gray-200', 'bg-zinc-800 border-zinc-700')}`}>
-                    {/* User info header */}
-                    <div className={`px-4 py-3 border-b ${tv(isDark, 'border-gray-100 bg-gradient-to-r from-blue-50 to-purple-50', 'border-zinc-700 bg-gradient-to-r from-blue-900/30 to-purple-900/30')}`}>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-lg font-bold shadow-md select-none flex-shrink-0">
+                  <div className={`absolute right-0 mt-3 w-64 rounded-2xl shadow-2xl border backdrop-blur-3xl overflow-hidden transition-all duration-500 ${tv(isDark, 'bg-white/95 border-gray-100', 'bg-zinc-900/90 border-white/5')}`}>
+                    <div className={`px-5 py-4 border-b ${tv(isDark, 'border-gray-50 bg-gray-50/50', 'border-white/5 bg-white/5')}`}>
+                      <div className="flex items-center gap-4">
+                        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-lg font-black shadow-lg">
                           {userInitial}
                         </div>
                         <div className="min-w-0">
@@ -170,10 +163,10 @@ export function AppHeader({ isDark, view, user, adminLogged, setView, handleLogo
               /* ===== Not logged in: Login button ===== */
               <button
                 onClick={() => setView('auth')}
-                className="relative px-4 sm:px-5 py-2 rounded-xl font-semibold text-xs sm:text-sm bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-105 transition-all duration-300"
+                className="relative px-5 py-2 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)] hover:scale-105 transition-all duration-500"
               >
-                <span className="flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <span className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                   </svg>
                   <span>Ingresar</span>
@@ -185,13 +178,13 @@ export function AppHeader({ isDark, view, user, adminLogged, setView, handleLogo
             {adminLogged ? (
               <button
                 onClick={() => setView('admin')}
-                className={`relative px-3 sm:px-4 py-2 rounded-xl font-semibold transition-all duration-300 text-xs sm:text-sm ${view === 'admin'
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25'
-                  : tv(isDark, 'text-gray-600 hover:text-gray-900 hover:bg-gray-100', 'text-gray-400 hover:text-white hover:bg-white/10')
+                className={`relative px-4 py-2 rounded-xl font-bold transition-all duration-500 text-xs sm:text-sm ${view === 'admin'
+                  ? 'bg-purple-600 text-white shadow-[0_0_20px_rgba(147,51,234,0.4)]'
+                  : tv(isDark, 'text-gray-600 hover:text-purple-600 hover:bg-purple-50', 'text-gray-400 hover:text-white hover:bg-white/5')
                   }`}
               >
-                <span className="flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <span className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
@@ -201,16 +194,12 @@ export function AppHeader({ isDark, view, user, adminLogged, setView, handleLogo
             ) : (
               <button
                 onClick={() => setView('admin')}
-                className={`relative px-3 sm:px-4 py-2 rounded-xl font-semibold transition-all duration-300 text-xs sm:text-sm ${tv(isDark, 'text-gray-500 hover:text-gray-700 hover:bg-gray-100', 'text-gray-500 hover:text-gray-300 hover:bg-white/10')}`}
+                className={`group relative p-2 rounded-xl transition-all duration-500 ${tv(isDark, 'text-gray-400 hover:text-gray-600 hover:bg-gray-100', 'text-gray-500 hover:text-white hover:bg-white/5')}`}
                 title="Panel Admin"
               >
-                <span className="flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span className="hidden sm:inline">Admin</span>
-                </span>
+                <svg className="w-5 h-5 transition-transform duration-500 group-hover:rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                </svg>
               </button>
             )}
           </nav>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { SERVICES, COMBOS } from "../constants/services_original";
+import { SERVICES, COMBOS } from "../constants/services";
 import { COUNTRIES } from "../constants/countries";
 import { fmt, tv, formatPhoneForWhatsApp, formatPhoneNumber, whatsappLinkSimple } from "../utils/helpers";
 
@@ -9,9 +9,11 @@ interface AdminRegisterPurchaseModalProps {
   onRegister: (data: any) => void;
   isDark: boolean;
   systemPrefersDark: boolean;
+  services: any[];
+  combos: any[];
 }
 
-export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, systemPrefersDark }: AdminRegisterPurchaseModalProps) {
+export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, systemPrefersDark, services = [], combos = [] }: AdminRegisterPurchaseModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -31,21 +33,23 @@ export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, 
   useEffect(() => {
     if (formData.service) {
       // Buscar en servicios individuales
-      const selectedService = SERVICES.find(s => s.name === formData.service);
+      const selectedService = services.find(s => s.name === formData.service);
       if (selectedService) {
-        const totalPrice = selectedService.price * formData.duration;
+        const basePrice = Number(selectedService.price);
+        const totalPrice = basePrice * formData.duration;
         setFormData(prev => ({ ...prev, price: totalPrice.toString() }));
         return;
       }
 
       // Buscar en combos
-      const selectedCombo = COMBOS.find(c => c.name === formData.service);
+      const selectedCombo = combos.find(c => c.name === formData.service);
       if (selectedCombo) {
-        const totalPrice = selectedCombo.price * formData.duration;
+        const basePrice = Number(selectedCombo.price);
+        const totalPrice = basePrice * formData.duration;
         setFormData(prev => ({ ...prev, price: totalPrice.toString() }));
       }
     }
-  }, [formData.service, formData.duration]);
+  }, [formData.service, formData.duration, services, combos]);
 
   if (!open) return null;
 
@@ -213,18 +217,18 @@ export function AdminRegisterPurchaseModal({ open, onClose, onRegister, isDark, 
 
                     {/* Servicios individuales */}
                     <optgroup label="🎬 Servicios Individuales">
-                      {SERVICES.map((service) => (
-                        <option key={service.name} value={service.name}>
-                          {service.name} - ${service.price}/mes
+                      {services.map((service) => (
+                        <option key={service.id || service.name} value={service.name}>
+                          {service.name} - ${Number(service.price).toFixed(2)}/mes
                         </option>
                       ))}
                     </optgroup>
 
                     {/* Combos */}
                     <optgroup label="🎁 Combos Especiales">
-                      {COMBOS.map((combo) => (
-                        <option key={combo.name} value={combo.name}>
-                          {combo.name} - ${combo.price}/mes
+                      {combos.map((combo) => (
+                        <option key={combo.id || combo.name} value={combo.name}>
+                          {combo.name} - ${Number(combo.price).toFixed(2)}/mes
                         </option>
                       ))}
                     </optgroup>

@@ -13,7 +13,7 @@ interface ModalsManagerProps {
   purchaseModalOpen: boolean;
   adminRegisterPurchaseOpen: boolean;
   editPurchaseOpen: boolean;
-  
+
   // Datos
   selectedService: any;
   purchaseData: any;
@@ -21,14 +21,16 @@ interface ModalsManagerProps {
   user: any;
   isDark: boolean;
   systemPrefersDark: boolean;
-  
+  services?: any[];
+  combos?: any[];
+
   // Setters
   setReserveModalOpen: (open: boolean) => void;
   setRegistrationRequiredOpen: (open: boolean) => void;
   setPurchaseModalOpen: (open: boolean) => void;
   setAdminRegisterPurchaseOpen: (open: boolean) => void;
   setEditPurchaseOpen: (open: boolean) => void;
-  
+
   // Funciones
   onAddPurchase: (data: any) => void;
   onGoToAuth: () => void;
@@ -49,6 +51,8 @@ export function ModalsManager({
   user,
   isDark,
   systemPrefersDark,
+  services = [],
+  combos = [],
   setReserveModalOpen,
   setRegistrationRequiredOpen,
   setPurchaseModalOpen,
@@ -63,18 +67,18 @@ export function ModalsManager({
   return (
     <>
       {/* Modal de registro requerido (como en el original) */}
-      <Modal 
-        open={reserveModalOpen} 
-        onClose={() => setReserveModalOpen(false)} 
-        title={`🔐 Registro Requerido - ${selectedService?.name || ''}`} 
-        isDark={isDark} 
+      <Modal
+        open={reserveModalOpen}
+        onClose={() => setReserveModalOpen(false)}
+        title={`🔐 Registro Requerido - ${selectedService?.name || ''}`}
+        isDark={isDark}
         className="max-w-2xl max-h-[90vh] overflow-y-auto"
       >
         {selectedService && (
-          <RegistrationRequiredForm 
-            service={selectedService} 
-            onClose={() => setReserveModalOpen(false)} 
-            isDark={isDark} 
+          <RegistrationRequiredForm
+            service={selectedService}
+            onClose={() => setReserveModalOpen(false)}
+            isDark={isDark}
             onGoToAuth={onGoToAuth}
           />
         )}
@@ -82,39 +86,41 @@ export function ModalsManager({
 
       {/* Modal de reserva (para usuarios logueados) */}
       {registrationRequiredOpen && (
-        <ReserveForm 
-          service={selectedService} 
-          onClose={() => setRegistrationRequiredOpen(false)} 
-          onAddPurchase={onAddPurchase} 
-          isDark={isDark} 
-          user={user} 
+        <ReserveForm
+          service={selectedService}
+          onClose={() => setRegistrationRequiredOpen(false)}
+          onAddPurchase={onAddPurchase}
+          isDark={isDark}
+          user={user}
         />
       )}
 
       {/* Modal de compra */}
-      <PurchaseModal 
-        open={purchaseModalOpen} 
-        onClose={() => setPurchaseModalOpen(false)} 
-        service={purchaseData} 
-        user={user} 
-        isDark={isDark} 
-        onPurchase={onPurchase} 
+      <PurchaseModal
+        open={purchaseModalOpen}
+        onClose={() => setPurchaseModalOpen(false)}
+        service={purchaseData}
+        user={user}
+        isDark={isDark}
+        onPurchase={onPurchase}
       />
 
       {/* Modal de registro de compra por admin */}
-      <AdminRegisterPurchaseModal 
-        open={adminRegisterPurchaseOpen} 
-        onClose={() => setAdminRegisterPurchaseOpen(false)} 
-        onRegister={onRegister} 
-        isDark={isDark} 
+      <AdminRegisterPurchaseModal
+        open={adminRegisterPurchaseOpen}
+        onClose={() => setAdminRegisterPurchaseOpen(false)}
+        onRegister={onRegister}
+        isDark={isDark}
         systemPrefersDark={systemPrefersDark}
+        services={services}
+        combos={combos}
       />
 
       {/* Modal de edición de compra */}
-      <EditPurchaseModal 
-        open={editPurchaseOpen} 
-        onClose={() => setEditPurchaseOpen(false)} 
-        onUpdate={onUpdate} 
+      <EditPurchaseModal
+        open={editPurchaseOpen}
+        onClose={() => setEditPurchaseOpen(false)}
+        onUpdate={onUpdate}
         purchase={editingPurchase}
         isDark={isDark}
         systemPrefersDark={systemPrefersDark}
