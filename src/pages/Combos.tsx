@@ -20,7 +20,7 @@ export const Combos = ({ isDark, onReserve, combos }: CombosProps) => {
         <div className={`absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t ${isDark ? 'from-[#0B1120]' : 'from-white'} to-transparent`}></div>
       </div>
 
-      <section className="relative mx-auto max-w-7xl px-4 sm:px-6 py-12 md:py-20">
+      <section className="relative mx-auto max-w-7xl px-4 sm:px-6 pt-6 pb-12 sm:py-12 md:py-20">
         {/* Header Mirroring Home Category Style */}
         <div className="text-center mb-12 md:mb-16">
           <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border transition-colors mb-6 ${isDark ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-600'}`}>
