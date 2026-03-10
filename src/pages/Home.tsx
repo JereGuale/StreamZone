@@ -33,13 +33,13 @@ const Home = ({ isDark, onReserve, user, setView, services }: HomeProps) => {
             {/* Left Column: Content */}
             <div className="relative z-10 space-y-8">
               <div className="space-y-4">
-                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border transition-colors ${isDark ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-600'}`}>
-                  <span className="text-sm">✨</span>
-                  <span className="text-xs font-medium uppercase tracking-wider">Cuentas premium activas y soporte rápido</span>
+                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border transition-colors backdrop-blur-sm ${isDark ? 'bg-blue-500/5 border-blue-500/10 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-600'}`}>
+                  <span className="text-[10px]">✨</span>
+                  <span className="text-[8px] font-black uppercase tracking-[0.3em]">Cuentas Premium & Soporte 24/7</span>
                 </div>
 
-                <h1 className={`text-3xl sm:text-5xl md:text-6xl font-bold leading-[1.1] tracking-tight transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Tus plataformas favoritas <span className="text-blue-500">más claras, más confiables y listas para usar.</span>
+                <h1 className={`text-lg sm:text-xl lg:text-2xl font-black leading-tight max-w-lg transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  Tus plataformas favoritas <span className="text-blue-500">más claras, confiables y listas para usar.</span>
                 </h1>
               </div>
 

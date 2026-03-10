@@ -348,6 +348,7 @@ export function AdminDashboard({
                         onDelete={() => onDeletePurchase(purchase.id)}
                         onEdit={() => onEditPurchase(purchase)}
                         onReminder={() => onReminderPurchase?.(purchase)}
+                        showAdminActions={true}
                       />
                     ))}
                   </div>
@@ -390,6 +391,7 @@ export function AdminDashboard({
                         onDelete={() => onDeletePurchase(purchase.id)}
                         onEdit={() => onEditPurchase(purchase)}
                         onReminder={() => onReminderPurchase?.(purchase)}
+                        showAdminActions={true}
                       />
                     ))}
                   </div>

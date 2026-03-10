@@ -122,7 +122,7 @@ function App() {
         user={user}
         adminLogged={adminLogged}
         setView={setView}
-        handleLogout={handleLogout}
+        onLogout={handleLogout}
       />
 
       {/* Contenido principal */}

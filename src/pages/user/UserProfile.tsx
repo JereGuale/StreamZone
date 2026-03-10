@@ -153,6 +153,7 @@ export function UserProfile({ isDark, user, purchases, onToggleValidate, onDelet
                       onToggleValidate={() => onToggleValidate(purchase.id)}
                       onDelete={() => onDeletePurchase(purchase.id)}
                       onEdit={() => onEditPurchase(purchase)}
+                      showAdminActions={false}
                     />
                   ))}
               </div>
