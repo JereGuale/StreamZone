@@ -37,7 +37,7 @@ export function AppHeader({ isDark, view, setView, user, onLogout, adminLogged }
       <div className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-8">
         <div className="flex h-14 sm:h-16 items-center justify-between gap-2 overflow-visible">
           {/* Logo Section */}
-          <div className="flex items-center gap-2 sm:gap-4 flex-1">
+          <div className="flex items-center gap-2 sm:gap-4 flex-none">
             <div
               className="flex items-center gap-3 cursor-pointer group transition-transform active:scale-95"
               onClick={() => setView('home')}
@@ -49,7 +49,7 @@ export function AppHeader({ isDark, view, setView, user, onLogout, adminLogged }
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-0">
-                  <span className={`text-xl sm:text-2xl font-black tracking-tight leading-none ${tv(isDark, 'text-gray-900', 'text-white')}`}>
+                  <span className={`text-lg sm:text-2xl font-black tracking-tight leading-none ${tv(isDark, 'text-gray-900', 'text-white')}`}>
                     <span className="text-blue-600">Stream</span><span className="text-[#ff0080]">Zone</span>
                   </span>
                 </div>
@@ -62,7 +62,7 @@ export function AppHeader({ isDark, view, setView, user, onLogout, adminLogged }
 
 
           {/* Right Navigation */}
-          <nav className="flex items-center gap-1.5 sm:gap-3 overflow-visible">
+          <nav className="flex items-center justify-end gap-1.5 sm:gap-3 flex-1 overflow-visible">
             {/* Inicio Button */}
             <button
               onClick={() => setView('home')}
@@ -140,7 +140,7 @@ export function AppHeader({ isDark, view, setView, user, onLogout, adminLogged }
                   ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-600/20'
                   : tv(isDark, 'bg-white border-gray-100 text-gray-500', 'bg-slate-800/40 border-white/5 text-gray-400 hover:text-white')}`}
               >
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 ${view === 'admin' ? 'text-white' : 'text-purple-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
