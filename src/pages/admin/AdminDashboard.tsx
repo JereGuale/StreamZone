@@ -88,7 +88,16 @@ export function AdminDashboard({
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setAdminMenuOpen(true)}
+              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 font-bold text-sm transition-all hover:scale-105 ${tv(isDark, 'bg-white text-gray-700 border border-gray-200 shadow-sm hover:bg-gray-50', 'bg-emerald-600/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-600/20')}`}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              Menú
+            </button>
             <button
               onClick={refreshAllStats}
               disabled={loading}

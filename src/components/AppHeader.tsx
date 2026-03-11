@@ -50,7 +50,6 @@ export function AppHeader({ isDark, view, setView, user, onLogout, adminLogged, 
                 <div className="flex items-center gap-0">
                   <span className={`text-lg sm:text-2xl font-black tracking-tight leading-none ${tv(isDark, 'text-gray-900', 'text-white')}`}>
                     <span className="text-blue-600">Stream</span><span className="text-[#ff0080]">Zone</span>
-                    <span className="text-[10px] ml-1 opacity-20">v2</span>
                   </span>
                 </div>
                 <span className={`text-[9px] sm:text-[10px] font-bold tracking-[0.1em] uppercase opacity-60 ${tv(isDark, 'text-gray-500', 'text-gray-400')}`}>
