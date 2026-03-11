@@ -74,83 +74,96 @@ export function AppHeader({ isDark, view, setView, user, onLogout, adminLogged, 
               </svg>
             </button>
 
-            {/* User section (Siempre Visible) */}
-            {user ? (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setDropdownOpen(o => !o)}
-                  className={`flex flex-shrink-0 items-center gap-1 p-1 rounded-lg transition-all duration-300 border ${dropdownOpen
-                    ? tv(isDark, 'bg-blue-50 border-blue-200', 'bg-white/10 border-white/20')
-                    : tv(isDark, 'bg-white border-gray-100', 'bg-slate-800/40 border-white/5 hover:bg-slate-800/60')
-                    }`}
-                >
+
+            {/* User section - SIEMPRE visible */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => {
+                  if (user) {
+                    setDropdownOpen(o => !o);
+                  } else {
+                    setView('profile');
+                  }
+                }}
+                className={`flex flex-shrink-0 items-center gap-1 p-1 rounded-lg transition-all duration-300 border ${dropdownOpen && user
+                  ? tv(isDark, 'bg-blue-50 border-blue-200', 'bg-white/10 border-white/20')
+                  : tv(isDark, 'bg-white border-gray-100', 'bg-slate-800/40 border-white/5 hover:bg-slate-800/60')
+                  }`}
+              >
+                {user ? (
                   <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-[8px] sm:text-[9px] font-black shadow-lg flex-shrink-0">
                     {userInitial}
                   </div>
+                ) : (
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center text-white shadow-lg flex-shrink-0">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                )}
+                {user && (
                   <svg className={`w-3 h-3 transition-transform duration-500 ${dropdownOpen ? 'rotate-180' : ''} ${tv(isDark, 'text-gray-400', 'text-gray-500')}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
-                </button>
+                )}
+              </button>
 
-                {/* Dropdown Menu */}
-                {dropdownOpen && (
-                  <div className={`absolute right-0 mt-3 w-56 sm:w-64 rounded-2xl sm:rounded-3xl shadow-2xl border backdrop-blur-3xl overflow-hidden transition-all duration-500 animate-in fade-in slide-in-from-top-2 z-[70] ${tv(isDark, 'bg-white/95 border-gray-100', 'bg-[#0B1120]/95 border-white/10')}`}>
-                    <div className="p-3 sm:p-4">
-                      <div className="mb-3 px-3 py-2 rounded-xl sm:rounded-2xl bg-blue-500/10 border border-blue-500/10">
-                        <p className={`text-[9px] sm:text-[10px] font-black tracking-widest uppercase opacity-40 mb-1 ${tv(isDark, 'text-blue-900', 'text-blue-300')}`}>Sesión como</p>
-                        <p className={`text-xs sm:text-sm font-black truncate ${tv(isDark, 'text-gray-900', 'text-white')}`}>{user.name}</p>
-                      </div>
+              {/* Dropdown Menu - solo si user logueado */}
+              {user && dropdownOpen && (
+                <div className={`absolute right-0 mt-3 w-56 sm:w-64 rounded-2xl sm:rounded-3xl shadow-2xl border backdrop-blur-3xl overflow-hidden transition-all duration-500 animate-in fade-in slide-in-from-top-2 z-[70] ${tv(isDark, 'bg-white/95 border-gray-100', 'bg-[#0B1120]/95 border-white/10')}`}>
+                  <div className="p-3 sm:p-4">
+                    <div className="mb-3 px-3 py-2 rounded-xl sm:rounded-2xl bg-blue-500/10 border border-blue-500/10">
+                      <p className={`text-[9px] sm:text-[10px] font-black tracking-widest uppercase opacity-40 mb-1 ${tv(isDark, 'text-blue-900', 'text-blue-300')}`}>Sesión como</p>
+                      <p className={`text-xs sm:text-sm font-black truncate ${tv(isDark, 'text-gray-900', 'text-white')}`}>{user.name}</p>
+                    </div>
 
-                      <div className="space-y-1">
-                        <button
-                          onClick={() => { setView('profile'); setDropdownOpen(false); }}
-                          className={`w-full flex items-center gap-3 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl transition-all group ${tv(isDark, 'hover:bg-blue-50 text-gray-700', 'hover:bg-white/5 text-gray-300')}`}
-                        >
-                          <span className="font-bold text-xs sm:text-sm">Mi Perfil</span>
-                        </button>
+                    <div className="space-y-1">
+                      <button
+                        onClick={() => { setView('profile'); setDropdownOpen(false); }}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl transition-all group ${tv(isDark, 'hover:bg-blue-50 text-gray-700', 'hover:bg-white/5 text-gray-300')}`}
+                      >
+                        <span className="font-bold text-xs sm:text-sm">Mi Perfil</span>
+                      </button>
 
-                        <button
-                          onClick={() => { setView('combos'); setDropdownOpen(false); }}
-                          className={`w-full flex items-center gap-3 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl transition-all group ${tv(isDark, 'hover:bg-blue-50 text-gray-700', 'hover:bg-white/5 text-gray-300')}`}
-                        >
-                          <span className="font-bold text-xs sm:text-sm">Combos</span>
-                        </button>
+                      <button
+                        onClick={() => { setView('combos'); setDropdownOpen(false); }}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl transition-all group ${tv(isDark, 'hover:bg-blue-50 text-gray-700', 'hover:bg-white/5 text-gray-300')}`}
+                      >
+                        <span className="font-bold text-xs sm:text-sm">Combos</span>
+                      </button>
 
-                        <div className="my-2 h-px bg-gray-100 dark:bg-white/5 mx-2"></div>
+                      <div className="my-2 h-px bg-gray-100 dark:bg-white/5 mx-2"></div>
 
-                        <button
-                          onClick={() => { onLogout(); setDropdownOpen(false); }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all group"
-                        >
-                          <span>Cerrar Sesión</span>
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => { onLogout(); setDropdownOpen(false); }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all group"
+                      >
+                        <span>Cerrar Sesión</span>
+                      </button>
                     </div>
                   </div>
-                )}
-              </div>
-            ) : null}
+                </div>
+              )}
+            </div>
 
-            {/* Admin toggle */}
-            {adminLogged && (
-              <button
-                onClick={() => {
-                  if (view === 'admin' && onAdminMenuToggle) {
-                    onAdminMenuToggle();
-                  } else {
-                    setView('admin');
-                  }
-                }}
-                className={`flex flex-shrink-0 items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg transition-all duration-300 border ${view === 'admin'
-                  ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-600/20'
-                  : tv(isDark, 'bg-white border-gray-100 text-gray-500', 'bg-slate-800/40 border-white/5 text-gray-400 hover:text-white')}`}
-              >
-                <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 ${view === 'admin' ? 'text-white' : 'text-purple-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </button>
-            )}
+            {/* Admin toggle - SIEMPRE visible */}
+            <button
+              onClick={() => {
+                if (view === 'admin' && onAdminMenuToggle) {
+                  onAdminMenuToggle();
+                } else {
+                  setView('admin');
+                }
+              }}
+              className={`flex flex-shrink-0 items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg transition-all duration-300 border ${view === 'admin'
+                ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-600/20'
+                : tv(isDark, 'bg-white border-gray-100 text-gray-500', 'bg-slate-800/40 border-white/5 text-gray-400 hover:text-white')}`}
+            >
+              <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 ${view === 'admin' ? 'text-white' : 'text-purple-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
 
           </nav>
         </div>
