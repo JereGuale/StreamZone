@@ -117,8 +117,11 @@ const SVG_LOGOS: Record<string, React.FC<LogoProps>> = {
  * Returns null if no logo is found (caller should render text fallback).
  */
 export function getPlatformLogo(id: string, size: number = 48, className: string = ''): React.ReactNode | null {
+  const safeId = id ? id.toLowerCase().trim() : '';
+  const parsedId = findServiceIdInString(safeId) || safeId;
+
   // Check for image-based logo first
-  const imagePath = IMAGE_LOGOS[id];
+  const imagePath = IMAGE_LOGOS[parsedId];
   if (imagePath) {
     return (
       <img
@@ -133,7 +136,7 @@ export function getPlatformLogo(id: string, size: number = 48, className: string
   }
 
   // Check for SVG fallback
-  const SvgLogo = SVG_LOGOS[id];
+  const SvgLogo = SVG_LOGOS[parsedId];
   if (SvgLogo) {
     return <SvgLogo size={size} className={className} />;
   }
