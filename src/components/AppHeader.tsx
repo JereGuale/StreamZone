@@ -9,9 +9,10 @@ interface AppHeaderProps {
   user: any;
   onLogout: () => void;
   adminLogged: boolean;
+  onAdminMenuToggle?: () => void;
 }
 
-export function AppHeader({ isDark, view, setView, user, onLogout, adminLogged }: AppHeaderProps) {
+export function AppHeader({ isDark, view, setView, user, onLogout, adminLogged, onAdminMenuToggle }: AppHeaderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -49,6 +50,7 @@ export function AppHeader({ isDark, view, setView, user, onLogout, adminLogged }
                 <div className="flex items-center gap-0">
                   <span className={`text-lg sm:text-2xl font-black tracking-tight leading-none ${tv(isDark, 'text-gray-900', 'text-white')}`}>
                     <span className="text-blue-600">Stream</span><span className="text-[#ff0080]">Zone</span>
+                    <span className="text-[10px] ml-1 opacity-20">v2</span>
                   </span>
                 </div>
                 <span className={`text-[9px] sm:text-[10px] font-bold tracking-[0.1em] uppercase opacity-60 ${tv(isDark, 'text-gray-500', 'text-gray-400')}`}>
@@ -133,7 +135,13 @@ export function AppHeader({ isDark, view, setView, user, onLogout, adminLogged }
             {/* Admin toggle */}
             {adminLogged && (
               <button
-                onClick={() => setView('admin')}
+                onClick={() => {
+                  if (view === 'admin' && onAdminMenuToggle) {
+                    onAdminMenuToggle();
+                  } else {
+                    setView('admin');
+                  }
+                }}
                 className={`flex flex-shrink-0 items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg transition-all duration-300 border ${view === 'admin'
                   ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-600/20'
                   : tv(isDark, 'bg-white border-gray-100 text-gray-500', 'bg-slate-800/40 border-white/5 text-gray-400 hover:text-white')}`}

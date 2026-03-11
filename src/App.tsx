@@ -123,6 +123,7 @@ function App() {
         adminLogged={adminLogged}
         setView={setView}
         onLogout={handleLogout}
+        onAdminMenuToggle={() => setAdminMenuOpen(true)}
       />
 
       {/* Contenido principal */}
