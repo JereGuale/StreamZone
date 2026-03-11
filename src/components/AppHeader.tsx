@@ -153,30 +153,9 @@ export function AppHeader({ isDark, view, setView, user, onLogout, adminLogged }
               </button>
             )}
 
-            {/* Hamburger Menu (Mobile Only) */}
-            <button
-              onClick={() => setUserMenuOpen(true)}
-              className={`relative flex sm:hidden w-9 h-9 items-center justify-center rounded-xl transition-all duration-500 flex-shrink-0 ${tv(isDark, 'bg-gray-100 text-gray-700 hover:bg-gray-200', 'bg-white/5 text-white hover:bg-white/10')
-                }`}
-            >
-              <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
-              </svg>
-            </button>
           </nav>
         </div>
       </div>
-
-      {/* Mobile Drawer */}
-      <UserMenuDrawer
-        open={userMenuOpen}
-        onClose={() => setUserMenuOpen(false)}
-        isDark={isDark}
-        user={user}
-        onSetView={setView}
-        onLogout={onLogout}
-        adminLogged={adminLogged}
-      />
     </header>
   );
 }
