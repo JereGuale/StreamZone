@@ -463,11 +463,11 @@ export const syncServices = async (services: any[]) => {
 
     if (fetchError) throw fetchError;
 
-    // Crear un mapa de servicios existentes
-    const existingMap = new Map(existingServices?.map(s => [s.name, s]) || []);
+    // Crear un mapa de servicios existentes usando el ID (llave primaria)
+    const existingMap = new Map(existingServices?.map(s => [s.id, s]) || []);
 
-    // Determinar qué servicios necesitan ser insertados
-    const servicesToInsert = services.filter(service => !existingMap.has(service.name));
+    // Determinar qué servicios necesitan ser insertados usando el ID
+    const servicesToInsert = services.filter(service => !existingMap.has(service.id));
 
     if (servicesToInsert.length > 0) {
       const { data, error } = await supabase
@@ -478,8 +478,7 @@ export const syncServices = async (services: any[]) => {
           price: s.price,
           billing: s.billing,
           color: s.color,
-          logo: s.logo,
-          is_combo: s.is_combo || false
+          logo: s.logo
         })))
         .select();
 

@@ -80,7 +80,7 @@ function App() {
         console.log('Servicios sincronizados con Supabase');
 
         // Sincronizar combos
-        await syncServices([...COMBOS.map(c => ({ ...c, is_combo: true }))]);
+        await syncServices([...COMBOS]);
         console.log('Combos sincronizados con Supabase');
       } catch (error) {
         console.error('Error sincronizando servicios:', error);

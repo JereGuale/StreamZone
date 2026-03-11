@@ -13,61 +13,47 @@ interface EditPurchaseModalProps {
 }
 
 export function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, systemPrefersDark }: EditPurchaseModalProps) {
-  // Detectar si es un combo y qué servicios incluye
-  const serviceName = purchase?.service || '';
-  const trimmedName = serviceName.trim();
+  // Memoizar la detección de combo y lista de servicios para evitar re-renders infinitos
+  const { isCombo, services } = React.useMemo(() => {
+    const sName = purchase?.service || '';
+    const tName = sName.trim();
 
-  // Primero verificar si es SOLO Disney (sin otros servicios)
-  // Esto cubre: "Disney+", "Disney", "Disney+ Premium", "Disney+ Standard", "Disney+ Estándar", etc.
-  const isOnlyDisney = /^Disney\+?\s*$/i.test(trimmedName) || // Solo "Disney+" o "Disney"
-    /^Disney\+?\s+(Standard|Estándar|Premium)\s*$/i.test(trimmedName) || // "Disney+ Premium", etc.
-    /^Disney\s+(Standard|Estándar|Premium)\s*$/i.test(trimmedName); // "Disney Premium", etc.
+    const isOnlyDisney = /^Disney\+?\s*$/i.test(tName) ||
+      /^Disney\+?\s+(Standard|Estándar|Premium)\s*$/i.test(tName) ||
+      /^Disney\s+(Standard|Estándar|Premium)\s*$/i.test(tName);
 
-  // Verificar que NO contenga otros servicios (Netflix, Max, Prime, etc.) y NO tenga " + " que separa servicios
-  const hasOtherServices = trimmedName.includes('Netflix') ||
-    trimmedName.includes('Max') ||
-    trimmedName.includes('Prime') ||
-    trimmedName.includes('Spotify') ||
-    trimmedName.includes('Paramount') ||
-    /\s+\+\s+/.test(trimmedName); // Tiene " + " que separa servicios
+    const hasOtherServices = tName.includes('Netflix') ||
+      tName.includes('Max') ||
+      tName.includes('Prime') ||
+      tName.includes('Spotify') ||
+      tName.includes('Paramount') ||
+      /\s+\+\s+/.test(tName);
 
-  // Es servicio individual si es solo Disney Y no tiene otros servicios
-  const isIndividualService = isOnlyDisney && !hasOtherServices;
+    const isIndividual = isOnlyDisney && !hasOtherServices;
 
-  // Es combo solo si contiene " + " (con espacios alrededor) que separa servicios MÚLTIPLES
-  // NO es combo si es un servicio individual de Disney (incluso si tiene "+")
-  const hasMultipleServices = /\s+\+\s+/.test(serviceName);
-  const isCombo = !isIndividualService && hasMultipleServices;
+    // Usar la misma lógica flexible que en PurchaseCard
+    const hasMultiple = tName.includes('+') && !isIndividual;
+    const combo = hasMultiple;
 
-  // DETECTAR TODOS LOS COMBOS POSIBLES
-  let services = [serviceName];
-  if (isCombo) {
-    if (serviceName.includes('Netflix') && serviceName.includes('Disney')) {
-      services = ['Netflix', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar'];
-    } else if (serviceName.includes('Max') && serviceName.includes('Prime')) {
-      services = ['Max', 'Prime Video'];
-    } else if (serviceName.includes('Netflix') && serviceName.includes('Max')) {
-      services = ['Netflix', 'Max'];
-    } else if (serviceName.includes('Netflix') && serviceName.includes('Prime')) {
-      services = ['Netflix', 'Prime Video'];
-    } else if (serviceName.includes('Prime') && serviceName.includes('Disney')) {
-      services = ['Prime Video', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar'];
-    } else if (serviceName.includes('Disney') && serviceName.includes('Max')) {
-      services = [serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar', 'Max'];
-    } else if (serviceName.includes('Spotify') && serviceName.includes('Netflix')) {
-      services = ['Spotify', 'Netflix'];
-    } else if (serviceName.includes('Spotify') && serviceName.includes('Disney')) {
-      services = ['Spotify', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar'];
-    } else if (serviceName.includes('Spotify') && serviceName.includes('Prime')) {
-      services = ['Spotify', 'Prime Video'];
-    } else if (serviceName.includes('Paramount') && serviceName.includes('Max') && serviceName.includes('Prime')) {
-      services = ['Paramount+', 'Max', 'Prime Video'];
-    } else if (serviceName.includes('Netflix') && serviceName.includes('Max') && serviceName.includes('Disney')) {
-      services = ['Netflix', 'Max', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar', 'Prime Video', 'Paramount+'];
-    } else {
-      services = serviceName.split(/\s*\+\s*/).map(s => s.trim()).filter(s => s.length > 0);
+    let svcList = [sName];
+    if (combo) {
+      if (sName.toLowerCase().includes('netflix') && sName.toLowerCase().includes('max') && sName.toLowerCase().includes('disney')) {
+        svcList = ['Netflix', 'Max', sName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar', 'Prime Video', 'Paramount+'];
+      } else {
+        svcList = sName.split('+').map(s => s.trim()).filter(s => s.length > 0);
+
+        // Re-fix Disney+ si fue separado accidentalmente
+        svcList = svcList.map(s => {
+          if (s.toLowerCase() === 'disney' || s.toLowerCase() === 'disney+') {
+            return sName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar';
+          }
+          return s;
+        });
+      }
     }
-  }
+
+    return { isCombo: combo, services: svcList };
+  }, [purchase?.service]);
 
   const [formData, setFormData] = useState({
     customer: '',
@@ -149,8 +135,9 @@ export function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, s
     }
   }, [formData.service, formData.months, open, purchase]);
 
+  // Inicializar el formulario SOLO cuando cambia la compra o se abre el modal
   useEffect(() => {
-    if (purchase) {
+    if (purchase && open) {
       setFormData({
         customer: purchase.customer || '',
         phone: purchase.phone || '',
@@ -173,21 +160,30 @@ export function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, s
         sections.forEach(section => {
           const lines = section.split('\n');
           if (lines.length >= 3) {
-            const serviceName = lines[0].replace(':', '').trim();
+            const sName = lines[0].replace(':', '').trim();
             const email = lines[1].replace('Email: ', '').trim();
             const password = lines[2].replace('Contraseña: ', '').trim();
 
-            if (serviceName && email && password) {
-              credentials[serviceName] = { email, password };
+            if (sName && email && password) {
+              credentials[sName] = { email, password };
             }
           }
         });
 
+        // 🚨 FALLBACK: Si es un combo pero el parseo falló (registro antiguo)
+        if (Object.keys(credentials).length === 0 && services.length > 0) {
+          const firstService = services[0];
+          credentials[firstService] = {
+            email: purchase.service_email || '',
+            password: purchase.service_password || ''
+          };
+        }
+
         setMultiCredentials(credentials);
-        console.log('📋 Credenciales parseadas:', credentials);
+        console.log('📋 Credenciales inicializadas para edición');
       }
     }
-  }, [purchase, isCombo]);
+  }, [purchase?.id, open, isCombo, services]);
 
   if (!open || !purchase) return null;
 
@@ -413,6 +409,7 @@ export function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, s
                               ...prev,
                               [service]: { ...prev[service], email: e.target.value, password: prev[service]?.password || '' }
                             }))}
+                            autoComplete="off"
                             className={`w-full rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${tv(isDark, 'border-gray-300 bg-white text-gray-900 focus:border-blue-500', 'border-gray-600 bg-gray-700 text-white focus:border-blue-400')}`}
                             placeholder={`usuario@${service.toLowerCase().replace(/[^a-z]/g, '')}.com`}
                           />
@@ -429,6 +426,7 @@ export function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, s
                               ...prev,
                               [service]: { ...prev[service], password: e.target.value, email: prev[service]?.email || '' }
                             }))}
+                            autoComplete="off"
                             className={`w-full rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-amber-500/20 ${tv(isDark, 'border-gray-300 bg-white text-gray-900 focus:border-amber-500', 'border-gray-600 bg-gray-700 text-white focus:border-amber-400')}`}
                             placeholder="••••••••"
                           />
@@ -448,6 +446,7 @@ export function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, s
                       type="email"
                       value={formData.service_email}
                       onChange={(e) => setFormData({ ...formData, service_email: e.target.value })}
+                      autoComplete="off"
                       className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tv(isDark, 'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200', 'border-gray-600 bg-gray-700 text-white focus:border-purple-400 focus:ring-purple-800/30')}`}
                       required
                     />
@@ -461,6 +460,7 @@ export function EditPurchaseModal({ open, onClose, onUpdate, purchase, isDark, s
                       type="text"
                       value={formData.service_password}
                       onChange={(e) => setFormData({ ...formData, service_password: e.target.value })}
+                      autoComplete="off"
                       className={`w-full rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 ${tv(isDark, 'border-gray-300 bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-200', 'border-gray-600 bg-gray-700 text-white focus:border-purple-400 focus:ring-purple-800/30')}`}
                       required
                     />

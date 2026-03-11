@@ -37,41 +37,36 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
     /\s+\+\s+/.test(trimmedName);
 
   const isIndividualService = isOnlyDisney && !hasOtherServices;
-  const hasMultipleServices = /\s+\+\s+/.test(serviceName);
-  const isCombo = !isIndividualService && hasMultipleServices;
+  // Detectar combo si tiene un "+" que NO sea el de "Disney+" (excepto si Disney+ está en un combo)
+  // O simplemente si tiene un "+" y no es puramente un servicio de Disney individual
+  const hasMultipleServices = trimmedName.includes('+') && !isIndividualService;
+  const isCombo = hasMultipleServices;
 
   // DETECTAR TODOS LOS COMBOS POSIBLES
-  let services = [serviceName];
+  let services: string[] = [serviceName];
   if (isCombo) {
-    if (serviceName.includes('Netflix') && serviceName.includes('Disney')) {
-      services = ['Netflix', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar'];
-    } else if (serviceName.includes('Max') && serviceName.includes('Prime')) {
-      services = ['Max', 'Prime Video'];
-    } else if (serviceName.includes('Netflix') && serviceName.includes('Max')) {
-      services = ['Netflix', 'Max'];
-    } else if (serviceName.includes('Netflix') && serviceName.includes('Prime')) {
-      services = ['Netflix', 'Prime Video'];
-    } else if (serviceName.includes('Prime') && serviceName.includes('Disney')) {
-      services = ['Prime Video', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar'];
-    } else if (serviceName.includes('Disney') && serviceName.includes('Max')) {
-      services = [serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar', 'Max'];
-    } else if (serviceName.includes('Spotify') && serviceName.includes('Netflix')) {
-      services = ['Spotify', 'Netflix'];
-    } else if (serviceName.includes('Spotify') && serviceName.includes('Disney')) {
-      services = ['Spotify', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar'];
-    } else if (serviceName.includes('Spotify') && serviceName.includes('Prime')) {
-      services = ['Spotify', 'Prime Video'];
-    } else if (serviceName.includes('Paramount') && serviceName.includes('Max') && serviceName.includes('Prime')) {
-      services = ['Paramount+', 'Max', 'Prime Video'];
-    } else if (serviceName.includes('Netflix') && serviceName.includes('Max') && serviceName.includes('Disney')) {
+    // Caso especial: Mega Combos de 5 servicios (detectar por palabras clave)
+    const lowerName = trimmedName.toLowerCase();
+    if (lowerName.includes('netflix') && lowerName.includes('max') && lowerName.includes('disney')) {
       services = ['Netflix', 'Max', serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar', 'Prime Video', 'Paramount+'];
     } else {
-      services = serviceName.split(/\s*\+\s*/).map(s => s.trim()).filter(s => s.length > 0);
+      // General case: split by "+" and clean, handling optional spaces
+      services = serviceName.split('+').map(s => s.trim()).filter(s => s.length > 0);
+
+      // Re-fix Disney+ if it was split accidentally (e.g. "Disney+ + Netflix")
+      // But usually split('+') on "Disney+" results in ["Disney", ""] which is filtered out or "Disney".
+      // We want to keep "Disney+" as a name.
+      services = services.map(s => {
+        if (s.toLowerCase() === 'disney' || s.toLowerCase() === 'disney+') return serviceName.includes('Premium') ? 'Disney+ Premium' : 'Disney+ Estándar';
+        return s;
+      });
     }
   }
 
   // Parsear credenciales si es combo
   let credentials: { [key: string]: { email: string, password: string } } = {};
+  let hasValidStructuredCredentials = false;
+
   if (isCombo && item.service_password) {
     const sections = item.service_password.split('\n\n');
     sections.forEach(section => {
@@ -83,6 +78,7 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
 
         if (sName && email && password) {
           credentials[sName] = { email, password };
+          hasValidStructuredCredentials = true;
         }
       }
     });
@@ -315,36 +311,82 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
         <div className={`p-4 sm:p-5 transition-all duration-500 border-t flex flex-col gap-4 ${tv(isDark, 'bg-gray-50/50 border-gray-100', 'bg-[#050914] border-white/5')}`}>
 
           {/* 🔑 Sección de Credenciales */}
-          <div className={`p-4 rounded-2xl border ${tv(isDark, 'bg-white border-gray-200 shadow-sm', 'bg-[#0B1120]/60 border-emerald-500/10')}`}>
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-lg">🔑</span>
-              <h4 className={`text-sm font-bold tracking-tight ${tv(isDark, 'text-gray-900', 'text-zinc-100')}`}>
+          <div className={`p-4 sm:p-6 rounded-2xl border ${tv(isDark, 'bg-white border-gray-100 shadow-sm', 'bg-[#0B1120]/60 border-white/5')}`}>
+            <div className="flex items-center gap-2 mb-6 sm:mb-8">
+              <span className="text-xl">🔑</span>
+              <h4 className={`text-sm sm:text-base font-black tracking-tight ${tv(isDark, 'text-gray-900', 'text-zinc-100')}`}>
                 Credenciales del Servicio
               </h4>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6 sm:space-y-8">
               {isCombo ? (
-                services.map((service) => {
-                  const serviceCreds = credentials[service];
-                  if (!serviceCreds) return null;
-                  return (
-                    <div key={service} className="space-y-3 pb-4 border-b border-gray-100 dark:border-white/5 last:border-0 last:pb-0">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">{service}</span>
-                      <CredRow label="Email:" value={serviceCreds.email} isDark={isDark} />
+                /* Caso Combo */
+                hasValidStructuredCredentials ? (
+                  /* Vista Estructurada (Ideal) */
+                  Object.keys(credentials).map((serviceName) => {
+                    const serviceCreds = credentials[serviceName];
+                    return (
+                      <div key={serviceName} className="space-y-4 pb-6 border-b border-gray-100 dark:border-white/5 last:border-0 last:pb-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                          <span className="text-[11px] font-black uppercase tracking-widest text-blue-500">{serviceName}</span>
+                        </div>
+                        <CredRow label="Email:" value={serviceCreds.email} isDark={isDark} />
+                        <CredRow
+                          label="Password:"
+                          value={serviceCreds.password}
+                          isDark={isDark}
+                          isPassword
+                          showPassword={showPasswords[serviceName]}
+                          onToggleShow={() => setShowPasswords(prev => ({ ...prev, [serviceName]: !prev[serviceName] }))}
+                        />
+                      </div>
+                    );
+                  })
+                ) : (
+                  /* ⚠️ FALLBACK: Vista Simplificada (Mejorada para claridad) */
+                  <div className={`p-4 sm:p-6 rounded-2xl border-2 border-dashed transition-all ${tv(isDark, 'bg-orange-50/30 border-orange-200/60', 'bg-orange-500/5 border-orange-500/20')}`}>
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">⚠️</span>
+                        <span className={`text-[11px] font-black uppercase tracking-widest ${tv(isDark, 'text-orange-700', 'text-orange-400')}`}>
+                          Vista Simplificada (Combo Completo)
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className={`mb-4 p-3 rounded-xl border ${tv(isDark, 'bg-white/80 border-orange-100', 'bg-orange-950/20 border-orange-900/30')}`}>
+                        <p className={`text-[10px] font-black uppercase tracking-widest opacity-60 mb-2 ${tv(isDark, 'text-orange-900', 'text-orange-300')}`}>Servicios incluidos en esta cuenta:</p>
+                        <p className={`text-xs font-bold leading-relaxed ${tv(isDark, 'text-orange-800', 'text-orange-200')}`}>
+                          {services.join(' + ')}
+                        </p>
+                      </div>
+
                       <CredRow
-                        label="Password:"
-                        value={serviceCreds.password}
+                        label="Email Único:"
+                        value={item.service_email || 'No disponible'}
+                        isDark={isDark}
+                      />
+                      <CredRow
+                        label="Contraseña:"
+                        value={item.service_password || 'No disponible'}
                         isDark={isDark}
                         isPassword
-                        showPassword={showPasswords[service]}
-                        onToggleShow={() => setShowPasswords(prev => ({ ...prev, [service]: !prev[service] }))}
+                        showPassword={showPassword}
+                        onToggleShow={() => setShowPassword(!showPassword)}
                       />
                     </div>
-                  );
-                })
+
+                    <p className={`mt-6 text-[10px] font-bold leading-relaxed text-center opacity-40 uppercase tracking-tighter ${tv(isDark, 'text-orange-900', 'text-orange-300')}`}>
+                      Nota: Compra registrada con credencial maestra para todos los servicios.
+                    </p>
+                  </div>
+                )
               ) : (
-                <div className="space-y-3">
+                /* Caso Individual */
+                <div className="space-y-4">
                   <CredRow label="Email:" value={item.service_email || 'No disponible'} isDark={isDark} />
                   <CredRow label="Password:" value={item.service_password || 'No disponible'} isDark={isDark} isPassword showPassword={showPassword} onToggleShow={() => setShowPassword(!showPassword)} />
                 </div>
@@ -352,69 +394,79 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
             </div>
           </div>
 
-          {/* 📝 Notas del Administrador (Visible para Cliente y Admin si existen) */}
+          {/* 📝 Notas del Administrador (Rediseño Profesional) */}
           {item.admin_notes && (
-            <div className={`mt-2 p-4 rounded-2xl border backdrop-blur-md transition-all ${tv(isDark,
-              'bg-gradient-to-br from-indigo-50/80 to-purple-50/80 border-indigo-100/60 shadow-sm',
-              'bg-gradient-to-br from-indigo-900/10 to-purple-900/10 border-indigo-500/20'
+            <div className={`rounded-2xl border transition-all overflow-hidden ${tv(isDark,
+              'bg-[#F8FAFC] border-gray-100 shadow-sm',
+              'bg-[#0B1120]/40 border-white/5'
             )}`}>
-              <div className="flex items-center gap-2 mb-3">
-                <span className={`flex items-center justify-center w-6 h-6 rounded-lg ${tv(isDark, 'bg-indigo-100 text-indigo-600', 'bg-indigo-500/20 text-indigo-400')}`}>
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </span>
-                <h4 className={`text-[11px] font-black tracking-widest uppercase ${tv(isDark, 'text-indigo-900/80', 'text-indigo-300')}`}>
-                  Notas Adicionales
+              <div className={`px-5 py-3 border-b flex items-center gap-2 ${tv(isDark, 'bg-gray-50/50 border-gray-100', 'bg-white/5 border-white/5')}`}>
+                <svg className={`w-3.5 h-3.5 ${tv(isDark, 'text-gray-400', 'text-zinc-500')}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h4 className={`text-[10px] font-black tracking-widest uppercase ${tv(isDark, 'text-gray-500', 'text-zinc-500')}`}>
+                  NOTAS ADICIONALES
                 </h4>
               </div>
-              <p className={`text-[13px] font-medium leading-relaxed whitespace-pre-wrap pl-8 ${tv(isDark, 'text-gray-700', 'text-zinc-300')}`}>
-                {item.admin_notes}
-              </p>
+              <div className="p-5">
+                <p className={`text-[13px] font-medium leading-relaxed whitespace-pre-wrap ${tv(isDark, 'text-gray-600', 'text-zinc-300')}`}>
+                  {item.admin_notes}
+                </p>
+              </div>
             </div>
           )}
 
-          {/* 🔵 Footer Actions Bar (SOLO ADMIN) */}
+          {/* 🔵 Footer Actions Bar (Rediseño Estilo Botones Blancos/Gris) */}
           {showAdminActions && (
-            <div className="mt-6 flex flex-col sm:flex-row items-center justify-start gap-4">
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <button
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleValidate(); }}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-lg shadow-blue-600/20"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  Validada
-                </button>
-                <button
-                  onClick={onEdit}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition-all shadow-lg shadow-orange-500/20"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                  </svg>
-                  Editar
-                </button>
-                <button
-                  onClick={onReminder}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-all shadow-lg shadow-emerald-500/20"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                  Recordatorio
-                </button>
-                <button
-                  onClick={onDelete}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all shadow-lg shadow-red-600/20"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  Eliminar
-                </button>
-              </div>
+            <div className="mt-4 flex flex-wrap items-center justify-start gap-2.5">
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleValidate(); }}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black transition-all shadow-lg shadow-blue-600/20 active:scale-95"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                Validada
+              </button>
+
+              <button
+                onClick={onEdit}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border text-xs font-black transition-all active:scale-95 ${tv(isDark,
+                  'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 shadow-sm',
+                  'bg-white/5 border-white/10 text-zinc-100 hover:bg-white/10 hover:border-white/20'
+                )}`}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+                Editar
+              </button>
+
+              <button
+                onClick={onReminder}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border text-xs font-black transition-all active:scale-95 ${tv(isDark,
+                  'bg-white border-gray-200 text-gray-700 hover:bg-emerald-50 hover:border-emerald-200 shadow-sm',
+                  'bg-white/5 border-white/10 text-zinc-100 hover:bg-emerald-500/10 hover:border-emerald-500/20'
+                )}`}
+              >
+                <svg className={`w-3.5 h-3.5 ${tv(isDark, 'text-emerald-500', 'text-emerald-400')}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                Recordatorio
+              </button>
+
+              <button
+                onClick={onDelete}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border text-xs font-black transition-all active:scale-95 ${tv(isDark,
+                  'bg-white border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200 shadow-sm',
+                  'bg-white/5 border-red-500/20 text-red-400 hover:bg-red-500/10 hover:border-red-500/30'
+                )}`}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Eliminar
+              </button>
             </div>
           )}
         </div>
@@ -423,11 +475,19 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
   );
 }
 
-// Sub-component for Credential Rows (Simplified as per Image)
+// Sub-component for Credential Rows (Fidelity to Image)
 function CredRow({ label, value, isDark, isPassword, showPassword, onToggleShow }: any) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-      <span className={`w-20 text-[11px] font-bold ${tv(isDark, 'text-gray-500', 'text-zinc-400')}`}>
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
+      <span className={`w-24 text-[11px] sm:text-xs font-black uppercase tracking-widest opacity-40 ${tv(isDark, 'text-gray-900', 'text-white')}`}>
         {label}
       </span>
       <div className="relative flex-1 group">
@@ -435,23 +495,37 @@ function CredRow({ label, value, isDark, isPassword, showPassword, onToggleShow 
           type={isPassword && !showPassword ? 'password' : 'text'}
           value={value}
           readOnly
-          className={`w-full pl-4 pr-10 py-3 rounded-xl border text-[13px] font-mono outline-none transition-all ${tv(isDark,
-            'bg-gray-50 border-gray-200 text-gray-700 focus:border-blue-500',
-            'bg-[#121a2b] border-white/5 text-gray-100 focus:border-blue-500/50 shadow-inner'
-          )}`}
+          className={`w-full pl-5 pr-12 py-3.5 rounded-2xl border text-[13px] sm:text-sm font-mono tracking-tight outline-none transition-all duration-300 ${tv(isDark,
+            'bg-[#F8FAFC] border-gray-100 text-gray-700 focus:border-blue-500/50 shadow-sm',
+            'bg-[#0B1120] border-white/5 text-gray-100 focus:border-blue-500/30'
+          )} group-hover:border-blue-500/20`}
         />
-        {isPassword && (
-          <button
-            onClick={onToggleShow}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-500/10 transition-all"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              {showPassword ? <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /> : <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />}
-            </svg>
-          </button>
-        )}
-        {/* Subtle glow on hover */}
-        <div className="absolute inset-x-0 bottom-0 h-[1px] bg-blue-500 opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+          {isPassword ? (
+            <button
+              onClick={onToggleShow}
+              className={`p-2 rounded-xl transition-all ${tv(isDark, 'text-gray-400 hover:text-blue-600 hover:bg-blue-50', 'text-zinc-500 hover:text-blue-400 hover:bg-white/5')}`}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                {showPassword ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.43 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                )}
+              </svg>
+            </button>
+          ) : (
+            <button
+              onClick={handleCopy}
+              className={`p-2 rounded-xl transition-all flex items-center gap-1.5 ${copied ? 'text-emerald-500' : tv(isDark, 'text-gray-400 hover:text-blue-600 hover:bg-blue-50', 'text-zinc-500 hover:text-blue-400 hover:bg-white/5')}`}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                {copied ? <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /> : <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />}
+              </svg>
+              {copied && <span className="text-[9px] font-black uppercase tracking-tighter mr-1">Listo</span>}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

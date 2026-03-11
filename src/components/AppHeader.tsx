@@ -75,20 +75,20 @@ export function AppHeader({ isDark, view, setView, user, onLogout, adminLogged }
               </svg>
             </button>
 
-            {/* User section (Desktop y Tablets) */}
+            {/* User section (Siempre Visible) */}
             {user ? (
-              <div className="relative hidden sm:block" ref={dropdownRef}>
+              <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen(o => !o)}
-                  className={`flex items-center gap-2 sm:gap-3 pl-1 pr-2 sm:pr-3 py-1 rounded-xl sm:rounded-2xl transition-all duration-300 border ${dropdownOpen
+                  className={`flex items-center gap-1 sm:gap-3 p-1 sm:pl-1 sm:pr-3 sm:py-1 rounded-xl sm:rounded-2xl transition-all duration-300 border ${dropdownOpen
                     ? tv(isDark, 'bg-blue-50 border-blue-200', 'bg-white/10 border-white/20')
                     : tv(isDark, 'bg-white border-gray-100', 'bg-slate-800/40 border-white/5 hover:bg-slate-800/60')
                     }`}
                 >
-                  <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-[10px] sm:rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-[10px] sm:text-xs font-black shadow-lg">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-[10px] sm:rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-[10px] sm:text-xs font-black shadow-lg flex-shrink-0">
                     {userInitial}
                   </div>
-                  <div className="flex items-center gap-1 sm:gap-2">
+                  <div className="hidden sm:flex items-center gap-1 sm:gap-2">
                     <span className={`text-[11px] sm:text-sm font-bold tracking-tight max-w-[60px] sm:max-w-none truncate ${tv(isDark, 'text-gray-900', 'text-white')}`}>
                       {user.name?.split(' ')[0] || 'Mi Cuenta'}
                     </span>
