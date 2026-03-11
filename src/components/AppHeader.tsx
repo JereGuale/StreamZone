@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { tv } from '../utils/helpers';
-import { UserMenuDrawer } from './UserMenuDrawer';
 import { Logo } from './Logo';
 
 interface AppHeaderProps {
@@ -14,7 +13,6 @@ interface AppHeaderProps {
 
 export function AppHeader({ isDark, view, setView, user, onLogout, adminLogged }: AppHeaderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
