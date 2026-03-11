@@ -66,11 +66,11 @@ export function AppHeader({ isDark, view, setView, user, onLogout, adminLogged }
             {/* Inicio Button */}
             <button
               onClick={() => setView('home')}
-              className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 shadow-lg flex-shrink-0 ${view === 'home'
+              className={`w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-2xl flex items-center justify-center transition-all duration-300 shadow-lg flex-shrink-0 ${view === 'home'
                 ? 'bg-blue-600 text-white shadow-blue-600/30'
                 : tv(isDark, 'bg-white border text-gray-500', 'bg-slate-800/50 border border-white/5 text-gray-400 hover:text-white')}`}
             >
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <svg className="w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
             </button>
@@ -85,7 +85,7 @@ export function AppHeader({ isDark, view, setView, user, onLogout, adminLogged }
                     : tv(isDark, 'bg-white border-gray-100', 'bg-slate-800/40 border-white/5 hover:bg-slate-800/60')
                     }`}
                 >
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-[10px] sm:rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-[10px] sm:text-xs font-black shadow-lg flex-shrink-0">
+                  <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-[9px] sm:text-xs font-black shadow-lg flex-shrink-0">
                     {userInitial}
                   </div>
                   <div className="hidden sm:flex items-center gap-1 sm:gap-2">
@@ -141,15 +141,15 @@ export function AppHeader({ isDark, view, setView, user, onLogout, adminLogged }
             {adminLogged && (
               <button
                 onClick={() => setView('admin')}
-                className={`flex flex-shrink-0 items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl transition-all duration-300 border ${view === 'admin'
+                className={`flex flex-shrink-0 items-center justify-center w-8 h-8 sm:w-auto sm:px-4 sm:py-2 rounded-lg sm:rounded-2xl transition-all duration-300 border ${view === 'admin'
                   ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-600/20'
                   : tv(isDark, 'bg-white border-gray-100 text-gray-500', 'bg-slate-800/40 border-white/5 text-gray-400 hover:text-white')}`}
               >
-                <svg className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 ${view === 'admin' ? 'text-white' : 'text-purple-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <svg className={`w-3.5 h-3.5 sm:w-5 sm:h-5 flex-shrink-0 ${view === 'admin' ? 'text-white' : 'text-purple-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="hidden sm:block text-[11px] sm:text-sm font-bold truncate">Admin</span>
+                <span className="hidden sm:block text-sm font-bold truncate">Admin</span>
               </button>
             )}
 
