@@ -51,11 +51,14 @@ export function UserProfile({ isDark, user, purchases, onToggleValidate, onDelet
                 </div>
 
                 <div>
-                  <h1 className={`text-3xl sm:text-4xl font-black mb-2 tracking-tight ${isDark ? 'text-white' : 'text-gray-950'}`}>
+                  <h1 className={`text-3xl sm:text-4xl font-black mb-1 tracking-tight ${isDark ? 'text-white' : 'text-gray-950'}`}>
                     {user.name} <span className="text-blue-500 text-2xl">👤</span>
                   </h1>
-                  <p className={`text-base font-bold ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Bienvenido a tu zona de entretenimiento premium
+                  <p className={`text-base font-bold mb-1 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                    {user.email || user.phone}
+                  </p>
+                  <p className={`text-xs font-bold opacity-60 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Zona de entretenimiento premium
                   </p>
                 </div>
               </div>
@@ -68,32 +71,6 @@ export function UserProfile({ isDark, user, purchases, onToggleValidate, onDelet
               </button>
             </div>
           </div>
-        </div>
-
-        {/* Info Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-12">
-          {[
-            { label: 'Nombre Completo', value: user.name, icon: '👤' },
-            { label: 'WhatsApp / Usuario', value: user.phone, icon: '📱' },
-            { label: 'Correo Electrónico', value: user.email || 'No proporcionado', icon: '📧' },
-            { label: 'Miembro Activo desde', value: new Date().toLocaleDateString('es-ES'), icon: '📅' }
-          ].map((item, i) => (
-            <div key={i} className={`p-6 rounded-[32px] border transition-all duration-300 ${isDark ? 'bg-[#1e293b]/40 border-white/5' : 'bg-white border-gray-200'
-              }`}>
-              <div className="flex items-center gap-4 mb-3">
-                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xl shadow-lg ${isDark ? 'bg-gray-800' : 'bg-gray-50'
-                  }`}>
-                  {item.icon}
-                </div>
-                <span className={`text-xs font-black uppercase tracking-widest ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                  {item.label}
-                </span>
-              </div>
-              <p className={`text-lg font-black truncate ${isDark ? 'text-white' : 'text-gray-950'}`}>
-                {item.value}
-              </p>
-            </div>
-          ))}
         </div>
 
         {/* Mis Compras Activas */}
