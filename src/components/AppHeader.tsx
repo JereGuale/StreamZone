@@ -82,7 +82,7 @@ export function AppHeader({ isDark, view, setView, user, onLogout, adminLogged, 
                   if (user) {
                     setDropdownOpen(o => !o);
                   } else {
-                    setView('profile');
+                    setView('auth');
                   }
                 }}
                 className={`flex flex-shrink-0 items-center gap-1 p-1 rounded-lg transition-all duration-300 border ${dropdownOpen && user
@@ -95,9 +95,9 @@ export function AppHeader({ isDark, view, setView, user, onLogout, adminLogged, 
                     {userInitial}
                   </div>
                 ) : (
-                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center text-white shadow-lg flex-shrink-0">
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white shadow-lg flex-shrink-0">
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                     </svg>
                   </div>
                 )}

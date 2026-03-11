@@ -295,11 +295,13 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
               </svg>
             </button>
 
-            {/* Marcador de Validada (Admin solamente) */}
+            {/* Marcador de Estado (Admin solamente) */}
             {showAdminActions && (
-              <div className={`hidden sm:flex px-3 py-1.5 rounded-lg font-bold tracking-widest uppercase items-center gap-1.5 text-[9px] shadow-sm border ${tv(isDark, 'bg-emerald-50 text-emerald-600 border-emerald-100', 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20')}`}>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                Validada
+              <div className={`hidden sm:flex px-3 py-1.5 rounded-lg font-bold tracking-widest uppercase items-center gap-1.5 text-[9px] shadow-sm border ${days < 0
+                ? tv(isDark, 'bg-red-50 text-red-600 border-red-100', 'bg-red-500/10 text-red-500 border-red-500/20')
+                : tv(isDark, 'bg-emerald-50 text-emerald-600 border-emerald-100', 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20')}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${days < 0 ? 'bg-red-500' : 'bg-emerald-500 animate-pulse'}`}></span>
+                {days < 0 ? 'Vencida' : 'Activa'}
               </div>
             )}
           </div>
@@ -421,12 +423,14 @@ export function PurchaseCard({ item, isDark, onToggleValidate, onDelete, onEdit,
             <div className="mt-4 flex flex-wrap items-center justify-start gap-2.5">
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleValidate(); }}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black transition-all shadow-lg shadow-blue-600/20 active:scale-95"
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-white text-xs font-black transition-all shadow-lg active:scale-95 ${days < 0
+                  ? 'bg-red-600 hover:bg-red-700 shadow-red-600/20'
+                  : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'}`}
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                Validada
+                {days < 0 ? 'Vencida' : 'Activa'}
               </button>
 
               <button
