@@ -61,7 +61,7 @@ export function ReserveForm({ service, onClose, onAddPurchase, isDark, user }: R
       </div>
 
       {/* Información del servicio */}
-      <div className={`p-4 rounded-xl ${tv(isDark,'bg-blue-50 border border-blue-200','bg-blue-900/20 border border-blue-400/30')}`}>
+      <div className={`p-4 rounded-xl ${tv(isDark, 'bg-blue-50 border border-blue-200', 'bg-blue-900/20 border border-blue-400/30')}`}>
         <div className="flex items-center gap-3">
           <div className={`h-16 w-16 ${service.color} rounded-xl text-white flex items-center justify-center text-2xl font-bold`}>
             {service.logo}
@@ -77,9 +77,9 @@ export function ReserveForm({ service, onClose, onAddPurchase, isDark, user }: R
 
       {/* Duración */}
       <div>
-        <label className={tv(isDark,'text-sm text-zinc-800','text-sm text-zinc-300')}>Duración (meses)</label>
+        <label className={tv(isDark, 'text-sm text-zinc-800', 'text-sm text-zinc-300')}>Duración (meses)</label>
         <select
-          className={`w-full rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`}
+          className={`w-full rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark, 'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200', 'border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`}
           value={months}
           onChange={e => setMonths(Number(e.target.value))}
         >
@@ -92,9 +92,9 @@ export function ReserveForm({ service, onClose, onAddPurchase, isDark, user }: R
 
       {/* Método de pago */}
       <div>
-        <label className={tv(isDark,'text-sm text-zinc-800','text-sm text-zinc-300')}>Método de pago</label>
+        <label className={tv(isDark, 'text-sm text-zinc-800', 'text-sm text-zinc-300')}>Método de pago</label>
         <select
-          className={`w-full rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`}
+          className={`w-full rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark, 'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200', 'border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`}
           value={paymentMethod}
           onChange={e => setPaymentMethod(e.target.value)}
         >
@@ -108,9 +108,9 @@ export function ReserveForm({ service, onClose, onAddPurchase, isDark, user }: R
 
       {/* Notas */}
       <div>
-        <label className={tv(isDark,'text-sm text-zinc-800','text-sm text-zinc-300')}>Notas adicionales (opcional)</label>
+        <label className={tv(isDark, 'text-sm text-zinc-800', 'text-sm text-zinc-300')}>Notas adicionales (opcional)</label>
         <textarea
-          className={`w-full rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark,'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200','border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`}
+          className={`w-full rounded-xl border-2 px-4 py-3 shadow-sm transition-all focus:outline-none focus:ring-2 ${tv(isDark, 'border-gray-400 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-200', 'border-gray-500 bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-800/20')}`}
           value={notes}
           onChange={e => setNotes(e.target.value)}
           placeholder="Información adicional..."
@@ -119,7 +119,7 @@ export function ReserveForm({ service, onClose, onAddPurchase, isDark, user }: R
       </div>
 
       {/* Resumen */}
-      <div className={`p-4 rounded-xl ${tv(isDark,'bg-green-50 border border-green-200','bg-green-900/20 border border-green-400/30')}`}>
+      <div className={`p-4 rounded-xl ${tv(isDark, 'bg-green-50 border border-green-200', 'bg-green-900/20 border border-green-400/30')}`}>
         <h4 className="font-semibold mb-2">💰 Resumen de la compra</h4>
         <div className="space-y-1 text-sm">
           <div className="flex justify-between">
@@ -150,14 +150,14 @@ export function ReserveForm({ service, onClose, onAddPurchase, isDark, user }: R
       <div className="flex gap-3">
         <button
           onClick={onClose}
-          className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${tv(isDark,'bg-gray-200 text-gray-800 hover:bg-gray-300','bg-gray-700 text-gray-200 hover:bg-gray-600')}`}
+          className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${tv(isDark, 'bg-gray-200 text-gray-800 hover:bg-gray-300', 'bg-gray-700 text-gray-200 hover:bg-gray-600')}`}
         >
           Cancelar
         </button>
         <button
           onClick={confirm}
           disabled={loading}
-          className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${tv(isDark,'bg-blue-600 text-white hover:bg-blue-700','bg-blue-500 text-white hover:bg-blue-600')}`}
+          className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${tv(isDark, 'bg-blue-600 text-white hover:bg-blue-700', 'bg-blue-500 text-white hover:bg-blue-600')}`}
         >
           {loading ? '⏳ Procesando...' : '✅ Confirmar Reserva'}
         </button>
